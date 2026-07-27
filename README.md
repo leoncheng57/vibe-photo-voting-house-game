@@ -13,6 +13,7 @@ The frontend is React, TypeScript, and Vite on GitHub Pages. Supabase provides a
 - 3-2-1 podium scoring with competition ranking for ties
 - Informational, device-local configurable timer
 - Built-in tutorial walkthrough for first-time guests
+- System architecture and database schema reference page
 - Anonymous photographer names during voting
 - TV mode with QR join code, keyboard navigation, and result reveal
 - Responsive layout for phones, laptops, and large televisions
