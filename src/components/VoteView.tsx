@@ -25,17 +25,18 @@ export function VoteView({ challenges, userId, refreshToken, onChanged }: Props)
         if (!current) return
         setSubmissions(photos)
         setSelected(votes)
-        setSaved(votes.length === 3)
+        setSaved(photos.length > 0 && votes.length === Math.min(3, photos.length))
       })
       .catch((error: Error) => { if (current) setMessage(error.message) })
     return () => { current = false }
   }, [challengeId, userId, refreshToken])
 
   function toggle(id: string) {
+    const requiredVotes = Math.min(3, submissions.length)
     setSaved(false)
     setSelected((current) => current.includes(id)
       ? current.filter((item) => item !== id)
-      : current.length < 3 ? [...current, id] : current)
+      : current.length < requiredVotes ? [...current, id] : current)
   }
 
   async function saveVotes() {
@@ -44,7 +45,7 @@ export function VoteView({ challenges, userId, refreshToken, onChanged }: Props)
     try {
       await submitVotes(challengeId, selected)
       setSaved(true)
-      setMessage('Three votes locked in. You can still change them later.')
+      setMessage(`${selected.length === 1 ? 'Vote' : 'Votes'} locked in. You can still change them later.`)
       onChanged()
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Could not save votes.')
@@ -54,15 +55,16 @@ export function VoteView({ challenges, userId, refreshToken, onChanged }: Props)
   }
 
   const challenge = challenges.find((item) => item.id === challengeId)
+  const requiredVotes = Math.min(3, submissions.length)
 
   return (
     <div>
       <header className="section-heading section-heading--vote">
         <div>
           <span className="eyebrow">02 / Choose your favorites</span>
-          <h2>Three votes.<br />Make them count.</h2>
+          <h2>Up to three.<br />Make them count.</h2>
         </div>
-        <p>Pick three different photos in every challenge. Your own photo is fair game.</p>
+        <p>Choose every available photo until there are three, then pick your three favorites. Your own photo is fair game.</p>
       </header>
 
       <div className="challenge-tabs" aria-label="Choose a challenge">
@@ -82,17 +84,17 @@ export function VoteView({ challenges, userId, refreshToken, onChanged }: Props)
           <span className="eyebrow">Now voting</span>
           <h3>{challenge?.title}</h3>
         </div>
-        <strong>{selected.length}<small>/3 selected</small></strong>
-        <button className="button button--dark" disabled={selected.length !== 3 || busy} onClick={saveVotes}>
-          {busy ? 'Saving…' : saved ? 'Votes saved' : 'Confirm 3 votes'}
+        <strong>{selected.length}<small>/{requiredVotes} selected</small></strong>
+        <button className="button button--dark" disabled={requiredVotes === 0 || selected.length !== requiredVotes || busy} onClick={saveVotes}>
+          {busy ? 'Saving…' : saved ? 'Votes saved' : `Confirm ${requiredVotes} ${requiredVotes === 1 ? 'vote' : 'votes'}`}
         </button>
       </div>
 
       {message && <div className="notice" role="status">{message}</div>}
-      {submissions.length < 3 ? (
+      {submissions.length === 0 ? (
         <div className="empty-state">
-          <strong>Not enough photos yet.</strong>
-          <p>This challenge needs at least three submissions before anyone can vote.</p>
+          <strong>No photos yet.</strong>
+          <p>The first submission will appear here immediately.</p>
         </div>
       ) : (
         <div className="photo-grid photo-grid--vote">

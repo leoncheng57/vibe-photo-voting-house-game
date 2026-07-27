@@ -23,8 +23,8 @@ const steps = [
   },
   {
     number: '04',
-    title: 'Choose exactly three',
-    copy: 'On your phone, select three different favorites for the challenge and confirm. Every choice is worth one vote.',
+    title: 'Choose up to three',
+    copy: 'Choose every available photo until there are three, then select your three favorites. Every choice is worth one vote.',
     note: 'Voting for your own masterpiece is completely allowed.',
   },
   {
@@ -66,14 +66,14 @@ export function Tutorial({ onBack }: Props) {
         <ul>
           <li><b>6</b><span>photo challenges</span></li>
           <li><b>1</b><span>entry per person per challenge</span></li>
-          <li><b>3</b><span>equal votes per voting round</span></li>
+          <li><b>3 max</b><span>equal votes per voting round</span></li>
           <li><b>3·2·1</b><span>podium points</span></li>
         </ul>
       </section>
 
       <section className="tutorial-tv-tip">
         <span>Big-screen tip</span>
-        <p>Open <b>TV mode</b>, use the left and right arrow keys to switch challenges, and press <b>Reveal results</b> after everyone confirms their three votes.</p>
+        <p>Open <b>TV mode</b>, use the left and right arrow keys to switch challenges, and press <b>Reveal results</b> after everyone confirms their ballot.</p>
       </section>
     </div>
   )

@@ -180,18 +180,30 @@ set search_path = public
 as $$
 declare
   current_user_id uuid := auth.uid();
+  available_count integer;
+  required_count integer;
   valid_count integer;
 begin
   if current_user_id is null then
     raise exception 'You must be signed in';
   end if;
 
-  if cardinality(selected_submission_ids) <> 3 then
-    raise exception 'Choose exactly three different photos';
+  select count(*) into available_count
+  from public.submissions
+  where challenge_id = selected_challenge_id;
+
+  required_count := least(3, available_count);
+
+  if required_count = 0 then
+    raise exception 'This challenge has no photos';
   end if;
 
-  if (select count(distinct item) from unnest(selected_submission_ids) item) <> 3 then
-    raise exception 'Choose exactly three different photos';
+  if cardinality(selected_submission_ids) <> required_count then
+    raise exception 'Choose % different photo(s)', required_count;
+  end if;
+
+  if (select count(distinct item) from unnest(selected_submission_ids) item) <> required_count then
+    raise exception 'Choose % different photo(s)', required_count;
   end if;
 
   select count(*) into valid_count
@@ -199,7 +211,7 @@ begin
   where challenge_id = selected_challenge_id
     and id = any(selected_submission_ids);
 
-  if valid_count <> 3 then
+  if valid_count <> required_count then
     raise exception 'Every photo must belong to this challenge';
   end if;
 

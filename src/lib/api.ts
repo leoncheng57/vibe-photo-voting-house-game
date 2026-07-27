@@ -37,6 +37,17 @@ export async function createProfile(userId: string, displayName: string): Promis
   return data
 }
 
+export async function updateProfile(userId: string, displayName: string): Promise<Profile> {
+  const { data, error } = await client()
+    .from('profiles')
+    .update({ display_name: displayName.trim() })
+    .eq('user_id', userId)
+    .select('user_id, display_name')
+    .single()
+  if (error) throw error
+  return data
+}
+
 export async function getChallenges(): Promise<Challenge[]> {
   const { data, error } = await client()
     .from('challenges')
