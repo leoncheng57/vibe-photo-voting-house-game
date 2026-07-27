@@ -20,6 +20,11 @@ const navItems: Array<{ id: View; label: string }> = [
   { id: 'display', label: 'TV mode' },
 ]
 
+const appRoot = import.meta.env.BASE_URL
+const homeUrl = `${appRoot}home/`
+const systemUrl = `${appRoot}developer/system/`
+const isHomeEntry = location.pathname.startsWith(homeUrl)
+
 function SetupRequired({ onTutorial, onPalette }: { onTutorial: () => void; onPalette: () => void }) {
   return (
     <main className="setup-page">
@@ -39,8 +44,8 @@ function SetupRequired({ onTutorial, onPalette }: { onTutorial: () => void; onPa
   )
 }
 
-function JoinForm({ user, onJoined, onTutorial }: { user: User; onJoined: (profile: Profile) => void; onTutorial: () => void }) {
-  const [name, setName] = useState('')
+function JoinForm({ user, profile, onJoined, onTutorial }: { user: User; profile?: Profile; onJoined: (profile: Profile) => void; onTutorial: () => void }) {
+  const [name, setName] = useState(profile?.display_name ?? '')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
@@ -50,7 +55,7 @@ function JoinForm({ user, onJoined, onTutorial }: { user: User; onJoined: (profi
     setBusy(true)
     setError('')
     try {
-      onJoined(await createProfile(user.id, name))
+      onJoined(profile ? await updateProfile(user.id, name) : await createProfile(user.id, name))
     } catch (reason) {
       const message = reason instanceof Error ? reason.message : 'Could not join.'
       setError(message.includes('profiles_display_name_unique') ? 'That name is already taken.' : message)
@@ -74,7 +79,7 @@ function JoinForm({ user, onJoined, onTutorial }: { user: User; onJoined: (profi
           <label htmlFor="name">What should we call you?</label>
           <div>
             <input id="name" maxLength={24} value={name} onChange={(event) => setName(event.target.value)} placeholder="Your name" autoFocus />
-            <button className="button button--dark" disabled={busy || name.trim().length < 2}>{busy ? 'Joining…' : 'Enter the house →'}</button>
+            <button className="button button--dark" disabled={busy || name.trim().length < 2}>{busy ? 'Saving…' : profile ? 'Save & enter →' : 'Enter the house →'}</button>
           </div>
           <button className="join-card__tutorial" type="button" onClick={onTutorial}>New here? See how to play →</button>
           {error && <p className="form-error">{error}</p>}
@@ -150,7 +155,9 @@ export default function App() {
   if (error) return <main className="error-page"><h1>Couldn’t open the party.</h1><p>{error}</p><button className="button" onClick={() => location.reload()}>Try again</button></main>
   if (user && !profile && view === 'tutorial') return <main className="public-tutorial"><Tutorial onBack={() => setView('challenges')} /></main>
   if (user && !profile && view === 'palette') return <main className="public-palette"><Palette onBack={() => setView('challenges')} /></main>
-  if (user && !profile) return <JoinForm user={user} onJoined={setProfile} onTutorial={() => setView('tutorial')} />
+  if (user && profile && !isHomeEntry && view === 'tutorial') return <main className="public-tutorial"><Tutorial onBack={() => setView('challenges')} /></main>
+  if (user && profile && !isHomeEntry) return <JoinForm user={user} profile={profile} onJoined={(nextProfile) => { setProfile(nextProfile); location.assign(homeUrl) }} onTutorial={() => setView('tutorial')} />
+  if (user && !profile) return <JoinForm user={user} onJoined={(nextProfile) => { setProfile(nextProfile); if (!isHomeEntry) location.assign(homeUrl) }} onTutorial={() => setView('tutorial')} />
   if (!user || !profile) return null
   const currentUser = user
   const currentProfile = profile
@@ -184,11 +191,12 @@ export default function App() {
   return (
     <div className="app-shell">
       <header className="site-header">
-        <button className="brand brand--button" onClick={() => setView('challenges')}><b>HOUSE</b><span>PHOTO HUNT</span></button>
+        <a className="brand brand--button" href={appRoot}><b>HOUSE</b><span>PHOTO HUNT</span></a>
         <nav>
           {navItems.map((item) => (
             <button key={item.id} className={view === item.id ? 'active' : ''} onClick={() => setView(item.id)}>{item.label}</button>
           ))}
+          <a href={systemUrl}>System</a>
         </nav>
         <button className="player-chip" onClick={openNameEditor}><span>Playing as · change</span><strong>{profile.display_name}</strong></button>
       </header>
@@ -206,6 +214,7 @@ export default function App() {
         {navItems.map((item) => (
           <button key={item.id} className={view === item.id ? 'active' : ''} onClick={() => setView(item.id)}>{item.label}</button>
         ))}
+        <a href={systemUrl}>System</a>
       </nav>
 
       {editingName && (

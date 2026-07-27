@@ -1,48 +1,56 @@
-const tables = [
+const schemaNodes = [
   {
     name: 'profiles',
+    namespace: 'public',
     description: 'Party identity associated with an anonymous Auth user.',
-    constraints: 'PK (user_id), UNIQUE (lower(trim(display_name)))',
+    position: { left: 420, top: 40, width: 340 },
+    constraints: ['UNIQUE (lower(trim(display_name)))'],
     fields: [
-      ['user_id', 'uuid', 'NOT NULL', 'FK → auth.users.id ON DELETE CASCADE'],
-      ['display_name', 'text', 'NOT NULL', '2–24 trimmed characters'],
-      ['created_at', 'timestamptz', 'NOT NULL', 'DEFAULT now()'],
+      { name: 'user_id', type: 'uuid', flags: ['PK', 'FK'] },
+      { name: 'display_name', type: 'text', flags: ['UQ'] },
+      { name: 'created_at', type: 'timestamptz', flags: [] },
     ],
   },
   {
     name: 'challenges',
+    namespace: 'public',
     description: 'Ordered catalog of six photo prompts.',
-    constraints: 'PK (id), UNIQUE (slug), UNIQUE (sort_order)',
+    position: { left: 800, top: 320, width: 340 },
+    constraints: [],
     fields: [
-      ['id', 'smallint', 'NOT NULL', 'Primary key'],
-      ['slug', 'text', 'NOT NULL', 'Stable identifier'],
-      ['title', 'text', 'NOT NULL', 'Display title'],
-      ['prompt', 'text', 'NOT NULL', 'Challenge instructions'],
-      ['kicker', 'text', 'NOT NULL', 'Short display copy'],
-      ['sort_order', 'smallint', 'NOT NULL', 'Presentation order'],
+      { name: 'id', type: 'int2', flags: ['PK'] },
+      { name: 'slug', type: 'text', flags: ['UQ'] },
+      { name: 'title', type: 'text', flags: [] },
+      { name: 'prompt', type: 'text', flags: [] },
+      { name: 'kicker', type: 'text', flags: [] },
+      { name: 'sort_order', type: 'int2', flags: ['UQ'] },
     ],
   },
   {
     name: 'submissions',
+    namespace: 'public',
     description: 'Single active photo submitted by a user to a challenge.',
-    constraints: 'PK (id), UNIQUE (challenge_id, user_id), UNIQUE (storage_path)',
+    position: { left: 40, top: 280, width: 360 },
+    constraints: ['UNIQUE (challenge_id, user_id)', 'UNIQUE (id, challenge_id)'],
     fields: [
-      ['id', 'uuid', 'NOT NULL', 'DEFAULT gen_random_uuid()'],
-      ['challenge_id', 'smallint', 'NOT NULL', 'FK → challenges.id'],
-      ['user_id', 'uuid', 'NOT NULL', 'FK → profiles.user_id ON DELETE CASCADE'],
-      ['storage_path', 'text', 'NOT NULL', '{user_id}/{challenge_id}.jpg'],
-      ['created_at', 'timestamptz', 'NOT NULL', 'DEFAULT now()'],
+      { name: 'id', type: 'uuid', flags: ['PK'] },
+      { name: 'challenge_id', type: 'int2', flags: ['FK'] },
+      { name: 'user_id', type: 'uuid', flags: ['FK'] },
+      { name: 'storage_path', type: 'text', flags: ['UQ'] },
+      { name: 'created_at', type: 'timestamptz', flags: [] },
     ],
   },
   {
     name: 'votes',
+    namespace: 'public',
     description: 'One selected submission within a voter’s three-choice ballot.',
-    constraints: 'PK (voter_id, challenge_id, submission_id)',
+    position: { left: 430, top: 590, width: 350 },
+    constraints: ['PK (voter_id, challenge_id, submission_id)', 'FK (submission_id, challenge_id)'],
     fields: [
-      ['voter_id', 'uuid', 'NOT NULL', 'FK → profiles.user_id ON DELETE CASCADE'],
-      ['challenge_id', 'smallint', 'NOT NULL', 'FK → challenges.id'],
-      ['submission_id', 'uuid', 'NOT NULL', 'Composite FK → submissions'],
-      ['created_at', 'timestamptz', 'NOT NULL', 'DEFAULT now()'],
+      { name: 'voter_id', type: 'uuid', flags: ['PK', 'FK'] },
+      { name: 'challenge_id', type: 'int2', flags: ['PK', 'FK'] },
+      { name: 'submission_id', type: 'uuid', flags: ['PK', 'FK'] },
+      { name: 'created_at', type: 'timestamptz', flags: [] },
     ],
   },
 ]
@@ -118,25 +126,68 @@ export function SystemDiagram() {
       </section>
 
       <section className="dev-section" id="schema">
-        <header><span>03</span><div><h2>Relational Data Model</h2><p>PostgreSQL tables in the public schema and their Auth dependency.</p></div></header>
-        <pre className="dev-diagram dev-diagram--compact">{`auth.users  1 ───── 1  profiles  1 ───── N  submissions  N ───── 1  challenges
-                          │                      │                         │
-                          │ 1                    │ N                       │ 1
-                          └──────── N  votes  N ─┴─────────────────────────┘
+        <header><span>03</span><div><h2>Relational Data Model</h2><p>PostgreSQL tables and their Supabase Auth and Storage dependencies.</p></div></header>
+        <div className="erd-scroll" tabIndex={0} aria-label="Scrollable entity relationship diagram">
+          <figure className="erd-canvas">
+            <figcaption className="visually-hidden">Relationships among Auth, public database tables, and the private photos storage bucket.</figcaption>
+            <ul className="visually-hidden">
+              <li>profiles.user_id references auth.users.id.</li>
+              <li>submissions.user_id references profiles.user_id.</li>
+              <li>submissions.challenge_id references challenges.id.</li>
+              <li>votes.voter_id references profiles.user_id.</li>
+              <li>votes.challenge_id references challenges.id.</li>
+              <li>votes submission_id and challenge_id reference submissions id and challenge_id.</li>
+              <li>submissions.storage_path identifies an object in the private photos storage bucket.</li>
+            </ul>
+            <svg className="erd-links" viewBox="0 0 1180 880" aria-hidden="true">
+              <path d="M 760 104 H 900" />
+              <path d="M 420 104 H 370 V 416 H 400" />
+              <path d="M 590 230 V 590" />
+              <path d="M 400 380 H 660 V 358 H 800" />
+              <path d="M 780 706 H 820 V 358 H 800" />
+              <path d="M 400 344 H 465 V 668 H 430" />
+              <path d="M 400 452 H 810 V 482 H 800" />
+              <path className="erd-links__storage" d="M 220 488 V 690" />
+            </svg>
 
-votes.(submission_id, challenge_id) → submissions.(id, challenge_id)`}</pre>
-        <div className="dev-schema-list">
-          {tables.map((table) => (
-            <article key={table.name}>
-              <header><div><code>public.{table.name}</code><p>{table.description}</p></div><small>{table.constraints}</small></header>
-              <div className="dev-table-wrap">
-                <table className="dev-table dev-table--schema">
-                  <thead><tr><th>Column</th><th>Type</th><th>Nullability</th><th>Constraint / semantic</th></tr></thead>
-                  <tbody>{table.fields.map((field) => <tr key={field[0]}>{field.map((cell, index) => <td key={cell}>{index === 0 ? <code>{cell}</code> : cell}</td>)}</tr>)}</tbody>
-                </table>
-              </div>
+            {schemaNodes.map((node) => (
+              <article className="erd-card" key={node.name} style={node.position} aria-label={`${node.namespace}.${node.name}: ${node.description}`}>
+                <header><span className="erd-table-icon" aria-hidden="true" /><div><small>{node.namespace}</small><h3>{node.name}</h3></div></header>
+                <ul>
+                  {node.fields.map((field) => (
+                    <li key={field.name}>
+                      <span className="erd-markers">
+                        {field.flags.map((flag) => <abbr key={flag} className={`erd-flag erd-flag--${flag.toLowerCase()}`} title={flag === 'PK' ? 'Primary key' : flag === 'FK' ? 'Foreign key' : 'Unique'}>{flag}</abbr>)}
+                        <i className="erd-required" title="Non-nullable" />
+                      </span>
+                      <code>{field.name}</code>
+                      <span>{field.type}</span>
+                    </li>
+                  ))}
+                </ul>
+                {node.constraints.length > 0 && <footer>{node.constraints.map((constraint) => <code key={constraint}>{constraint}</code>)}</footer>}
+              </article>
+            ))}
+
+            <article className="erd-card erd-card--external erd-auth" aria-label="Supabase Auth users table">
+              <header><span className="erd-table-icon" aria-hidden="true" /><div><small>auth</small><h3>users</h3></div></header>
+              <ul><li><span className="erd-markers"><abbr className="erd-flag erd-flag--pk" title="Primary key">PK</abbr><i className="erd-required" title="Non-nullable" /></span><code>id</code><span>uuid</span></li></ul>
             </article>
-          ))}
+
+            <article className="erd-card erd-card--storage erd-storage" aria-label="Private Supabase Storage photos bucket">
+              <header><span className="erd-bucket-icon" aria-hidden="true" /><div><small>storage</small><h3>photos</h3></div><b>PRIVATE</b></header>
+              <p>Supabase-managed, S3-like object storage containing the actual JPEG bytes.</p>
+              <dl><div><dt>object key</dt><dd><code>{'{user_id}/{challenge_id}.jpg'}</code></dd></div><div><dt>database reference</dt><dd><code>submissions.storage_path</code></dd></div></dl>
+            </article>
+
+            <div className="erd-legend" aria-label="Diagram legend">
+              <span><abbr className="erd-flag erd-flag--pk">PK</abbr> Primary key</span>
+              <span><abbr className="erd-flag erd-flag--fk">FK</abbr> Foreign key</span>
+              <span><abbr className="erd-flag erd-flag--uq">UQ</abbr> Unique</span>
+              <span><i className="erd-required" /> Non-nullable</span>
+              <span><i className="erd-line-sample" /> Relationship</span>
+            </div>
+          </figure>
         </div>
       </section>
 
