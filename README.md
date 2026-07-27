@@ -4,6 +4,19 @@ A mobile-first housewarming photo challenge with anonymous guest profiles, direc
 
 The frontend is React, TypeScript, and Vite on GitHub Pages. Supabase provides anonymous authentication, PostgreSQL, private photo storage, and realtime updates. No application server or Vercel deployment is required.
 
+## Screenshots
+
+### Guest experience
+
+<p align="center">
+  <img src="docs/images/challenges-mobile.png" width="320" alt="Mobile challenge list showing photo prompts and upload controls">
+  <img src="docs/images/voting-mobile.png" width="320" alt="Mobile voting view showing the anonymous photo selection experience">
+</p>
+
+### TV mode
+
+![Desktop TV mode showing a challenge presentation and QR join code](docs/images/tv-mode-desktop.png)
+
 ## Features
 
 - Six included housewarming photo challenges
@@ -22,7 +35,10 @@ The frontend is React, TypeScript, and Vite on GitHub Pages. Supabase provides a
 
 1. Create a project on [Supabase](https://supabase.com/).
 2. Open **Authentication > Providers > Anonymous Sign-Ins** and enable anonymous sign-ins.
-3. Open the SQL Editor and run `supabase/migrations/001_initial.sql` once.
+3. Open the SQL Editor and run each migration once, in numeric order:
+   - `supabase/migrations/001_initial.sql`
+   - `supabase/migrations/002_remove_challenges.sql`
+   - `supabase/migrations/003_flexible_vote_count.sql`
 4. Open **Project Settings > API** and copy the project URL and publishable key.
 5. Copy `.env.example` to `.env` and fill in those two public values:
 
@@ -50,6 +66,8 @@ npm run lint
 npm run build
 ```
 
+See [`SCREENSHOT_CAPTURE_PLAN.md`](SCREENSHOT_CAPTURE_PLAN.md) for the privacy-safe, automated README screenshot workflow.
+
 ## GitHub Pages Deployment
 
 1. In the GitHub repository, open **Settings > Secrets and variables > Actions**.
@@ -75,4 +93,44 @@ Use the left and right arrow keys in TV mode to switch challenges. Press the log
 
 ## Capacity
 
-Supabase Free currently includes 1 GB file storage and 5 GB egress. Photos are converted to JPEG and resized to at most 1800 pixels on their longest side. For a one-night event with a few dozen guests, this should be sufficient; delete old photos in Supabase Storage before reusing the project for another event.
+Supabase Free currently includes 1 GB file storage and 5 GB egress. Photos are converted to JPEG and resized to at most 1800 pixels on their longest side. For a one-night event with a few dozen guests, this should be sufficient. Before reusing the project, follow the coordinated database and Storage cleanup steps below.
+
+## Event Cleanup
+
+Submission records and Storage objects do not delete each other automatically. Do not delete a referenced file from the `photos` bucket by itself: the remaining submission can produce broken photo views while still participating in voting and scoring.
+
+### Remove One Submission
+
+1. Copy the object's complete path from the `photos` bucket. Paths use `{user_id}/{challenge_id}.jpg`.
+2. Confirm exactly one matching submission before deleting anything:
+
+```sql
+select id, challenge_id, user_id, storage_path
+from public.submissions
+where storage_path = '<user-id>/<challenge-id>.jpg';
+```
+
+3. Delete that submission by its exact ID and path. Votes for it cascade automatically:
+
+```sql
+delete from public.submissions
+where id = '<submission-id>'
+  and storage_path = '<user-id>/<challenge-id>.jpg';
+```
+
+4. Delete the same object from **Storage > photos**.
+5. Verify that neither `public.submissions` nor `storage.objects` contains the path.
+
+Delete the database row first. If Storage deletion then fails, retrying leaves only an unreferenced object; deleting Storage first can leave a live submission with a missing image.
+
+### Reset Submissions For Another Event
+
+The following removes all submissions and votes while retaining guest profiles and display names:
+
+```sql
+delete from public.submissions;
+```
+
+Votes cascade from the deleted submissions. After the query succeeds, empty the `photos` bucket in the Supabase Storage dashboard. Verify both systems before starting the next event.
+
+To reset participant names as well, delete `public.profiles` instead; submissions and votes cascade. This does not delete users from Supabase Auth. Empty the `photos` bucket separately.
