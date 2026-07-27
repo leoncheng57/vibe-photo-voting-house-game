@@ -53,6 +53,9 @@ code, pre { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospac
 .progress-lists li > a:hover { background: var(--pool); }
 .progress-lists li b { font: 700 .72rem "SFMono-Regular", Consolas, monospace; }
 .progress-lists li strong { min-width: 0; font-size: .9rem; }
+.issue-summary { display: flex; min-width: 0; flex-wrap: wrap; align-items: center; gap: .35rem .65rem; }
+.issue-labels { display: flex; flex-wrap: wrap; gap: .3rem; }
+.issue-label { border: 1px solid var(--label-color); background: color-mix(in srgb, var(--label-color) 20%, white); padding: .16rem .38rem; font: 800 .55rem "SFMono-Regular", Consolas, monospace; line-height: 1; white-space: nowrap; }
 .progress-lists time { color: #526b87; font: .68rem "SFMono-Regular", Consolas, monospace; white-space: nowrap; }
 .status { display: inline-block; border: 1px solid currentColor; padding: .22rem .4rem; font: 800 .58rem "SFMono-Regular", Consolas, monospace; text-align: center; text-transform: uppercase; }
 .status--open { color: #146c43; background: #c7f0d8; }

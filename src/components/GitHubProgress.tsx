@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type CSSProperties } from 'react'
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { getGitHubProgress, repositoryUrl, type GitHubProgressData } from '../lib/github'
@@ -77,7 +77,27 @@ export function GitHubProgress() {
           <section>
             <header><div><span>Tracker</span><h2>Issues</h2></div><a href={`${repositoryUrl}/issues`}>View all on GitHub ↗</a></header>
             {data.issues.length === 0 ? <p className="progress-empty">No issues found.</p> : (
-              <ol>{data.issues.map((issue) => <li key={issue.number}><a href={issue.html_url}><span className={`status status--${issue.state}`}>{issue.state}</span><b>#{issue.number}</b><strong>{issue.title}</strong><time dateTime={issue.updated_at}>{formatDate(issue.updated_at)}</time></a></li>)}</ol>
+              <ol>{data.issues.map((issue) => (
+                <li key={issue.number}>
+                  <a href={issue.html_url}>
+                    <span className={`status status--${issue.state}`}>{issue.state}</span>
+                    <b>#{issue.number}</b>
+                    <div className="issue-summary">
+                      <strong>{issue.title}</strong>
+                      {issue.labels.length > 0 && <span className="issue-labels">{issue.labels.map((label) => (
+                        <span
+                          className="issue-label"
+                          key={label.name}
+                          style={{ '--label-color': `#${label.color}` } as CSSProperties}
+                        >
+                          {label.name}
+                        </span>
+                      ))}</span>}
+                    </div>
+                    <time dateTime={issue.updated_at}>{formatDate(issue.updated_at)}</time>
+                  </a>
+                </li>
+              ))}</ol>
             )}
           </section>
           <section>

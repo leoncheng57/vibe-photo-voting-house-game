@@ -4,12 +4,18 @@ const rawBase = `https://raw.githubusercontent.com/${repository}/main`
 
 export const repositoryUrl = `https://github.com/${repository}`
 
+export interface GitHubLabel {
+  name: string
+  color: string
+}
+
 export interface GitHubIssue {
   number: number
   title: string
   state: 'open' | 'closed'
   updated_at: string
   html_url: string
+  labels: GitHubLabel[]
   pull_request?: object
 }
 
