@@ -1,6 +1,5 @@
 const colors = [
   { name: 'Deep Navy', value: '#10233D', className: 'palette-swatch--navy', use: 'Type, borders, structure' },
-  { name: 'Electric Blue', value: '#3157D5', className: 'palette-swatch--blue', use: 'Headlines, active states' },
   { name: 'Clear Sky', value: '#8FD7F3', className: 'palette-swatch--sky', use: 'Primary light-blue accent' },
   { name: 'Pool Water', value: '#B7E6F7', className: 'palette-swatch--pool', use: 'Cards, banners, highlights' },
   { name: 'Powder Blue', value: '#D5F0FA', className: 'palette-swatch--powder', use: 'Soft panels, notices' },
@@ -36,7 +35,7 @@ export function Palette({ onBack }: { onBack?: () => void }) {
         <span className="eyebrow">Approved combinations</span>
         <div>
           <article className="palette-combo palette-combo--sky"><b>SKY / NAVY</b><span>Everyday energy</span></article>
-          <article className="palette-combo palette-combo--blue"><b>BLUE / ICE</b><span>Big-screen drama</span></article>
+          <article className="palette-combo palette-combo--navy"><b>NAVY / ICE</b><span>Big-screen drama</span></article>
           <article className="palette-combo palette-combo--lime"><b>LIME / NAVY</b><span>Action and winning</span></article>
         </div>
       </section>
