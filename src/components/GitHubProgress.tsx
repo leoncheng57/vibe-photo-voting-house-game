@@ -1,9 +1,16 @@
 import { useEffect, useState, type CSSProperties } from 'react'
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { getGitHubProgress, repositoryUrl, type GitHubProgressData } from '../lib/github'
+import { getGitHubProgress, repositoryUrl, type GitHubIssue, type GitHubProgressData } from '../lib/github'
 
 type DocumentName = 'readme' | 'agents' | 'screenshot-plan'
+
+const priorityGroups = [
+  { id: 'high', label: 'High priority', labelName: 'priority: high' },
+  { id: 'medium', label: 'Medium priority', labelName: 'priority: medium' },
+  { id: 'low', label: 'Low priority', labelName: 'priority: low' },
+  { id: 'none', label: 'Unprioritized', labelName: null },
+] as const
 
 function formatDate(value: string | Date) {
   return new Intl.DateTimeFormat('en', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value))
@@ -11,6 +18,30 @@ function formatDate(value: string | Date) {
 
 function RefreshIcon() {
   return <svg className="refresh-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5M6.1 8a7 7 0 0 1 11.8-1L20 12M4 12l2.1 5A7 7 0 0 0 18 16" /></svg>
+}
+
+function IssueRows({ issues }: { issues: GitHubIssue[] }) {
+  return <ol>{issues.map((issue) => (
+    <li key={issue.number}>
+      <a href={issue.html_url}>
+        <span className={`status status--${issue.state}`}>{issue.state}</span>
+        <b>#{issue.number}</b>
+        <div className="issue-summary">
+          <strong>{issue.title}</strong>
+          {issue.labels.length > 0 && <span className="issue-labels">{issue.labels.map((label) => (
+            <span
+              className="issue-label"
+              key={label.name}
+              style={{ '--label-color': `#${label.color}` } as CSSProperties}
+            >
+              {label.name}
+            </span>
+          ))}</span>}
+        </div>
+        <time dateTime={issue.updated_at}>{formatDate(issue.updated_at)}</time>
+      </a>
+    </li>
+  ))}</ol>
 }
 
 export function GitHubProgress() {
@@ -40,6 +71,13 @@ export function GitHubProgress() {
 
   const openIssues = data?.issues.filter((issue) => issue.state === 'open').length ?? 0
   const openPullRequests = data?.pullRequests.filter((pullRequest) => pullRequest.state === 'open').length ?? 0
+  const groupedIssues = priorityGroups.map((group) => ({
+    ...group,
+    issues: data?.issues.filter((issue) => {
+      const priority = issue.labels.find((label) => label.name.startsWith('priority:'))?.name
+      return group.labelName ? priority === group.labelName : !priority
+    }) ?? [],
+  })).filter((group) => group.issues.length > 0)
 
   return (
     <main className="progress-page">
@@ -71,27 +109,12 @@ export function GitHubProgress() {
             <section>
               <header><div><span>Tracker</span><h2>Issues</h2></div><a href={`${repositoryUrl}/issues`}>View all on GitHub ↗</a></header>
               {data.issues.length === 0 ? <p className="progress-empty">No issues found.</p> : (
-                <ol>{data.issues.map((issue) => (
-                  <li key={issue.number}>
-                    <a href={issue.html_url}>
-                      <span className={`status status--${issue.state}`}>{issue.state}</span>
-                      <b>#{issue.number}</b>
-                      <div className="issue-summary">
-                        <strong>{issue.title}</strong>
-                        {issue.labels.length > 0 && <span className="issue-labels">{issue.labels.map((label) => (
-                          <span
-                            className="issue-label"
-                            key={label.name}
-                            style={{ '--label-color': `#${label.color}` } as CSSProperties}
-                          >
-                            {label.name}
-                          </span>
-                        ))}</span>}
-                      </div>
-                      <time dateTime={issue.updated_at}>{formatDate(issue.updated_at)}</time>
-                    </a>
-                  </li>
-                ))}</ol>
+                <div className="issue-groups">{groupedIssues.map((group) => (
+                  <section className={`issue-group issue-group--${group.id}`} key={group.id}>
+                    <header className="issue-group__heading"><strong>{group.label}</strong><span>{group.issues.length}</span></header>
+                    <IssueRows issues={group.issues} />
+                  </section>
+                ))}</div>
               )}
             </section>
             <section>

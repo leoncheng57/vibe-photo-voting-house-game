@@ -58,6 +58,15 @@ Run tests, lint, and build before considering a change complete.
 - Add or update tests for non-trivial scoring or data transformation behavior.
 - Update README operational guidance whenever setup, migrations, deployment, or cleanup behavior changes.
 
+## GitHub Issue Triage
+
+- Assign every open issue exactly one priority label. Priority is separate from category labels such as `bug`, `frontend`, `security`, or `storage`.
+- Use `priority: high` for blocking work, security or privacy exposure, data-loss risk, event-blocking failures, or work required before the next committed event or release.
+- Use `priority: medium` for important planned features, usability work, and maintenance that has clear near-term value.
+- Use `priority: low` for optional, cosmetic, or exploratory improvements that can wait without meaningful risk.
+- Keep priority in labels, not title prefixes such as `[HIGH]` or `[MED]`.
+- Update the priority label when urgency changes rather than adding a second priority.
+
 ## Validation
 
 ```bash

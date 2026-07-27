@@ -11,6 +11,7 @@ This document describes how to reproduce the README screenshots without publishi
 | `docs/images/tv-mode-desktop.png` | TV mode | At least 1200 x 800 | Challenge title, QR code, four photos, and footer visible |
 | `docs/images/leaderboard-desktop.png` | Leaderboard | At least 1200 x 800 | Heading and several synthetic ranked players visible |
 | `docs/images/developer-system-desktop.png` | Developer system reference | At least 1200 x 800 | Developer navigation, system summary, and architecture section visible |
+| `docs/images/github-priority-groups.png` | GitHub project progress | At least 1200 x 800 | Public issues grouped under High, Medium, and Low priority headings |
 
 Retina screenshots may have twice the target pixel dimensions. The CSS viewport, not the PNG's physical pixel dimensions, determines responsive behavior.
 
@@ -182,6 +183,18 @@ cmux browser --surface <surface> screenshot --out "$(pwd)/docs/images/leaderboar
 cmux browser --surface <surface> screenshot --out "$(pwd)/docs/images/developer-system-desktop.png" --json
 ```
 
+### GitHub Priority Groups
+
+1. Navigate to `http://127.0.0.1:5173/developer/github-progress/`.
+2. Wait for the public GitHub issue data and all priority groups to load.
+3. Scroll the Issues panel into view at a desktop width of at least 1200 px.
+4. Confirm no private repository or participant data appears.
+5. Capture:
+
+```bash
+cmux browser --surface <surface> screenshot --out "$(pwd)/docs/images/github-priority-groups.png" --json
+```
+
 ## Playwright Fallback
 
 Playwright is not a project dependency. If cmux cannot provide a suitable viewport, use an ephemeral Playwright installation rather than changing `package.json`. Point it only at a local app backed by disposable demo data.
@@ -203,6 +216,7 @@ Aim for less than 500 KB per image where practical. Finally, verify that:
 - TV mode fits in one frame and keeps results hidden.
 - Leaderboard names and scores are synthetic and no live identity remains.
 - The Developer capture contains only repository architecture documentation.
+- The GitHub progress capture contains only public repository metadata and shows priority grouping clearly.
 - No personal photo, guest name, UUID, token, or dashboard detail appears.
 - README paths and alt text match the generated filenames.
 - `npm test`, `npm run lint`, and `npm run build` pass.
