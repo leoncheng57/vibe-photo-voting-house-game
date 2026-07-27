@@ -10,8 +10,8 @@ const page = location.pathname.includes('/db-design') ? 'database' : location.pa
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <SiteHeader active="developer" />
-    <DeveloperTabs active={page} />
     <DeveloperBanner />
+    <DeveloperTabs active={page} />
     {page === 'database' ? <DatabaseDesign /> : page === 'security' ? <SecurityOps /> : <SystemDiagram />}
     <MobileNavigation active="developer" />
   </StrictMode>,

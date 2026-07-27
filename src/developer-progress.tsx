@@ -8,8 +8,8 @@ import './developer-progress.css'
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <SiteHeader active="developer" />
-    <DeveloperTabs active="progress" />
     <DeveloperBanner />
+    <DeveloperTabs active="progress" />
     <GitHubProgress />
     <MobileNavigation active="developer" />
   </StrictMode>,

@@ -87,8 +87,10 @@ export function DeveloperTabs({ active }: { active: 'system' | 'database' | 'sec
 export function DeveloperBanner() {
   return (
     <aside className="developer-banner" aria-label="House Photo Hunt developer workspace">
-      <span className="developer-banner__robot"><RobotIcon /></span>
       <strong>Developer Workspace</strong>
+      <span className="developer-banner__robots" aria-hidden="true">
+        {Array.from({ length: 5 }, (_, index) => <RobotIcon key={index} />)}
+      </span>
       <code>architecture · data · security · delivery</code>
     </aside>
   )
