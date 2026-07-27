@@ -24,11 +24,13 @@ code, pre { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospac
 .progress-sync { display: grid; border: var(--line); background: var(--paper); box-shadow: 7px 7px 0 var(--ink); }
 .progress-sync span { padding: 1rem; border-bottom: 2px solid var(--ink); color: #425b79; font: .7rem/1.5 "SFMono-Regular", Consolas, monospace; }
 .progress-sync :is(button, a) { min-height: 45px; border: 0; border-bottom: 2px solid var(--ink); color: var(--ink); background: var(--sky); padding: .7rem 1rem; font-size: .72rem; font-weight: 900; text-align: left; text-decoration: none; text-transform: uppercase; cursor: pointer; }
+.progress-sync button { display: flex; align-items: center; gap: .5rem; }
+.refresh-icon { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .progress-sync :is(button, a):last-child { border-bottom: 0; background: var(--paper); }
 .progress-sync button:disabled { cursor: wait; opacity: .65; }
 .progress-sync :is(button, a):focus-visible, .progress-tabs button:focus-visible, .progress-lists a:focus-visible { outline: 3px solid white; outline-offset: 2px; box-shadow: 0 0 0 6px var(--ink); }
 .progress-error { display: flex; flex-wrap: wrap; gap: .6rem 1rem; margin-top: 24px; border: 2px solid var(--ink); background: #ffd6d6; padding: .9rem 1rem; font-size: .85rem; }
-.progress-stats { display: grid; grid-template-columns: repeat(4, 1fr); margin-top: 40px; border: var(--line); background: var(--paper); box-shadow: 8px 8px 0 var(--pool); }
+.progress-stats { display: grid; grid-template-columns: repeat(2, 1fr); margin-top: 40px; border: var(--line); background: var(--paper); box-shadow: 8px 8px 0 var(--pool); }
 .progress-stats article { display: flex; min-width: 0; min-height: 130px; flex-direction: column; justify-content: space-between; padding: 1.2rem; border-right: 2px solid var(--ink); }
 .progress-stats article:last-child { border-right: 0; }
 .progress-stats span { font-size: .68rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
@@ -84,10 +86,7 @@ code, pre { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospac
   .progress-kicker { margin-top: 26px; }
   .progress-hero h1 { font-size: clamp(3.3rem, 17vw, 5.5rem); }
   .progress-sync { width: 100%; }
-  .progress-stats { grid-template-columns: repeat(2, 1fr); }
-  .progress-stats article { min-height: 110px; border-bottom: 2px solid var(--ink); }
-  .progress-stats article:nth-child(2n) { border-right: 0; }
-  .progress-stats article:nth-last-child(-n+2) { border-bottom: 0; }
+  .progress-stats article { min-height: 110px; }
   .progress-stats strong { font-size: 2.5rem; }
   .progress-tabs { overflow-x: auto; margin-top: 48px; }
   .progress-tabs button { flex: 1 0 auto; }

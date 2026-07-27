@@ -9,6 +9,10 @@ function formatDate(value: string | Date) {
   return new Intl.DateTimeFormat('en', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value))
 }
 
+function RefreshIcon() {
+  return <svg className="refresh-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5M6.1 8a7 7 0 0 1 11.8-1L20 12M4 12l2.1 5A7 7 0 0 0 18 16" /></svg>
+}
+
 export function GitHubProgress() {
   const [data, setData] = useState<GitHubProgressData | null>(null)
   const [tab, setTab] = useState<Tab>('overview')
@@ -36,7 +40,6 @@ export function GitHubProgress() {
 
   const openIssues = data?.issues.filter((issue) => issue.state === 'open').length ?? 0
   const openPullRequests = data?.pullRequests.filter((pullRequest) => pullRequest.state === 'open').length ?? 0
-  const mergedPullRequests = data?.pullRequests.filter((pullRequest) => pullRequest.merged_at).length ?? 0
 
   return (
     <main className="progress-page">
@@ -49,7 +52,7 @@ export function GitHubProgress() {
         </div>
         <div className="progress-sync">
           <span>{data ? `Last synced ${formatDate(data.fetchedAt)}` : 'Waiting for GitHub'}</span>
-          <button type="button" onClick={() => { setLoading(true); setRequestId((value) => value + 1) }} disabled={loading}>{loading ? 'Syncing…' : 'Refresh now'}</button>
+          <button type="button" onClick={() => { setLoading(true); setRequestId((value) => value + 1) }} disabled={loading}><RefreshIcon />{loading ? 'Syncing…' : 'Refresh now'}</button>
           <a href={repositoryUrl}>Open repository ↗</a>
         </div>
       </header>
@@ -59,8 +62,6 @@ export function GitHubProgress() {
       <section className="progress-stats" aria-label="Repository summary">
         <article><span>Open issues</span><strong>{data ? openIssues : '—'}</strong></article>
         <article><span>Open PRs</span><strong>{data ? openPullRequests : '—'}</strong></article>
-        <article><span>Merged PRs</span><strong>{data ? mergedPullRequests : '—'}</strong></article>
-        <article><span>Documents found</span><strong>{data ? data.agents ? '2 / 2' : '1 / 2' : '—'}</strong></article>
       </section>
 
       <nav className="progress-tabs" aria-label="Project progress sections">
