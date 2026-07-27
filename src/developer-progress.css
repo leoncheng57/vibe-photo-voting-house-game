@@ -35,7 +35,7 @@ code, pre { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospac
 .progress-stats article:last-child { border-right: 0; }
 .progress-stats span { font-size: .68rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
 .progress-stats strong { font: 900 3.2rem/1 Arial Black, Arial, sans-serif; letter-spacing: -.06em; }
-.progress-tabs { display: flex; margin-top: 64px; border-bottom: var(--line); }
+.progress-tabs { display: flex; border-bottom: var(--line); }
 .progress-tabs button { border: 0; border-top: 2px solid var(--ink); border-right: 2px solid var(--ink); background: var(--paper); padding: .85rem 1.2rem; font-size: .72rem; font-weight: 900; text-transform: uppercase; cursor: pointer; }
 .progress-tabs button:first-child { border-left: 2px solid var(--ink); }
 .progress-tabs button.active { background: var(--sky); }
@@ -53,6 +53,9 @@ code, pre { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospac
 .progress-lists li > a:hover { background: var(--pool); }
 .progress-lists li b { font: 700 .72rem "SFMono-Regular", Consolas, monospace; }
 .progress-lists li strong { min-width: 0; font-size: .9rem; }
+.issue-summary { display: flex; min-width: 0; flex-wrap: wrap; align-items: center; gap: .35rem .65rem; }
+.issue-labels { display: flex; flex-wrap: wrap; gap: .3rem; }
+.issue-label { border: 1px solid var(--label-color); background: color-mix(in srgb, var(--label-color) 20%, white); padding: .16rem .38rem; font: 800 .55rem "SFMono-Regular", Consolas, monospace; line-height: 1; white-space: nowrap; }
 .progress-lists time { color: #526b87; font: .68rem "SFMono-Regular", Consolas, monospace; white-space: nowrap; }
 .status { display: inline-block; border: 1px solid currentColor; padding: .22rem .4rem; font: 800 .58rem "SFMono-Regular", Consolas, monospace; text-align: center; text-transform: uppercase; }
 .status--open { color: #146c43; background: #c7f0d8; }
@@ -60,7 +63,13 @@ code, pre { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospac
 .status--merged { color: #65419a; background: #e4d6f8; }
 .status--draft { color: #53606d; background: #dde3e8; }
 .progress-empty { margin: 0; padding: 2rem; color: #526b87; }
-.progress-markdown { overflow-wrap: anywhere; margin-top: 40px; border: var(--line); background: var(--paper); padding: clamp(1.2rem, 4vw, 3.5rem); box-shadow: 8px 8px 0 var(--ink); font: 1rem/1.65 Georgia, serif; }
+.progress-files { margin-top: 64px; }
+.progress-files > header { border: var(--line); border-bottom: 0; background: var(--powder); padding: 1.2rem 1.4rem; }
+.progress-files > header span { font-size: .62rem; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
+.progress-files > header h2 { margin: .2rem 0; font: 900 2rem/1 Arial Black, Arial, sans-serif; text-transform: uppercase; }
+.progress-files > header p { margin: .5rem 0 0; color: #526b87; font: 700 .9rem/1.4 Georgia, serif; }
+.progress-files .progress-tabs { background: var(--paper); }
+.progress-markdown { overflow-wrap: anywhere; margin: 0; border: var(--line); border-top: 0; background: var(--paper); padding: clamp(1.2rem, 4vw, 3.5rem); box-shadow: 8px 8px 0 var(--ink); font: 1rem/1.65 Georgia, serif; }
 .progress-markdown > :first-child { margin-top: 0; }
 .progress-markdown > :last-child { margin-bottom: 0; }
 .progress-markdown h1, .progress-markdown h2, .progress-markdown h3 { color: var(--ink); font-family: Arial, Helvetica, sans-serif; line-height: 1.1; }
@@ -74,7 +83,7 @@ code, pre { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospac
 .progress-markdown th, .progress-markdown td { border: 1px solid #8297ab; padding: .55rem .7rem; }
 .progress-markdown th { background: var(--powder); }
 .progress-markdown img { max-width: 100%; }
-.missing-document { margin-top: 40px; border: var(--line); background: var(--powder); padding: clamp(1.5rem, 4vw, 3rem); box-shadow: 8px 8px 0 var(--ink); }
+.missing-document { border: var(--line); border-top: 0; background: var(--powder); padding: clamp(1.5rem, 4vw, 3rem); box-shadow: 8px 8px 0 var(--ink); }
 .missing-document > code { font-size: .75rem; }
 .missing-document h2 { margin: 1.2rem 0 .6rem; font: 900 clamp(2.3rem, 6vw, 4.8rem)/.9 Arial Black, Arial, sans-serif; letter-spacing: -.06em; text-transform: uppercase; }
 .missing-document p { max-width: 700px; margin-bottom: 0; font: 700 1rem/1.5 Georgia, serif; }
@@ -88,8 +97,10 @@ code, pre { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospac
   .progress-sync { width: 100%; }
   .progress-stats article { min-height: 110px; }
   .progress-stats strong { font-size: 2.5rem; }
-  .progress-tabs { overflow-x: auto; margin-top: 48px; }
+  .progress-tabs { overflow-x: auto; }
   .progress-tabs button { flex: 1 0 auto; }
+  .progress-files .progress-tabs { overflow: visible; flex-wrap: wrap; }
+  .progress-files .progress-tabs button { flex: 1 1 auto; }
   .progress-lists { gap: 32px; }
   .progress-lists > section > header { align-items: start; flex-direction: column; }
   .progress-lists li > a { grid-template-columns: 65px 40px 1fr; gap: 8px; }
