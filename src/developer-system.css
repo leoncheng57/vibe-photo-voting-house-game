@@ -35,7 +35,40 @@ code, pre { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospac
 .dev-section > header > span { color: #087da8; font: 800 12px "SFMono-Regular", Consolas, monospace; }
 .dev-section h2 { margin: 0 0 6px; color: var(--ink); font-size: 26px; font-weight: 750; letter-spacing: -.02em; }
 .dev-section > header p { margin: 0; color: #526b87; font-size: 14px; }
-.dev-diagram { overflow-x: auto; margin: 0; padding: 24px; border: 1px solid #334155; background: #111827; color: #d1d5db; font-size: 12px; line-height: 1.55; }
+.architecture-map { position: relative; overflow: hidden; border: 3px solid var(--ink); padding: 32px; color: #e8eef5; background-color: #111827; background-image: radial-gradient(#2d3d54 1px, transparent 1px); background-size: 24px 24px; }
+.architecture-layer { border: 1px solid #53657d; background: rgba(17,24,39,.94); box-shadow: 0 12px 28px rgba(0,0,0,.2); }
+.architecture-layer > header { display: flex; align-items: center; gap: 12px; min-height: 58px; padding: 10px 16px; border-bottom: 1px solid #53657d; }
+.architecture-layer > header > span { display: grid; place-items: center; width: 30px; height: 30px; border: 1px solid #7dd3fc; border-radius: 50%; color: #7dd3fc; font: 700 10px "SFMono-Regular", Consolas, monospace; }
+.architecture-layer > header div { display: grid; gap: 2px; }
+.architecture-layer > header b { color: white; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
+.architecture-layer > header small { color: #8fa2ba; font: 10px "SFMono-Regular", Consolas, monospace; }
+.architecture-layer > header em { margin-left: auto; border: 1px solid #7dd3fc; border-radius: 99px; color: #7dd3fc; padding: 4px 8px; font: 700 8px "SFMono-Regular", Consolas, monospace; letter-spacing: .08em; }
+.architecture-client-grid, .architecture-app-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.architecture-client-grid article { display: flex; align-items: center; gap: 18px; min-height: 120px; padding: 20px; border-right: 1px solid #35445a; }
+.architecture-client-grid article:last-child, .architecture-app-grid article:last-child { border-right: 0; }
+.architecture-map h3 { margin: 0 0 6px; color: white; font-size: 14px; }
+.architecture-map p { margin: 0; color: #aab7c8; font-size: 11px; line-height: 1.55; }
+.architecture-device { position: relative; display: block; width: 42px; height: 58px; flex: 0 0 auto; border: 2px solid #7dd3fc; border-radius: 6px; }
+.architecture-device--phone::before { content: ''; position: absolute; right: 11px; bottom: 5px; left: 11px; height: 2px; border-radius: 2px; background: #7dd3fc; }
+.architecture-device--tv { width: 68px; height: 44px; border-radius: 3px; }
+.architecture-device--tv::before, .architecture-device--tv::after { content: ''; position: absolute; bottom: -10px; width: 2px; height: 9px; background: #7dd3fc; }
+.architecture-device--tv::before { left: 21px; transform: rotate(25deg); }
+.architecture-device--tv::after { right: 21px; transform: rotate(-25deg); }
+.architecture-connector { position: relative; display: grid; place-items: center; height: 76px; }
+.architecture-connector::before { content: ''; position: absolute; top: 0; bottom: 0; left: 50%; width: 2px; transform: translateX(-50%); background: #8191a7; }
+.architecture-connector::after { content: ''; position: absolute; bottom: 0; left: 50%; width: 9px; height: 9px; transform: translate(-50%, -1px) rotate(45deg); border-right: 2px solid #8191a7; border-bottom: 2px solid #8191a7; }
+.architecture-connector span { position: relative; z-index: 1; border: 1px solid #53657d; border-radius: 99px; background: #111827; color: #b8c5d6; padding: 5px 9px; font: 9px "SFMono-Regular", Consolas, monospace; }
+.architecture-layer--app { border-color: #3185a6; }
+.architecture-layer--app > header { border-color: #3185a6; background: #122b3b; }
+.architecture-app-grid article { min-height: 128px; padding: 20px; border-right: 1px solid #35445a; }
+.architecture-app-grid code { display: block; margin-bottom: 13px; color: #7dd3fc; font-size: 10px; }
+.architecture-connector--sdk { height: 88px; }
+.architecture-services { position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; padding-top: 30px; }
+.architecture-services::before { content: ''; position: absolute; top: 0; right: 16.67%; left: 16.67%; height: 2px; background: #8191a7; }
+.architecture-services article { position: relative; min-height: 178px; border: 1px solid #53657d; background: rgba(17,24,39,.96); padding: 20px; }
+.architecture-services article::before { content: ''; position: absolute; bottom: 100%; left: 50%; width: 2px; height: 30px; transform: translateX(-50%); background: #8191a7; }
+.architecture-service-icon { display: grid; place-items: center; width: 40px; height: 40px; margin-bottom: 22px; border: 1px solid #7dd3fc; color: #7dd3fc; background: #122b3b; font: 700 10px "SFMono-Regular", Consolas, monospace; }
+.architecture-services small { display: block; margin-bottom: 4px; color: #7e8fa6; font: 8px "SFMono-Regular", Consolas, monospace; letter-spacing: .1em; text-transform: uppercase; }
 .dev-facts, .dev-grid { display: grid; grid-template-columns: repeat(3, 1fr); border: 2px solid var(--ink); border-top: 0; background: var(--paper); }
 .dev-facts article, .dev-grid article { min-width: 0; padding: 20px; border-right: 1px solid #9bb1c6; }
 .dev-facts article:last-child { border-right: 0; }
@@ -107,6 +140,14 @@ code, pre { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospac
   .dev-index { top: 0; margin-bottom: 56px; }
   .dev-section { margin-bottom: 72px; }
   .dev-section > header { grid-template-columns: 36px 1fr; }
+  .architecture-map { padding: 18px; }
+  .architecture-client-grid, .architecture-app-grid, .architecture-services { grid-template-columns: 1fr; }
+  .architecture-client-grid article, .architecture-app-grid article { border-right: 0; border-bottom: 1px solid #35445a; }
+  .architecture-client-grid article:last-child, .architecture-app-grid article:last-child { border-bottom: 0; }
+  .architecture-services { gap: 28px; padding-top: 30px; }
+  .architecture-services::before { top: 0; right: auto; bottom: 0; left: 50%; width: 2px; height: auto; }
+  .architecture-services article::before { height: 28px; }
+  .architecture-services article { min-height: 150px; }
   .dev-facts, .dev-grid { grid-template-columns: 1fr; }
   .dev-facts article, .dev-grid article { border-right: 0; border-bottom: 1px solid #e2e8f0; }
   .dev-facts article:last-child, .dev-grid article:last-child { border-bottom: 0; }

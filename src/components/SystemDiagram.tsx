@@ -88,25 +88,33 @@ export function SystemDiagram() {
 
       <section className="dev-section" id="architecture">
         <header><span>01</span><div><h2>Runtime Architecture</h2><p>Static client with direct BaaS integration. No custom server process.</p></div></header>
-        <pre className="dev-diagram">{`┌──────────────────────────────────────────────────────────────────────────────┐
-│ CLIENTS                                                                      │
-│ Guest mobile browsers                     TV presentation browser            │
-└──────────────────────────────┬───────────────────────────────────────────────┘
-                               │ HTTPS
-                               ▼
-┌──────────────────────────────────────────────────────────────────────────────┐
-│ GITHUB PAGES                                                                 │
-│ React SPA                  /developer/system static entry                    │
-│ camera · voting · display  architecture reference                           │
-└──────────────────────────────┬───────────────────────────────────────────────┘
-                               │ @supabase/supabase-js
-               ┌───────────────┼───────────────────┐
-               ▼               ▼                   ▼
-┌──────────────────────┐ ┌──────────────────┐ ┌───────────────────────────────┐
-│ AUTH                 │ │ POSTGRES         │ │ STORAGE                       │
-│ anonymous JWT users  │ │ REST · RPC · RLS │ │ private photos bucket         │
-│ browser persistence  │ │ Realtime changes │ │ signed read URLs (1 hour)     │
-└──────────────────────┘ └──────────────────┘ └───────────────────────────────┘`}</pre>
+        <div className="architecture-map">
+          <section className="architecture-layer architecture-layer--clients">
+            <header><span>01</span><div><b>Client layer</b><small>Browsers at the party</small></div></header>
+            <div className="architecture-client-grid">
+              <article><i className="architecture-device architecture-device--phone" aria-hidden="true" /><div><h3>Guest devices</h3><p>Mobile browsers capture photos, submit ballots, and view scores.</p></div></article>
+              <article><i className="architecture-device architecture-device--tv" aria-hidden="true" /><div><h3>Presentation display</h3><p>TV browser runs the shared timer, QR entry point, and result reveal.</p></div></article>
+            </div>
+          </section>
+
+          <div className="architecture-connector"><span>HTTPS</span></div>
+
+          <section className="architecture-layer architecture-layer--app">
+            <header><span>02</span><div><b>Application layer</b><small>GitHub Pages</small></div><em>STATIC</em></header>
+            <div className="architecture-app-grid">
+              <article><code>/home/</code><h3>React game client</h3><p>Camera, challenges, voting, scores, and TV mode.</p></article>
+              <article><code>/developer/*</code><h3>Developer workspace</h3><p>Architecture, database, security, operations, and project progress.</p></article>
+            </div>
+          </section>
+
+          <div className="architecture-connector architecture-connector--sdk"><span>@supabase/supabase-js</span></div>
+
+          <section className="architecture-services" aria-label="Supabase services">
+            <article><span className="architecture-service-icon">AU</span><small>Identity</small><h3>Auth</h3><p>Anonymous JWT users with browser-persisted sessions.</p></article>
+            <article><span className="architecture-service-icon">DB</span><small>Data</small><h3>Postgres</h3><p>REST, RPC, row-level security, and realtime changes.</p></article>
+            <article><span className="architecture-service-icon">ST</span><small>Objects</small><h3>Storage</h3><p>Private photos bucket with one-hour signed read URLs.</p></article>
+          </section>
+        </div>
         <div className="dev-facts">
           <article><h3>Deployment unit</h3><code>dist/</code><p>Immutable static assets deployed by GitHub Actions on pushes to main.</p></article>
           <article><h3>Public configuration</h3><code>VITE_SUPABASE_*</code><p>Project URL and publishable key identify the backend; neither grants privileged access.</p></article>
