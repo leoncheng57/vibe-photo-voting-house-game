@@ -3,6 +3,7 @@ import type { User } from '@supabase/supabase-js'
 import { ChallengeList } from './components/ChallengeList'
 import { DisplayView } from './components/DisplayView'
 import { Leaderboard } from './components/Leaderboard'
+import { Palette } from './components/Palette'
 import { Timer } from './components/Timer'
 import { Tutorial } from './components/Tutorial'
 import { VoteView } from './components/VoteView'
@@ -13,12 +14,13 @@ import type { Challenge, Profile, View } from './types'
 const navItems: Array<{ id: View; label: string }> = [
   { id: 'challenges', label: 'Challenges' },
   { id: 'tutorial', label: 'How to play' },
+  { id: 'palette', label: 'Palette' },
   { id: 'vote', label: 'Vote' },
   { id: 'leaderboard', label: 'Scores' },
   { id: 'display', label: 'TV mode' },
 ]
 
-function SetupRequired({ onTutorial }: { onTutorial: () => void }) {
+function SetupRequired({ onTutorial, onPalette }: { onTutorial: () => void; onPalette: () => void }) {
   return (
     <main className="setup-page">
       <div className="brand"><b>HOUSE</b><span>PHOTO HUNT</span></div>
@@ -27,7 +29,10 @@ function SetupRequired({ onTutorial }: { onTutorial: () => void }) {
         <h1>Connect the<br />party backend.</h1>
         <p>Create a free Supabase project, run <code>supabase/migrations/001_initial.sql</code>, and add its public values to a local <code>.env</code> file.</p>
         <pre>VITE_SUPABASE_URL=https://your-project.supabase.co{`\n`}VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...</pre>
-        <button className="button button--dark" onClick={onTutorial}>Preview how to play →</button>
+        <div className="setup-page__actions">
+          <button className="button button--dark" onClick={onTutorial}>Preview how to play →</button>
+          <button className="button" onClick={onPalette}>View color palette →</button>
+        </div>
         <p className="setup-page__note">Full setup and GitHub Pages instructions are in <code>README.md</code>.</p>
       </section>
     </main>
@@ -87,6 +92,7 @@ export default function App() {
     const params = new URLSearchParams(location.search)
     if (params.has('display')) return 'display'
     if (params.has('tutorial')) return 'tutorial'
+    if (params.has('palette')) return 'palette'
     return 'challenges'
   })
   const [loading, setLoading] = useState(isSupabaseConfigured)
@@ -134,10 +140,12 @@ export default function App() {
   }, [view])
 
   if (!isSupabaseConfigured && view === 'tutorial') return <main className="public-tutorial"><Tutorial onBack={() => setView('challenges')} /></main>
-  if (!isSupabaseConfigured) return <SetupRequired onTutorial={() => setView('tutorial')} />
+  if (!isSupabaseConfigured && view === 'palette') return <main className="public-palette"><Palette onBack={() => setView('challenges')} /></main>
+  if (!isSupabaseConfigured) return <SetupRequired onTutorial={() => setView('tutorial')} onPalette={() => setView('palette')} />
   if (loading) return <div className="loading-screen"><div className="brand"><b>HOUSE</b><span>PHOTO HUNT</span></div><span>Opening the door…</span></div>
   if (error) return <main className="error-page"><h1>Couldn’t open the party.</h1><p>{error}</p><button className="button" onClick={() => location.reload()}>Try again</button></main>
   if (user && !profile && view === 'tutorial') return <main className="public-tutorial"><Tutorial onBack={() => setView('challenges')} /></main>
+  if (user && !profile && view === 'palette') return <main className="public-palette"><Palette onBack={() => setView('challenges')} /></main>
   if (user && !profile) return <JoinForm user={user} onJoined={setProfile} onTutorial={() => setView('tutorial')} />
   if (!user || !profile) return null
 
@@ -161,6 +169,7 @@ export default function App() {
       <main className="content">
         {view === 'challenges' && <><Timer /><ChallengeList challenges={challenges} userId={user.id} refreshToken={submissionToken} onChanged={() => { setSubmissionToken((value) => value + 1); setResultsToken((value) => value + 1) }} /></>}
         {view === 'tutorial' && <Tutorial />}
+        {view === 'palette' && <Palette />}
         {view === 'vote' && <VoteView challenges={challenges} userId={user.id} refreshToken={submissionToken} onChanged={() => setResultsToken((value) => value + 1)} />}
         {view === 'leaderboard' && <Leaderboard refreshToken={resultsToken} />}
       </main>
