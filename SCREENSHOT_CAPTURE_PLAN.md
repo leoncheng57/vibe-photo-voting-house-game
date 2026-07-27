@@ -9,6 +9,8 @@ This document describes how to reproduce the README screenshots without publishi
 | `docs/images/challenges-mobile.png` | Guest challenge list | About 390 x 844 | Header, timer, introduction, and first challenge visible |
 | `docs/images/voting-mobile.png` | Voting | About 390 x 844 | Sticky voting bar and anonymous photo choices visible |
 | `docs/images/tv-mode-desktop.png` | TV mode | At least 1200 x 800 | Challenge title, QR code, four photos, and footer visible |
+| `docs/images/leaderboard-desktop.png` | Leaderboard | At least 1200 x 800 | Heading and several synthetic ranked players visible |
+| `docs/images/developer-system-desktop.png` | Developer system reference | At least 1200 x 800 | Developer navigation, system summary, and architecture section visible |
 
 Retina screenshots may have twice the target pixel dimensions. The CSS viewport, not the PNG's physical pixel dimensions, determines responsive behavior.
 
@@ -20,6 +22,7 @@ Before saving any screenshot:
 
 - Replace every rendered photo with generated artwork or a repository-owned fixture.
 - Replace visible profile names with `Demo Guest`.
+- Replace leaderboard names, wins, and scores with synthetic presentation data.
 - Do not reveal voting results, which can expose photographer names.
 - Do not show the Supabase dashboard, object paths, UUIDs, environment values, browser storage, or developer tools.
 - Do not click upload, vote confirmation, profile save, or any other control that writes data.
@@ -156,6 +159,29 @@ cmux browser --surface <surface> screenshot --out "$(pwd)/docs/images/voting-mob
 cmux browser --surface <surface> screenshot --out "$(pwd)/docs/images/tv-mode-desktop.png" --json
 ```
 
+### Leaderboard
+
+1. Use a desktop-width browser surface and open Scores.
+2. Wait for `.leaderboard` to load.
+3. Replace `.player-chip strong` with `Demo Guest`.
+4. Replace every leaderboard name, rank, win count, and point total with synthetic presentation data. Remove extra rows if needed.
+5. Capture immediately so the leaderboard's periodic refresh does not restore live data:
+
+```bash
+cmux browser --surface <surface> screenshot --out "$(pwd)/docs/images/leaderboard-desktop.png" --json
+```
+
+### Developer System Reference
+
+1. Navigate to `http://127.0.0.1:5173/developer/system/`.
+2. Wait for the page to load and scroll to the top.
+3. Confirm the desktop viewport shows the developer navigation, system summary, and beginning of the architecture section.
+4. Capture:
+
+```bash
+cmux browser --surface <surface> screenshot --out "$(pwd)/docs/images/developer-system-desktop.png" --json
+```
+
 ## Playwright Fallback
 
 Playwright is not a project dependency. If cmux cannot provide a suitable viewport, use an ephemeral Playwright installation rather than changing `package.json`. Point it only at a local app backed by disposable demo data.
@@ -175,6 +201,8 @@ Aim for less than 500 KB per image where practical. Finally, verify that:
 - Mobile captures use the mobile layout and contain readable text.
 - The voting capture shows anonymous choices but no photographer identity.
 - TV mode fits in one frame and keeps results hidden.
+- Leaderboard names and scores are synthetic and no live identity remains.
+- The Developer capture contains only repository architecture documentation.
 - No personal photo, guest name, UUID, token, or dashboard detail appears.
 - README paths and alt text match the generated filenames.
 - `npm test`, `npm run lint`, and `npm run build` pass.

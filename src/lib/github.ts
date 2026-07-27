@@ -34,6 +34,7 @@ export interface GitHubProgressData {
   pullRequests: GitHubPullRequest[]
   readme: string
   agents: string | null
+  screenshotPlan: string | null
   fetchedAt: Date
 }
 
@@ -57,11 +58,12 @@ async function fetchDocument(name: string, signal: AbortSignal, optional = false
 }
 
 export async function getGitHubProgress(signal: AbortSignal): Promise<GitHubProgressData> {
-  const [issues, pullRequests, readme, agents] = await Promise.all([
+  const [issues, pullRequests, readme, agents, screenshotPlan] = await Promise.all([
     fetchJson<GitHubIssue[]>(`${apiBase}/issues?state=all&per_page=100&sort=updated&direction=desc`, signal),
     fetchJson<GitHubPullRequest[]>(`${apiBase}/pulls?state=all&per_page=100&sort=updated&direction=desc`, signal),
     fetchDocument('README.md', signal),
     fetchDocument('AGENTS.md', signal, true),
+    fetchDocument('SCREENSHOT_CAPTURE_PLAN.md', signal, true),
   ])
 
   return {
@@ -69,6 +71,7 @@ export async function getGitHubProgress(signal: AbortSignal): Promise<GitHubProg
     pullRequests,
     readme: readme ?? '',
     agents,
+    screenshotPlan,
     fetchedAt: new Date(),
   }
 }

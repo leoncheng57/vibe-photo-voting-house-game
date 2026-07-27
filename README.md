@@ -17,6 +17,14 @@ The frontend is React, TypeScript, and Vite on GitHub Pages. Supabase provides a
 
 ![Desktop TV mode showing a challenge presentation and QR join code](docs/images/tv-mode-desktop.png)
 
+### Leaderboard
+
+![Desktop leaderboard showing synthetic player names, wins, and scores](docs/images/leaderboard-desktop.png)
+
+### Developer reference
+
+![Desktop developer system reference showing architecture documentation and navigation](docs/images/developer-system-desktop.png)
+
 ## Features
 
 - Six included housewarming photo challenges
