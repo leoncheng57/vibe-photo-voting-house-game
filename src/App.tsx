@@ -4,6 +4,7 @@ import { ChallengeList } from './components/ChallengeList'
 import { DisplayView } from './components/DisplayView'
 import { Leaderboard } from './components/Leaderboard'
 import { Palette } from './components/Palette'
+import { MobileNavigation, SiteHeader } from './components/SiteNavigation'
 import { Timer } from './components/Timer'
 import { Tutorial } from './components/Tutorial'
 import { VoteView } from './components/VoteView'
@@ -11,18 +12,8 @@ import { createProfile, ensureAnonymousUser, getChallenges, getProfile, updatePr
 import { isSupabaseConfigured, supabase } from './lib/supabase'
 import type { Challenge, Profile, View } from './types'
 
-const navItems: Array<{ id: View; label: string }> = [
-  { id: 'challenges', label: 'Home' },
-  { id: 'tutorial', label: 'How to play' },
-  { id: 'palette', label: 'Palette' },
-  { id: 'vote', label: 'Vote' },
-  { id: 'leaderboard', label: 'Scores' },
-  { id: 'display', label: 'TV mode' },
-]
-
 const appRoot = import.meta.env.BASE_URL
 const homeUrl = `${appRoot}home/`
-const systemUrl = `${appRoot}developer/system/`
 const isHomeEntry = location.pathname.startsWith(homeUrl)
 
 function SetupRequired({ onTutorial, onPalette }: { onTutorial: () => void; onPalette: () => void }) {
@@ -98,6 +89,8 @@ export default function App() {
     if (params.has('display')) return 'display'
     if (params.has('tutorial')) return 'tutorial'
     if (params.has('palette')) return 'palette'
+    if (params.has('vote')) return 'vote'
+    if (params.has('leaderboard')) return 'leaderboard'
     return 'challenges'
   })
   const [loading, setLoading] = useState(isSupabaseConfigured)
@@ -190,16 +183,7 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      <header className="site-header">
-        <a className="brand brand--button" href={appRoot}><b>HOUSE</b><span>PHOTO HUNT</span></a>
-        <nav>
-          {navItems.map((item) => (
-            <button key={item.id} className={view === item.id ? 'active' : ''} onClick={() => setView(item.id)}>{item.label}</button>
-          ))}
-          <a href={systemUrl}>System</a>
-        </nav>
-        <button className="player-chip" onClick={openNameEditor}><span>Playing as · change</span><strong>{profile.display_name}</strong></button>
-      </header>
+      <SiteHeader active={view} onSelect={setView} playerName={profile.display_name} onEditProfile={openNameEditor} />
 
       <div className="mobile-timer"><Timer compact /></div>
       <main className="content">
@@ -210,12 +194,7 @@ export default function App() {
         {view === 'leaderboard' && <Leaderboard refreshToken={resultsToken} />}
       </main>
 
-      <nav className="mobile-nav">
-        {navItems.map((item) => (
-          <button key={item.id} className={view === item.id ? 'active' : ''} onClick={() => setView(item.id)}>{item.label}</button>
-        ))}
-        <a href={systemUrl}>System</a>
-      </nav>
+      <MobileNavigation active={view} onSelect={setView} />
 
       {editingName && (
         <div className="name-dialog" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setEditingName(false) }}>

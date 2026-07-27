@@ -62,29 +62,28 @@ const requestFlows = [
   ['Result query', 'challenge_results + leaderboard', 'votes → ranked views', 'Postgres rank() implements competition ranking; podium points are 3/2/1.'],
 ]
 
+function ReferenceHeader({ path, title, description }: { path: string; title: string; description: string }) {
+  return (
+    <header className="dev-header">
+      <div><code>{path}</code><h1>{title}</h1><p>{description}</p></div>
+      <dl>
+        <div><dt>frontend</dt><dd>React 19 / Vite 7</dd></div>
+        <div><dt>backend</dt><dd>Supabase</dd></div>
+        <div><dt>hosting</dt><dd>GitHub Pages</dd></div>
+        <div><dt>revision</dt><dd>schema v2</dd></div>
+      </dl>
+    </header>
+  )
+}
+
 export function SystemDiagram() {
   return (
     <main className="developer-system">
-      <header className="dev-header">
-        <div>
-          <code>/developer/system</code>
-          <h1>Photo Hunt System Reference</h1>
-          <p>Runtime architecture, trust boundaries, persistence model, and operational constraints.</p>
-        </div>
-        <dl>
-          <div><dt>frontend</dt><dd>React 19 / Vite 7</dd></div>
-          <div><dt>backend</dt><dd>Supabase</dd></div>
-          <div><dt>hosting</dt><dd>GitHub Pages</dd></div>
-          <div><dt>revision</dt><dd>schema v2</dd></div>
-        </dl>
-      </header>
+      <ReferenceHeader path="/developer/system" title="Photo Hunt System Reference" description="Runtime architecture and browser-initiated request flows." />
 
       <nav className="dev-index" aria-label="System reference sections">
         <a href="#architecture">01 Architecture</a>
         <a href="#flows">02 Request flows</a>
-        <a href="#schema">03 Data model</a>
-        <a href="#security">04 Security</a>
-        <a href="#operations">05 Operations</a>
       </nav>
 
       <section className="dev-section" id="architecture">
@@ -124,9 +123,18 @@ export function SystemDiagram() {
           </table>
         </div>
       </section>
+    </main>
+  )
+}
 
+export function DatabaseDesign() {
+  return (
+    <main className="developer-system">
+      <ReferenceHeader path="/developer/db-design" title="DB Design" description="Public PostgreSQL tables and their Supabase Auth and Storage dependencies." />
+
+      <nav className="dev-index" aria-label="Database design sections"><a href="#schema">01 Relational data model</a></nav>
       <section className="dev-section" id="schema">
-        <header><span>03</span><div><h2>Relational Data Model</h2><p>PostgreSQL tables and their Supabase Auth and Storage dependencies.</p></div></header>
+        <header><span>01</span><div><h2>Relational Data Model</h2><p>Keys, constraints, relationships, and private photo object storage.</p></div></header>
         <div className="erd-scroll" tabIndex={0} aria-label="Scrollable entity relationship diagram">
           <figure className="erd-canvas">
             <figcaption className="visually-hidden">Relationships among Auth, public database tables, and the private photos storage bucket.</figcaption>
@@ -190,9 +198,18 @@ export function SystemDiagram() {
           </figure>
         </div>
       </section>
+    </main>
+  )
+}
 
+export function SecurityOps() {
+  return (
+    <main className="developer-system">
+      <ReferenceHeader path="/developer/security-ops" title="Security and Ops" description="Authorization boundaries, privileged logic, source ownership, and deployment constraints." />
+
+      <nav className="dev-index" aria-label="Security and operations sections"><a href="#security">01 Security</a><a href="#operations">02 Operations</a></nav>
       <section className="dev-section" id="security">
-        <header><span>04</span><div><h2>Security Model</h2><p>Browser-visible credentials are non-privileged; enforcement resides in Postgres.</p></div></header>
+        <header><span>01</span><div><h2>Security Model</h2><p>Browser-visible credentials are non-privileged; enforcement resides in Postgres.</p></div></header>
         <div className="dev-grid">
           <article><h3>Authentication</h3><ul><li>Anonymous Auth issues an authenticated-role JWT.</li><li>Identity persists in browser storage.</li><li>Clearing storage creates a new user identity.</li></ul></article>
           <article><h3>Database RLS</h3><ul><li>Profiles may only be inserted for <code>auth.uid()</code>.</li><li>Submission mutation requires ownership and zero existing votes.</li><li>Direct vote writes are denied; ballots use the RPC.</li></ul></article>
@@ -202,7 +219,7 @@ export function SystemDiagram() {
       </section>
 
       <section className="dev-section" id="operations">
-        <header><span>05</span><div><h2>Operational Reference</h2><p>Source ownership, capacity assumptions, and deployment path.</p></div></header>
+        <header><span>02</span><div><h2>Operational Reference</h2><p>Source ownership, capacity assumptions, and deployment path.</p></div></header>
         <div className="dev-table-wrap">
           <table className="dev-table">
             <tbody>

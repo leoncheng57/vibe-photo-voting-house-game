@@ -1,18 +1,16 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { GitHubProgress } from './components/GitHubProgress'
 import { DeveloperBanner, DeveloperTabs, MobileNavigation, SiteHeader } from './components/SiteNavigation'
-import { DatabaseDesign, SecurityOps, SystemDiagram } from './components/SystemDiagram'
 import './navigation.css'
-import './developer-system.css'
-
-const page = location.pathname.includes('/db-design') ? 'database' : location.pathname.includes('/security-ops') ? 'security' : 'system'
+import './developer-progress.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <SiteHeader active="developer" />
-    <DeveloperTabs active={page} />
+    <DeveloperTabs active="progress" />
     <DeveloperBanner />
-    {page === 'database' ? <DatabaseDesign /> : page === 'security' ? <SecurityOps /> : <SystemDiagram />}
+    <GitHubProgress />
     <MobileNavigation active="developer" />
   </StrictMode>,
 )
