@@ -10,7 +10,7 @@ const tables = [
   },
   {
     name: 'challenges',
-    purpose: 'The eight ordered photo prompts.',
+    purpose: 'The six ordered photo prompts.',
     fields: [
       ['id', 'smallint · PK'],
       ['slug', 'text · unique'],

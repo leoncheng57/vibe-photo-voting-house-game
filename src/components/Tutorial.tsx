@@ -12,7 +12,7 @@ const steps = [
   {
     number: '02',
     title: 'Hunt for shots',
-    copy: 'Browse all eight challenges and join any you like. Take a new picture or choose one from your camera roll.',
+    copy: 'Browse all six challenges and join any you like. Take a new picture or choose one from your camera roll.',
     note: 'One photo per challenge. Replace it any time before it receives a vote.',
   },
   {
@@ -64,7 +64,7 @@ export function Tutorial({ onBack }: Props) {
           <h2>The fine print,<br />but actually fun.</h2>
         </div>
         <ul>
-          <li><b>8</b><span>photo challenges</span></li>
+          <li><b>6</b><span>photo challenges</span></li>
           <li><b>1</b><span>entry per person per challenge</span></li>
           <li><b>3</b><span>equal votes per voting round</span></li>
           <li><b>3·2·1</b><span>podium points</span></li>

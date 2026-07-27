@@ -44,7 +44,7 @@ export function ChallengeList({ challenges, userId, refreshToken, onChanged }: P
       <header className="section-heading">
         <div>
           <span className="eyebrow">01 / Make something memorable</span>
-          <h2>Eight shots.<br />No bad ideas.</h2>
+          <h2>Six shots.<br />No bad ideas.</h2>
         </div>
         <p>Join any challenge you like. You can replace your photo until the group starts voting.</p>
       </header>

@@ -23,9 +23,7 @@ insert into public.challenges (id, slug, title, prompt, kicker, sort_order) valu
   (3, 'mirror', 'Mirror Main Character', 'Create the most unforgettable mirror selfie in the house.', 'Find your angle.', 3),
   (4, 'twins', 'Accidental Twins', 'Find the guests with the best matching or coordinated outfits.', 'Same wavelength, same wardrobe.', 4),
   (5, 'food', 'Food Magazine Cover', 'Make one party snack or dish look worthy of a glossy cover.', 'The camera eats first.', 5),
-  (6, 'album-cover', 'Housewarming Album', 'Pose a group photo that could be the cover of a legendary album.', 'Debut record. One night only.', 6),
-  (7, 'candid', 'Peak Drama', 'Capture the funniest or most dramatic candid moment of the party.', 'No context required.', 7),
-  (8, 'house-detail', 'Tiny Detail, Big Vibe', 'Turn an overlooked corner or object in the home into art.', 'Look closer.', 8);
+  (7, 'candid', 'Peak Drama', 'Capture the funniest or most dramatic candid moment of the party.', 'No context required.', 6);
 
 create table public.submissions (
   id uuid primary key default gen_random_uuid(),

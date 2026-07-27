@@ -6,7 +6,7 @@ The frontend is React, TypeScript, and Vite on GitHub Pages. Supabase provides a
 
 ## Features
 
-- Eight included housewarming photo challenges
+- Six included housewarming photo challenges
 - One replaceable photo per guest per challenge
 - In-browser photo resizing before upload
 - Exactly three equal votes for distinct photos; self-voting allowed

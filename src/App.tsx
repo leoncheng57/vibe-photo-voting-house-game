@@ -67,11 +67,11 @@ function JoinForm({ user, onJoined, onTutorial }: { user: User; onJoined: (profi
       <div className="join-page__stripe">HOUSEWARMING · ONE NIGHT ONLY · HOUSEWARMING · ONE NIGHT ONLY</div>
       <section className="join-card">
         <div className="brand"><b>HOUSE</b><span>PHOTO HUNT</span></div>
-        <span className="join-card__number">08</span>
+        <span className="join-card__number">06</span>
         <div className="join-card__copy">
           <span className="eyebrow">A camera roll competition</span>
           <h1>Shoot.<br />Vote.<br /><i>Glory.</i></h1>
-          <p>Eight photo challenges. Three votes each. One house champion.</p>
+          <p>Six photo challenges. Three votes each. One house champion.</p>
         </div>
         <form onSubmit={submit}>
           <label htmlFor="name">What should we call you?</label>
