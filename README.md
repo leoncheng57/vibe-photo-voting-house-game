@@ -39,7 +39,7 @@ The frontend is React, TypeScript, and Vite on GitHub Pages. Supabase provides a
 - 3-2-1 podium scoring with competition ranking for ties
 - Informational, device-local configurable timer
 - Built-in tutorial walkthrough for first-time guests
-- Developer references for architecture, database design, security and operations, and GitHub project progress under `/developer/`
+- Developer references for architecture, database design, security and operations, the host password runbook, and GitHub project progress under `/developer/`
 - Anonymous photographer names during voting
 - TV mode with QR join code, keyboard navigation, and result reveal
 - Responsive layout for phones, laptops, and large televisions
@@ -78,7 +78,7 @@ Anonymous sessions belong to one browser. A guest who clears site data or change
 
 Guests must enter a shared passphrase before they can read or write anything, including photo bytes. The passphrase is validated inside Postgres against a bcrypt hash; the plaintext is never stored in the repository, JavaScript bundle, QR code, or database. Share it out of band — say it aloud or write it on a board at the party.
 
-Host controls (run in the Supabase SQL Editor; the full runbook is on `/developer/security-ops/`):
+Host controls (run in the Supabase SQL Editor; the full runbook is on `/developer/host-runbook/`):
 
 ```sql
 select set_party_passphrase('maple-otter-battery-42');  -- set or rotate (any non-empty value)

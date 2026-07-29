@@ -13,6 +13,7 @@ export default defineConfig({
         system: resolve(__dirname, 'developer/system/index.html'),
         database: resolve(__dirname, 'developer/db-design/index.html'),
         security: resolve(__dirname, 'developer/security-ops/index.html'),
+        runbook: resolve(__dirname, 'developer/host-runbook/index.html'),
         progress: resolve(__dirname, 'developer/github-progress/index.html'),
       },
     },

@@ -1,3 +1,7 @@
+import { useState } from 'react'
+
+const runbookPageUrl = `${import.meta.env.BASE_URL}developer/host-runbook/`
+
 const schemaNodes = [
   {
     name: 'memberships',
@@ -243,7 +247,7 @@ export function SecurityOps() {
     <main className="developer-system">
       <ReferenceHeader path="/developer/security-ops" title="Security and Ops" description="Authorization boundaries, privileged logic, source ownership, and deployment constraints." />
 
-      <nav className="dev-index" aria-label="Security and operations sections"><a href="#security">01 Security</a><a href="#party-access">02 Party access</a><a href="#operations">03 Operations</a></nav>
+      <nav className="dev-index" aria-label="Security and operations sections"><a href="#security">01 Security</a><a href="#operations">02 Operations</a></nav>
       <section className="dev-section" id="security">
         <header><span>01</span><div><h2>Security Model</h2><p>Browser-visible credentials are non-privileged; enforcement resides in Postgres.</p></div></header>
         <div className="dev-grid">
@@ -254,30 +258,11 @@ export function SecurityOps() {
           <article><h3>Image delivery</h3><ul><li>Images are fetched with authenticated <code>storage.download()</code> calls.</li><li>The browser renders device-local blob URLs; no reusable signed URLs are issued.</li><li>Members can still save or photograph what their own screen displays.</li></ul></article>
           <article><h3>Privileged logic</h3><ul><li><code>submit_votes</code> derives voter ID from JWT and requires membership.</li><li><code>set_party_passphrase</code> is callable only from the Supabase dashboard.</li><li>Service-role keys never enter the client build.</li></ul></article>
         </div>
-      </section>
-
-      <section className="dev-section" id="party-access">
-        <header><span>02</span><div><h2>Party Access Runbook</h2><p>Host-only controls for the passphrase, the open/closed switch, and photo protection. Run every command in the Supabase dashboard SQL editor.</p></div></header>
-        <div className="dev-facts">
-          <article><h3>Admission chain</h3><code>JWT → passphrase → membership → RLS</code><p>A guest signs in anonymously, submits the passphrase to join_party(), and receives a membership row tied to their browser identity. Only active memberships pass row-level security.</p></article>
-          <article><h3>Passphrase handling</h3><code>bcrypt hash only</code><p>The plaintext passphrase is never stored in the repository, JavaScript bundle, QR code, or database. Share it out of band — say it aloud or write it on the board.</p></article>
-          <article><h3>Raw image protection</h3><code>storage.download() → blob URL</code><p>Knowing the site URL, project URL, publishable key, bucket name, or object path is not sufficient to fetch image bytes. Each download is authorized per request against the membership policy.</p></article>
-        </div>
-        <div className="dev-table-wrap">
-          <table className="dev-table">
-            <thead><tr><th>Action</th><th>SQL editor command</th><th>Effect</th></tr></thead>
-            <tbody>
-              <tr><th>Set or rotate the passphrase</th><td><code>select set_party_passphrase('maple-otter-battery-42');</code></td><td>Stores only the bcrypt hash. Any non-empty passphrase is accepted; longer phrases resist online guessing. Existing members stay in; only new joins need the new phrase.</td></tr>
-              <tr><th>Close the party</th><td><code>update party_settings set is_open = false;</code></td><td>Instantly blocks all database and Storage requests for everyone, including existing members. No redeploy needed.</td></tr>
-              <tr><th>Reopen the party</th><td><code>update party_settings set is_open = true;</code></td><td>Existing memberships resume working immediately.</td></tr>
-              <tr><th>Reset for a new party</th><td><code>delete from memberships;<br />select set_party_passphrase('next-party-phrase');</code></td><td>Every browser must enter the new passphrase again before reading or writing anything.</td></tr>
-            </tbody>
-          </table>
-        </div>
+        <p className="dev-crosslink">Passphrase and party lifecycle commands live on the <a href={runbookPageUrl}>Host Password Runbook →</a></p>
       </section>
 
       <section className="dev-section" id="operations">
-        <header><span>03</span><div><h2>Operational Reference</h2><p>Source ownership, capacity assumptions, and deployment path.</p></div></header>
+        <header><span>02</span><div><h2>Operational Reference</h2><p>Source ownership, capacity assumptions, and deployment path.</p></div></header>
         <div className="dev-table-wrap">
           <table className="dev-table">
             <tbody>
@@ -287,6 +272,92 @@ export function SecurityOps() {
               <tr><th>Database definition</th><td><code>supabase/migrations/</code></td><td>DDL, RLS, RPC, views and seed data</td></tr>
               <tr><th>Deployment</th><td><code>.github/workflows/deploy.yml</code></td><td>Test → typecheck/build → Pages artifact</td></tr>
               <tr><th>Free-tier constraints</th><td><code>1 GB storage / 5 GB egress</code></td><td>Client compression is required to control object and transfer volume</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  )
+}
+
+const hostCommands = [
+  {
+    action: 'Set or rotate the passphrase',
+    sql: "select set_party_passphrase('maple-otter-battery-42');",
+    effect: 'Stores only the bcrypt hash. Any non-empty passphrase is accepted; longer phrases resist online guessing. Existing members stay in; only new joins need the new phrase.',
+  },
+  {
+    action: 'Close the party',
+    sql: 'update party_settings set is_open = false;',
+    effect: 'Instantly blocks all database and Storage requests for everyone, including existing members. No redeploy needed.',
+  },
+  {
+    action: 'Reopen the party',
+    sql: 'update party_settings set is_open = true;',
+    effect: 'Existing memberships resume working immediately.',
+  },
+  {
+    action: 'Reset for a new party',
+    sql: "delete from memberships;\nselect set_party_passphrase('next-party-phrase');",
+    effect: 'Every browser must enter the new passphrase again before reading or writing anything.',
+  },
+]
+
+function CopySqlCell({ sql }: { sql: string }) {
+  const [copied, setCopied] = useState(false)
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(sql)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1600)
+    } catch {
+      // Clipboard access denied; leave the text selectable as a fallback.
+    }
+  }
+
+  return (
+    <div className="sql-copy">
+      <code>{sql.split('\n').map((line, index) => <span key={line}>{index > 0 && <br />}{line}</span>)}</code>
+      <button type="button" className="sql-copy__button" onClick={copy} title={copied ? 'Copied!' : 'Copy SQL to clipboard'} aria-label={copied ? 'Copied' : `Copy SQL: ${sql}`}>
+        {copied ? (
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 5 5L19 7" /></svg>
+        ) : (
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 9.5A1.5 1.5 0 0 1 10.5 8h8A1.5 1.5 0 0 1 20 9.5v10a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 9 19.5zM15 8V5.5A1.5 1.5 0 0 0 13.5 4h-8A1.5 1.5 0 0 0 4 5.5v10A1.5 1.5 0 0 0 5.5 17H9" /></svg>
+        )}
+      </button>
+    </div>
+  )
+}
+
+export function HostPasswordRunbook() {
+  return (
+    <main className="developer-system">
+      <ReferenceHeader path="/developer/host-runbook" title="Host Password Runbook" description="Host-only controls for the party passphrase, the open/closed switch, and photo protection." />
+
+      <nav className="dev-index" aria-label="Host runbook sections"><a href="#access-model">01 Access model</a><a href="#commands">02 Commands</a></nav>
+      <section className="dev-section" id="access-model">
+        <header><span>01</span><div><h2>Party Access Model</h2><p>How the passphrase, memberships, and image delivery protect party data.</p></div></header>
+        <div className="dev-facts">
+          <article><h3>Admission chain</h3><code>JWT → passphrase → membership → RLS</code><p>A guest signs in anonymously, submits the passphrase to join_party(), and receives a membership row tied to their browser identity. Only active memberships pass row-level security.</p></article>
+          <article><h3>Passphrase handling</h3><code>bcrypt hash only</code><p>The plaintext passphrase is never stored in the repository, JavaScript bundle, QR code, or database. Share it out of band — say it aloud or write it on the board.</p></article>
+          <article><h3>Raw image protection</h3><code>storage.download() → blob URL</code><p>Knowing the site URL, project URL, publishable key, bucket name, or object path is not sufficient to fetch image bytes. Each download is authorized per request against the membership policy.</p></article>
+        </div>
+      </section>
+
+      <section className="dev-section" id="commands">
+        <header><span>02</span><div><h2>Host Commands</h2><p>Run every command in the Supabase dashboard SQL editor — the dashboard login is the only privileged surface.</p></div></header>
+        <div className="dev-table-wrap">
+          <table className="dev-table">
+            <thead><tr><th>Action</th><th>SQL editor command</th><th>Effect</th></tr></thead>
+            <tbody>
+              {hostCommands.map((command) => (
+                <tr key={command.action}>
+                  <th>{command.action}</th>
+                  <td><CopySqlCell sql={command.sql} /></td>
+                  <td>{command.effect}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
