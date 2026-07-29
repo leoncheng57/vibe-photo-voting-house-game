@@ -2,10 +2,12 @@ import type { View } from '../types'
 
 const appRoot = import.meta.env.BASE_URL
 const homeUrl = `${appRoot}home/`
-const developerUrl = `${appRoot}developer/system/`
+const systemUrl = `${appRoot}developer/system/`
 const databaseUrl = `${appRoot}developer/db-design/`
 const securityUrl = `${appRoot}developer/security-ops/`
+const runbookUrl = `${appRoot}developer/host-runbook/`
 const progressUrl = `${appRoot}developer/github-progress/`
+const developerUrl = progressUrl
 
 const navigationItems: Array<{ id: View; label: string; href: string; icon?: 'tv' }> = [
   { id: 'challenges', label: 'Home', href: homeUrl },
@@ -73,13 +75,14 @@ export function MobileNavigation(props: NavigationProps) {
   return <nav className="mobile-nav" aria-label="Mobile navigation"><NavigationLinks {...props} /></nav>
 }
 
-export function DeveloperTabs({ active }: { active: 'system' | 'database' | 'security' | 'progress' }) {
+export function DeveloperTabs({ active }: { active: 'system' | 'database' | 'security' | 'runbook' | 'progress' }) {
   return (
     <nav className="developer-tabs" aria-label="Developer pages">
-      <a className={active === 'system' ? 'active' : ''} href={developerUrl}>System reference</a>
+      <a className={active === 'progress' ? 'active' : ''} href={progressUrl}>GitHub project progress</a>
+      <a className={active === 'system' ? 'active' : ''} href={systemUrl}>System reference</a>
       <a className={active === 'database' ? 'active' : ''} href={databaseUrl}>DB design</a>
       <a className={active === 'security' ? 'active' : ''} href={securityUrl}>Security and Ops</a>
-      <a className={active === 'progress' ? 'active' : ''} href={progressUrl}>GitHub project progress</a>
+      <a className={active === 'runbook' ? 'active' : ''} href={runbookUrl}>Host Password Runbook</a>
     </nav>
   )
 }
