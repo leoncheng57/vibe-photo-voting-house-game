@@ -17,6 +17,12 @@ export async function ensureAnonymousUser(): Promise<User> {
   return data.user
 }
 
+export async function signOut(): Promise<void> {
+  clearPhotoCache()
+  const { error } = await client().auth.signOut()
+  if (error) throw error
+}
+
 export async function getPartyStatus(): Promise<PartyStatus> {
   const { data, error } = await client().rpc('get_party_status').single()
   if (error) throw error

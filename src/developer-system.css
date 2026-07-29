@@ -86,7 +86,7 @@ code, pre { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospac
 .dev-table code { color: #087da8; font-size: 12px; }
 .erd-scroll { overflow: auto; border: 1px solid #2c302f; background: #111413; scrollbar-color: #525856 #111413; }
 .erd-scroll:focus-visible { outline: 3px solid #38bdf8; outline-offset: 3px; }
-.erd-canvas { position: relative; width: 1180px; height: 1000px; margin: 0; color: #e6e8e7; background-color: #111413; background-image: radial-gradient(#343938 1.5px, transparent 1.5px); background-size: 28px 28px; }
+.erd-canvas { position: relative; width: 1180px; height: 1120px; margin: 0; color: #e6e8e7; background-color: #111413; background-image: radial-gradient(#343938 1.5px, transparent 1.5px); background-size: 28px 28px; }
 .erd-links { position: absolute; inset: 0 auto auto 0; width: 1180px; height: 880px; fill: none; stroke: #aeb4b2; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .erd-links__storage { stroke: #38bdf8; stroke-dasharray: 7 6; }
 .erd-card { position: absolute; overflow: hidden; border: 1px solid #303533; border-radius: 11px; background: #191c1b; box-shadow: 0 12px 28px rgba(0,0,0,.18); }

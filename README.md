@@ -55,6 +55,7 @@ The frontend is React, TypeScript, and Vite on GitHub Pages. Supabase provides a
      - `supabase/migrations/002_remove_challenges.sql`
      - `supabase/migrations/003_flexible_vote_count.sql`
      - `supabase/migrations/004_party_membership.sql`
+     - `supabase/migrations/005_relax_passphrase_length.sql`
 4. Set the party passphrase in the SQL Editor. Nobody can join until this runs:
 
 ```sql
@@ -80,7 +81,7 @@ Guests must enter a shared passphrase before they can read or write anything, in
 Host controls (run in the Supabase SQL Editor; the full runbook is on `/developer/security-ops/`):
 
 ```sql
-select set_party_passphrase('maple-otter-battery-42');  -- set or rotate (12+ characters)
+select set_party_passphrase('maple-otter-battery-42');  -- set or rotate (any non-empty value)
 update party_settings set is_open = false;              -- close the party instantly
 update party_settings set is_open = true;               -- reopen
 delete from memberships;                                -- reset: everyone re-enters the passphrase

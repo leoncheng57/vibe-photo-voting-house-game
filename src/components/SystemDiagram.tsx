@@ -3,7 +3,7 @@ const schemaNodes = [
     name: 'memberships',
     namespace: 'public',
     description: 'Admitted guests; rows are created only by the join_party passphrase check.',
-    position: { left: 840, top: 620, width: 300 },
+    position: { left: 40, top: 40, width: 320 },
     constraints: ['Insert only via join_party()'],
     fields: [
       { name: 'user_id', type: 'uuid', flags: ['PK', 'FK'] },
@@ -14,7 +14,7 @@ const schemaNodes = [
     name: 'party_settings',
     namespace: 'public',
     description: 'Host-only single row: bcrypt passphrase hash and the open/closed switch.',
-    position: { left: 40, top: 40, width: 320 },
+    position: { left: 840, top: 730, width: 300 },
     constraints: ['Single host-managed row; no client access'],
     fields: [
       { name: 'id', type: 'bool', flags: ['PK'] },
@@ -259,7 +259,7 @@ export function SecurityOps() {
       <section className="dev-section" id="party-access">
         <header><span>02</span><div><h2>Party Access Runbook</h2><p>Host-only controls for the passphrase, the open/closed switch, and photo protection. Run every command in the Supabase dashboard SQL editor.</p></div></header>
         <div className="dev-facts">
-          <article><h3>Admission chain</h3><code>JWT → passphrase → membership → RLS</code><p>A guest signs in anonymously, submits the passphrase to <code>join_party()</code>, and receives a membership row tied to their browser identity. Only active memberships pass row-level security.</p></article>
+          <article><h3>Admission chain</h3><code>JWT → passphrase → membership → RLS</code><p>A guest signs in anonymously, submits the passphrase to join_party(), and receives a membership row tied to their browser identity. Only active memberships pass row-level security.</p></article>
           <article><h3>Passphrase handling</h3><code>bcrypt hash only</code><p>The plaintext passphrase is never stored in the repository, JavaScript bundle, QR code, or database. Share it out of band — say it aloud or write it on the board.</p></article>
           <article><h3>Raw image protection</h3><code>storage.download() → blob URL</code><p>Knowing the site URL, project URL, publishable key, bucket name, or object path is not sufficient to fetch image bytes. Each download is authorized per request against the membership policy.</p></article>
         </div>
@@ -267,7 +267,7 @@ export function SecurityOps() {
           <table className="dev-table">
             <thead><tr><th>Action</th><th>SQL editor command</th><th>Effect</th></tr></thead>
             <tbody>
-              <tr><th>Set or rotate the passphrase</th><td><code>select set_party_passphrase('maple-otter-battery-42');</code></td><td>Stores only the bcrypt hash. Minimum 12 characters. Existing members stay in; only new joins need the new phrase.</td></tr>
+              <tr><th>Set or rotate the passphrase</th><td><code>select set_party_passphrase('maple-otter-battery-42');</code></td><td>Stores only the bcrypt hash. Any non-empty passphrase is accepted; longer phrases resist online guessing. Existing members stay in; only new joins need the new phrase.</td></tr>
               <tr><th>Close the party</th><td><code>update party_settings set is_open = false;</code></td><td>Instantly blocks all database and Storage requests for everyone, including existing members. No redeploy needed.</td></tr>
               <tr><th>Reopen the party</th><td><code>update party_settings set is_open = true;</code></td><td>Existing memberships resume working immediately.</td></tr>
               <tr><th>Reset for a new party</th><td><code>delete from memberships;<br />select set_party_passphrase('next-party-phrase');</code></td><td>Every browser must enter the new passphrase again before reading or writing anything.</td></tr>
