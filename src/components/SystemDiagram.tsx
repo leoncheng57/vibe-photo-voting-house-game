@@ -1,3 +1,5 @@
+import { useState } from 'react'
+
 const runbookPageUrl = `${import.meta.env.BASE_URL}developer/host-runbook/`
 
 const schemaNodes = [
@@ -278,6 +280,56 @@ export function SecurityOps() {
   )
 }
 
+const hostCommands = [
+  {
+    action: 'Set or rotate the passphrase',
+    sql: "select set_party_passphrase('maple-otter-battery-42');",
+    effect: 'Stores only the bcrypt hash. Any non-empty passphrase is accepted; longer phrases resist online guessing. Existing members stay in; only new joins need the new phrase.',
+  },
+  {
+    action: 'Close the party',
+    sql: 'update party_settings set is_open = false;',
+    effect: 'Instantly blocks all database and Storage requests for everyone, including existing members. No redeploy needed.',
+  },
+  {
+    action: 'Reopen the party',
+    sql: 'update party_settings set is_open = true;',
+    effect: 'Existing memberships resume working immediately.',
+  },
+  {
+    action: 'Reset for a new party',
+    sql: "delete from memberships;\nselect set_party_passphrase('next-party-phrase');",
+    effect: 'Every browser must enter the new passphrase again before reading or writing anything.',
+  },
+]
+
+function CopySqlCell({ sql }: { sql: string }) {
+  const [copied, setCopied] = useState(false)
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(sql)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1600)
+    } catch {
+      // Clipboard access denied; leave the text selectable as a fallback.
+    }
+  }
+
+  return (
+    <div className="sql-copy">
+      <code>{sql.split('\n').map((line, index) => <span key={line}>{index > 0 && <br />}{line}</span>)}</code>
+      <button type="button" className="sql-copy__button" onClick={copy} title={copied ? 'Copied!' : 'Copy SQL to clipboard'} aria-label={copied ? 'Copied' : `Copy SQL: ${sql}`}>
+        {copied ? (
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 5 5L19 7" /></svg>
+        ) : (
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 9.5A1.5 1.5 0 0 1 10.5 8h8A1.5 1.5 0 0 1 20 9.5v10a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 9 19.5zM15 8V5.5A1.5 1.5 0 0 0 13.5 4h-8A1.5 1.5 0 0 0 4 5.5v10A1.5 1.5 0 0 0 5.5 17H9" /></svg>
+        )}
+      </button>
+    </div>
+  )
+}
+
 export function HostPasswordRunbook() {
   return (
     <main className="developer-system">
@@ -299,10 +351,13 @@ export function HostPasswordRunbook() {
           <table className="dev-table">
             <thead><tr><th>Action</th><th>SQL editor command</th><th>Effect</th></tr></thead>
             <tbody>
-              <tr><th>Set or rotate the passphrase</th><td><code>select set_party_passphrase('maple-otter-battery-42');</code></td><td>Stores only the bcrypt hash. Any non-empty passphrase is accepted; longer phrases resist online guessing. Existing members stay in; only new joins need the new phrase.</td></tr>
-              <tr><th>Close the party</th><td><code>update party_settings set is_open = false;</code></td><td>Instantly blocks all database and Storage requests for everyone, including existing members. No redeploy needed.</td></tr>
-              <tr><th>Reopen the party</th><td><code>update party_settings set is_open = true;</code></td><td>Existing memberships resume working immediately.</td></tr>
-              <tr><th>Reset for a new party</th><td><code>delete from memberships;<br />select set_party_passphrase('next-party-phrase');</code></td><td>Every browser must enter the new passphrase again before reading or writing anything.</td></tr>
+              {hostCommands.map((command) => (
+                <tr key={command.action}>
+                  <th>{command.action}</th>
+                  <td><CopySqlCell sql={command.sql} /></td>
+                  <td>{command.effect}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
