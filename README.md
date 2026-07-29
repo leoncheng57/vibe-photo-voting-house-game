@@ -48,12 +48,14 @@ The frontend is React, TypeScript, and Vite on GitHub Pages. Supabase provides a
 
 1. Create a project on [Supabase](https://supabase.com/).
 2. Open **Authentication > Providers > Anonymous Sign-Ins** and enable anonymous sign-ins.
-3. Open the SQL Editor and run each migration once, in numeric order:
-   - `supabase/migrations/001_initial.sql`
-   - `supabase/migrations/002_remove_challenges.sql`
-   - `supabase/migrations/003_flexible_vote_count.sql`
-   - `supabase/migrations/004_party_membership.sql`
-4. Set the party passphrase in the same SQL Editor. Nobody can join until this runs:
+3. Apply the migrations in `supabase/migrations/` once, in numeric order. Either:
+   - **Supabase CLI (preferred):** `supabase login`, `supabase link --project-ref <your-ref>`, then `supabase db push`. If earlier migrations were ever applied by hand, first baseline them with `supabase migration repair --status applied <versions>`.
+   - **SQL Editor:** paste and run each file once, in numeric order:
+     - `supabase/migrations/001_initial.sql`
+     - `supabase/migrations/002_remove_challenges.sql`
+     - `supabase/migrations/003_flexible_vote_count.sql`
+     - `supabase/migrations/004_party_membership.sql`
+4. Set the party passphrase in the SQL Editor. Nobody can join until this runs:
 
 ```sql
 select set_party_passphrase('your-long-passphrase');
