@@ -1,6 +1,6 @@
 # House Party Photo Hunt
 
-A mobile-first housewarming photo challenge with anonymous guest profiles, direct photo uploads, three-vote rounds, TV presentation mode, and a live 3-2-1 leaderboard.
+A mobile-first housewarming photo challenge with passphrase-gated entry, anonymous guest profiles, direct photo uploads, three-vote rounds, TV presentation mode, and a live 3-2-1 leaderboard.
 
 The frontend is React, TypeScript, and Vite on GitHub Pages. Supabase provides anonymous authentication, PostgreSQL, private photo storage, and realtime updates. No application server or Vercel deployment is required.
 
@@ -31,6 +31,7 @@ The frontend is React, TypeScript, and Vite on GitHub Pages. Supabase provides a
 
 ## Features
 
+- Passphrase-gated party membership enforced by Postgres row-level security
 - Six included housewarming photo challenges
 - One replaceable photo per guest per challenge
 - In-browser photo resizing before upload
@@ -51,8 +52,15 @@ The frontend is React, TypeScript, and Vite on GitHub Pages. Supabase provides a
    - `supabase/migrations/001_initial.sql`
    - `supabase/migrations/002_remove_challenges.sql`
    - `supabase/migrations/003_flexible_vote_count.sql`
-4. Open **Project Settings > API** and copy the project URL and publishable key.
-5. Copy `.env.example` to `.env` and fill in those two public values:
+   - `supabase/migrations/004_party_membership.sql`
+4. Set the party passphrase in the same SQL Editor. Nobody can join until this runs:
+
+```sql
+select set_party_passphrase('your-long-passphrase');
+```
+
+5. Open **Project Settings > API** and copy the project URL and publishable key.
+6. Copy `.env.example` to `.env` and fill in those two public values:
 
 ```dotenv
 VITE_SUPABASE_URL=https://your-project.supabase.co
@@ -61,7 +69,22 @@ VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_your_key
 
 The publishable key is designed for browser use. Never add a Supabase secret key or service-role key to this repository or the frontend environment.
 
-Anonymous sessions belong to one browser. A guest who clears site data or changes devices will need a new display name. Supabase limits anonymous sign-ups by IP; if the party will exceed 30 guests on one network, review the Auth rate limit before the event.
+Anonymous sessions belong to one browser. A guest who clears site data or changes devices will need to re-enter the passphrase and pick a new display name. Supabase limits anonymous sign-ups by IP; if the party will exceed 30 guests on one network, review the Auth rate limit before the event.
+
+## Party Access
+
+Guests must enter a shared passphrase before they can read or write anything, including photo bytes. The passphrase is validated inside Postgres against a bcrypt hash; the plaintext is never stored in the repository, JavaScript bundle, QR code, or database. Share it out of band — say it aloud or write it on a board at the party.
+
+Host controls (run in the Supabase SQL Editor; the full runbook is on `/developer/security-ops/`):
+
+```sql
+select set_party_passphrase('maple-otter-battery-42');  -- set or rotate (12+ characters)
+update party_settings set is_open = false;              -- close the party instantly
+update party_settings set is_open = true;               -- reopen
+delete from memberships;                                -- reset: everyone re-enters the passphrase
+```
+
+Rotating the passphrase does not remove existing members; deleting memberships does. Closing the party blocks all database and Storage requests immediately, including for existing members, without redeploying the site.
 
 ## Local Development
 
@@ -93,8 +116,8 @@ The app deploys to:
 
 ## Party Flow
 
-1. Put the app URL or TV mode QR code where guests can find it.
-2. Each guest enters a unique display name and joins any challenges they want.
+1. Put the app URL or TV mode QR code where guests can find it, and share the party passphrase out of band.
+2. Each guest enters the passphrase, then a unique display name, and joins any challenges they want. The TV device enters the passphrase once too.
 3. Start the informational timer on the display device. It does not lock app actions.
 4. When photo time ends, show one challenge at a time in TV mode.
 5. Guests select and confirm three photos for that challenge on their phones.
@@ -145,4 +168,4 @@ delete from public.submissions;
 
 Votes cascade from the deleted submissions. After the query succeeds, empty the `photos` bucket in the Supabase Storage dashboard. Verify both systems before starting the next event.
 
-To reset participant names as well, delete `public.profiles` instead; submissions and votes cascade. This does not delete users from Supabase Auth. Empty the `photos` bucket separately.
+To reset participant names as well, delete `public.profiles` instead; submissions and votes cascade. This does not delete users from Supabase Auth, and it does not remove party memberships — run `delete from public.memberships;` to require the passphrase again. Empty the `photos` bucket separately.

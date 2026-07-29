@@ -6,7 +6,7 @@ const steps = [
   {
     number: '01',
     title: 'Join the house',
-    copy: 'Open the link or scan the TV code. Pick a unique party name. No email, password, or app download is needed.',
+    copy: 'Open the link or scan the TV code, enter the party passphrase from the host, then pick a unique party name. No email or app download is needed.',
     note: 'Keep this browser open: your guest identity lives on this device.',
   },
   {
