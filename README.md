@@ -25,6 +25,10 @@ The frontend is React, TypeScript, and Vite on GitHub Pages. Supabase provides a
 
 ![Desktop developer system reference showing architecture documentation and navigation](docs/images/developer-system-desktop.png)
 
+### GitHub project priorities
+
+![Desktop GitHub project progress dashboard with issues grouped by high, medium, and low priority](docs/images/github-priority-groups.png)
+
 ## Features
 
 - Six included housewarming photo challenges
