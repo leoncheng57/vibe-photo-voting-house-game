@@ -1,5 +1,29 @@
 const schemaNodes = [
   {
+    name: 'memberships',
+    namespace: 'public',
+    description: 'Admitted guests; rows are created only by the join_party passphrase check.',
+    position: { left: 40, top: 40, width: 320 },
+    constraints: ['Insert only via join_party()'],
+    fields: [
+      { name: 'user_id', type: 'uuid', flags: ['PK', 'FK'] },
+      { name: 'created_at', type: 'timestamptz', flags: [] },
+    ],
+  },
+  {
+    name: 'party_settings',
+    namespace: 'public',
+    description: 'Host-only single row: bcrypt passphrase hash and the open/closed switch.',
+    position: { left: 840, top: 730, width: 300 },
+    constraints: ['Single host-managed row; no client access'],
+    fields: [
+      { name: 'id', type: 'bool', flags: ['PK'] },
+      { name: 'passphrase_hash', type: 'text', flags: [] },
+      { name: 'is_open', type: 'bool', flags: [] },
+      { name: 'updated_at', type: 'timestamptz', flags: [] },
+    ],
+  },
+  {
     name: 'profiles',
     namespace: 'public',
     description: 'Party identity associated with an anonymous Auth user.',
@@ -57,9 +81,11 @@ const schemaNodes = [
 
 const requestFlows = [
   ['Identity bootstrap', 'supabase.auth.signInAnonymously()', 'auth.users → profiles', 'Persistent JWT session scoped to one browser.'],
+  ['Party admission', 'rpc(\'join_party\')', 'party_settings → memberships', 'SECURITY DEFINER bcrypt check; a wrong passphrase never creates a membership.'],
   ['Photo submission', 'compressPhoto() + storage.upload()', 'photos bucket → submissions', 'JPEG, max 1800 px client-side; metadata upsert follows object write.'],
-  ['Ballot write', 'rpc(\'submit_votes\')', 'submissions → votes', 'SECURITY DEFINER function requires min(3, available submissions) distinct IDs and writes atomically.'],
-  ['Result query', 'challenge_results + leaderboard', 'votes → ranked views', 'Postgres rank() implements competition ranking; podium points are 3/2/1.'],
+  ['Photo read', 'storage.download()', 'photos bucket → local blob URL', 'Authenticated, membership-gated download; no reusable signed URLs are issued.'],
+  ['Ballot write', 'rpc(\'submit_votes\')', 'submissions → votes', 'SECURITY DEFINER function requires membership plus min(3, available submissions) distinct IDs and writes atomically.'],
+  ['Result query', 'challenge_results + leaderboard', 'votes → ranked views', 'Membership-gated views; Postgres rank() implements competition ranking with 3/2/1 podium points.'],
 ]
 
 function ReferenceHeader({ path, title, description }: { path: string; title: string; description: string }) {
@@ -112,13 +138,13 @@ export function SystemDiagram() {
           <section className="architecture-services" aria-label="Supabase services">
             <article><span className="architecture-service-icon">AU</span><small>Identity</small><h3>Auth</h3><p>Anonymous JWT users with browser-persisted sessions.</p></article>
             <article><span className="architecture-service-icon">DB</span><small>Data</small><h3>Postgres</h3><p>REST, RPC, row-level security, and realtime changes.</p></article>
-            <article><span className="architecture-service-icon">ST</span><small>Objects</small><h3>Storage</h3><p>Private photos bucket with one-hour signed read URLs.</p></article>
+            <article><span className="architecture-service-icon">ST</span><small>Objects</small><h3>Storage</h3><p>Private photos bucket read through membership-gated authenticated downloads.</p></article>
           </section>
         </div>
         <div className="dev-facts">
           <article><h3>Deployment unit</h3><code>dist/</code><p>Immutable static assets deployed by GitHub Actions on pushes to main.</p></article>
           <article><h3>Public configuration</h3><code>VITE_SUPABASE_*</code><p>Project URL and publishable key identify the backend; neither grants privileged access.</p></article>
-          <article><h3>Authorization boundary</h3><code>auth.uid() + RLS</code><p>JWT identity and database policies authorize every table and object operation.</p></article>
+          <article><h3>Authorization boundary</h3><code>auth.uid() + membership + RLS</code><p>JWT identity, passphrase-gated party membership, and database policies authorize every table and object operation.</p></article>
         </div>
       </section>
 
@@ -147,6 +173,8 @@ export function DatabaseDesign() {
           <figure className="erd-canvas">
             <figcaption className="visually-hidden">Relationships among Auth, public database tables, and the private photos storage bucket.</figcaption>
             <ul className="visually-hidden">
+              <li>memberships.user_id references auth.users.id and is created only by the join_party passphrase function.</li>
+              <li>party_settings holds the bcrypt passphrase hash and is_open switch; clients cannot read or write it.</li>
               <li>profiles.user_id references auth.users.id.</li>
               <li>submissions.user_id references profiles.user_id.</li>
               <li>submissions.challenge_id references challenges.id.</li>
@@ -215,19 +243,41 @@ export function SecurityOps() {
     <main className="developer-system">
       <ReferenceHeader path="/developer/security-ops" title="Security and Ops" description="Authorization boundaries, privileged logic, source ownership, and deployment constraints." />
 
-      <nav className="dev-index" aria-label="Security and operations sections"><a href="#security">01 Security</a><a href="#operations">02 Operations</a></nav>
+      <nav className="dev-index" aria-label="Security and operations sections"><a href="#security">01 Security</a><a href="#party-access">02 Party access</a><a href="#operations">03 Operations</a></nav>
       <section className="dev-section" id="security">
         <header><span>01</span><div><h2>Security Model</h2><p>Browser-visible credentials are non-privileged; enforcement resides in Postgres.</p></div></header>
         <div className="dev-grid">
-          <article><h3>Authentication</h3><ul><li>Anonymous Auth issues an authenticated-role JWT.</li><li>Identity persists in browser storage.</li><li>Clearing storage creates a new user identity.</li></ul></article>
-          <article><h3>Database RLS</h3><ul><li>Profiles may only be inserted for <code>auth.uid()</code>.</li><li>Submission mutation requires ownership and zero existing votes.</li><li>Direct vote writes are denied; ballots use the RPC.</li></ul></article>
-          <article><h3>Storage RLS</h3><ul><li>Bucket is private and JPEG-only.</li><li>Uploads are restricted to the user ID prefix.</li><li>Reads require a valid participant profile.</li></ul></article>
-          <article><h3>Privileged logic</h3><ul><li><code>submit_votes</code> derives voter ID from JWT.</li><li>Required choices equal <code>min(3, available submissions)</code>.</li><li>Service-role keys never enter the client build.</li></ul></article>
+          <article><h3>Authentication</h3><ul><li>Anonymous Auth issues an authenticated-role JWT.</li><li>Identity persists in browser storage.</li><li>Clearing storage creates a new user identity that must re-enter the passphrase.</li></ul></article>
+          <article><h3>Party membership</h3><ul><li><code>join_party()</code> compares the passphrase to a bcrypt hash inside Postgres.</li><li>A wrong passphrase never creates a membership.</li><li>Every table, view, RPC, and Storage policy requires an active membership while <code>is_open</code> is true.</li></ul></article>
+          <article><h3>Database RLS</h3><ul><li>All party tables require an active membership.</li><li>Profiles may only be inserted for <code>auth.uid()</code>.</li><li>Submission mutation requires ownership and zero existing votes.</li><li>Direct vote writes are denied; ballots use the RPC.</li></ul></article>
+          <article><h3>Storage RLS</h3><ul><li>Bucket is private and JPEG-only.</li><li>Uploads are restricted to the user ID prefix.</li><li>Reads require an active party membership, not merely a profile.</li></ul></article>
+          <article><h3>Image delivery</h3><ul><li>Images are fetched with authenticated <code>storage.download()</code> calls.</li><li>The browser renders device-local blob URLs; no reusable signed URLs are issued.</li><li>Members can still save or photograph what their own screen displays.</li></ul></article>
+          <article><h3>Privileged logic</h3><ul><li><code>submit_votes</code> derives voter ID from JWT and requires membership.</li><li><code>set_party_passphrase</code> is callable only from the Supabase dashboard.</li><li>Service-role keys never enter the client build.</li></ul></article>
+        </div>
+      </section>
+
+      <section className="dev-section" id="party-access">
+        <header><span>02</span><div><h2>Party Access Runbook</h2><p>Host-only controls for the passphrase, the open/closed switch, and photo protection. Run every command in the Supabase dashboard SQL editor.</p></div></header>
+        <div className="dev-facts">
+          <article><h3>Admission chain</h3><code>JWT → passphrase → membership → RLS</code><p>A guest signs in anonymously, submits the passphrase to join_party(), and receives a membership row tied to their browser identity. Only active memberships pass row-level security.</p></article>
+          <article><h3>Passphrase handling</h3><code>bcrypt hash only</code><p>The plaintext passphrase is never stored in the repository, JavaScript bundle, QR code, or database. Share it out of band — say it aloud or write it on the board.</p></article>
+          <article><h3>Raw image protection</h3><code>storage.download() → blob URL</code><p>Knowing the site URL, project URL, publishable key, bucket name, or object path is not sufficient to fetch image bytes. Each download is authorized per request against the membership policy.</p></article>
+        </div>
+        <div className="dev-table-wrap">
+          <table className="dev-table">
+            <thead><tr><th>Action</th><th>SQL editor command</th><th>Effect</th></tr></thead>
+            <tbody>
+              <tr><th>Set or rotate the passphrase</th><td><code>select set_party_passphrase('maple-otter-battery-42');</code></td><td>Stores only the bcrypt hash. Any non-empty passphrase is accepted; longer phrases resist online guessing. Existing members stay in; only new joins need the new phrase.</td></tr>
+              <tr><th>Close the party</th><td><code>update party_settings set is_open = false;</code></td><td>Instantly blocks all database and Storage requests for everyone, including existing members. No redeploy needed.</td></tr>
+              <tr><th>Reopen the party</th><td><code>update party_settings set is_open = true;</code></td><td>Existing memberships resume working immediately.</td></tr>
+              <tr><th>Reset for a new party</th><td><code>delete from memberships;<br />select set_party_passphrase('next-party-phrase');</code></td><td>Every browser must enter the new passphrase again before reading or writing anything.</td></tr>
+            </tbody>
+          </table>
         </div>
       </section>
 
       <section className="dev-section" id="operations">
-        <header><span>02</span><div><h2>Operational Reference</h2><p>Source ownership, capacity assumptions, and deployment path.</p></div></header>
+        <header><span>03</span><div><h2>Operational Reference</h2><p>Source ownership, capacity assumptions, and deployment path.</p></div></header>
         <div className="dev-table-wrap">
           <table className="dev-table">
             <tbody>

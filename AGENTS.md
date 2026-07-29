@@ -6,9 +6,9 @@ House Party Photo Hunt is a mobile-first party photo challenge. The frontend is 
 
 ## Repository Map
 
-- `src/App.tsx`: authentication, profile setup, navigation, and realtime subscriptions
+- `src/App.tsx`: authentication, passphrase gate, profile setup, navigation, and realtime subscriptions
 - `src/components/`: guest, voting, leaderboard, tutorial, timer, palette, and TV views
-- `src/lib/api.ts`: browser-side Supabase queries, uploads, signed URLs, and vote RPC calls
+- `src/lib/api.ts`: browser-side Supabase queries, uploads, membership RPCs, authenticated photo downloads, and vote RPC calls
 - `src/lib/images.ts`: browser image resizing and JPEG conversion
 - `src/lib/scoring.ts`: client-side podium and leaderboard helpers
 - `src/types.ts`: shared application types
@@ -35,9 +35,11 @@ Run tests, lint, and build before considering a change complete.
 ## Architecture And Data Invariants
 
 - Anonymous Supabase sessions persist in the browser. A profile is keyed by the authenticated user's UUID.
+- Party access is passphrase-gated. `public.join_party()` validates the passphrase against a bcrypt hash in `public.party_settings` and creates a `public.memberships` row; every table, view, RPC, and Storage policy requires `public.is_member()`, which also checks the `is_open` switch. Never store or log the plaintext passphrase, and never weaken a policy below active membership.
+- The join order is fixed: anonymous sign-in, then passphrase membership, then profile creation. Profile inserts fail without membership.
 - Each guest may have at most one submission per challenge.
 - Photo keys must be `{user_id}/{challenge_id}.jpg`. This convention is enforced by `public.submissions.storage_path`.
-- The `photos` bucket is private. The app renders photos through one-hour signed URLs.
+- The `photos` bucket is private. The app fetches image bytes with authenticated `storage.download()` calls and renders browser-local blob URLs; do not reintroduce reusable signed URLs. Blob URLs are cached per `storage_path` in `src/lib/api.ts` and must be invalidated when a submission changes, because photo replacement reuses the same path.
 - Storage objects and `public.submissions` rows do not cascade to each other. Never document or implement storage-only cleanup for a referenced photo.
 - Upload is not transactional: the object is uploaded before the submission row is upserted. Account for possible orphaned objects or dangling database rows when changing this flow.
 - Delete a submission before deleting its Storage object. Votes referencing that submission cascade automatically.

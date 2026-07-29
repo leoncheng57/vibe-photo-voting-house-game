@@ -3,6 +3,11 @@ export interface Profile {
   display_name: string
 }
 
+export interface PartyStatus {
+  is_open: boolean
+  is_member: boolean
+}
+
 export interface Challenge {
   id: number
   slug: string
