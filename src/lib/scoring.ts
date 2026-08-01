@@ -5,6 +5,17 @@ export interface ScoredPhoto {
   points: number
 }
 
+export function rankLeaderboardEntries<T extends { points: number; wins: number }>(entries: T[]): Array<T & { rank: number }> {
+  let previous: T | undefined
+  let rank = 0
+
+  return entries.map((entry, index) => {
+    if (!previous || entry.points !== previous.points || entry.wins !== previous.wins) rank = index + 1
+    previous = entry
+    return { ...entry, rank }
+  })
+}
+
 export function scorePhotos(photos: Array<{ id: string; votes: number }>): ScoredPhoto[] {
   const sorted = [...photos].sort((a, b) => b.votes - a.votes || a.id.localeCompare(b.id))
   let previousVotes: number | undefined

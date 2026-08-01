@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { ChallengeList } from './components/ChallengeList'
 import { DisplayView } from './components/DisplayView'
-import { Leaderboard } from './components/Leaderboard'
 import { MobileNavigation, SiteHeader } from './components/SiteNavigation'
 import { StorageMeter } from './components/StorageMeter'
 import { Timer } from './components/Timer'
@@ -151,7 +150,6 @@ export default function App() {
     if (params.has('display')) return 'display'
     if (params.has('tutorial')) return 'tutorial'
     if (params.has('vote')) return 'vote'
-    if (params.has('leaderboard')) return 'leaderboard'
     return 'challenges'
   })
   const [loading, setLoading] = useState(isSupabaseConfigured)
@@ -293,7 +291,6 @@ export default function App() {
         {view === 'challenges' && <><Timer /><ChallengeList challenges={challenges} userId={user.id} refreshToken={submissionToken} onChanged={() => { setSubmissionToken((value) => value + 1); setResultsToken((value) => value + 1) }} /></>}
         {view === 'tutorial' && <Tutorial />}
         {view === 'vote' && <VoteView challenges={challenges} userId={user.id} refreshToken={submissionToken} onChanged={() => setResultsToken((value) => value + 1)} />}
-        {view === 'leaderboard' && <Leaderboard refreshToken={resultsToken} />}
       </main>
 
       <MobileNavigation active={view} onSelect={setView} />

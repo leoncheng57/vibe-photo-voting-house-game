@@ -4,9 +4,12 @@ import type { Challenge, Submission } from '../types'
 import { getSubmissions } from '../lib/api'
 import { Timer } from './Timer'
 import { Tutorial } from './Tutorial'
+import { Leaderboard } from './Leaderboard'
 
 const PAGE_DURATION_SECONDS = 30
 const PAGE_DURATION_MS = PAGE_DURATION_SECONDS * 1000
+const SCORE_DRAWER_TRANSITION_MS = 320
+const SCORE_DRAWER_OPEN_DELAY_MS = 20
 type DisplayPage = 'gallery' | 'voting' | 'tutorial'
 
 export function DisplayView({ challenges, refreshToken, onExit }: { challenges: Challenge[]; refreshToken: number; onExit: () => void }) {
@@ -15,8 +18,17 @@ export function DisplayView({ challenges, refreshToken, onExit }: { challenges: 
   const [revealed, setRevealed] = useState(false)
   const [error, setError] = useState('')
   const [page, setPage] = useState<DisplayPage>('gallery')
+  const [confirmingScores, setConfirmingScores] = useState(false)
+  const [scoresMounted, setScoresMounted] = useState(false)
+  const [scoresRevealed, setScoresRevealed] = useState(false)
+  const [scoresSettled, setScoresSettled] = useState(false)
+  const [hidingScores, setHidingScores] = useState(false)
   const [pageSeconds, setPageSeconds] = useState(PAGE_DURATION_SECONDS)
   const pageEndsAt = useRef(Date.now() + PAGE_DURATION_MS)
+  const scoreCloseTimer = useRef<number | null>(null)
+  const scoreHideStartTimer = useRef<number | null>(null)
+  const scoreOpenTimer = useRef<number | null>(null)
+  const scoreSettleTimer = useRef<number | null>(null)
   const challenge = challenges[index]
   const joinUrl = useMemo(() => `${window.location.origin}${import.meta.env.BASE_URL}`, [])
 
@@ -53,7 +65,7 @@ export function DisplayView({ challenges, refreshToken, onExit }: { challenges: 
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
       const delta = event.key === 'ArrowLeft' ? -1 : event.key === 'ArrowRight' ? 1 : 0
-      if (!delta || !challenges.length || page === 'tutorial') return
+      if (!delta || !challenges.length || (page !== 'gallery' && page !== 'voting')) return
       pageEndsAt.current = Date.now() + PAGE_DURATION_MS
       setPageSeconds(PAGE_DURATION_SECONDS)
       setIndex((current) => (current + delta + challenges.length) % challenges.length)
@@ -61,6 +73,13 @@ export function DisplayView({ challenges, refreshToken, onExit }: { challenges: 
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [challenges.length, page])
+
+  useEffect(() => () => {
+    if (scoreCloseTimer.current) window.clearTimeout(scoreCloseTimer.current)
+    if (scoreHideStartTimer.current) window.clearTimeout(scoreHideStartTimer.current)
+    if (scoreOpenTimer.current) window.clearTimeout(scoreOpenTimer.current)
+    if (scoreSettleTimer.current) window.clearTimeout(scoreSettleTimer.current)
+  }, [])
 
   const sorted = revealed
     ? [...photos].sort((a, b) => (b.voteCount ?? 0) - (a.voteCount ?? 0))
@@ -89,13 +108,74 @@ export function DisplayView({ challenges, refreshToken, onExit }: { challenges: 
 
   function selectPage(nextPage: DisplayPage) {
     if (nextPage === 'voting') setRevealed(false)
+    if (nextPage !== 'voting') {
+      if (scoreCloseTimer.current) window.clearTimeout(scoreCloseTimer.current)
+      if (scoreHideStartTimer.current) window.clearTimeout(scoreHideStartTimer.current)
+      if (scoreOpenTimer.current) window.clearTimeout(scoreOpenTimer.current)
+      if (scoreSettleTimer.current) window.clearTimeout(scoreSettleTimer.current)
+      setConfirmingScores(false)
+      setScoresMounted(false)
+      setScoresRevealed(false)
+      setScoresSettled(false)
+      setHidingScores(false)
+    }
     setPage(nextPage)
+  }
+
+  function revealScores(event: React.FormEvent) {
+    event.preventDefault()
+    if (scoreCloseTimer.current) window.clearTimeout(scoreCloseTimer.current)
+    if (scoreHideStartTimer.current) window.clearTimeout(scoreHideStartTimer.current)
+    if (scoreOpenTimer.current) window.clearTimeout(scoreOpenTimer.current)
+    if (scoreSettleTimer.current) window.clearTimeout(scoreSettleTimer.current)
+    setConfirmingScores(false)
+    setHidingScores(false)
+    setScoresMounted(true)
+    setScoresSettled(false)
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setScoresRevealed(true)
+      setScoresSettled(true)
+      return
+    }
+    scoreOpenTimer.current = window.setTimeout(() => {
+      setScoresRevealed(true)
+      scoreOpenTimer.current = null
+      scoreSettleTimer.current = window.setTimeout(() => {
+        setScoresSettled(true)
+        scoreSettleTimer.current = null
+      }, SCORE_DRAWER_TRANSITION_MS)
+    }, SCORE_DRAWER_OPEN_DELAY_MS)
+  }
+
+  function hideScores() {
+    if (scoreOpenTimer.current) window.clearTimeout(scoreOpenTimer.current)
+    if (scoreSettleTimer.current) window.clearTimeout(scoreSettleTimer.current)
+    scoreOpenTimer.current = null
+    scoreSettleTimer.current = null
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setScoresMounted(false)
+      setScoresRevealed(false)
+      setScoresSettled(false)
+      return
+    }
+    setHidingScores(true)
+    setScoresSettled(false)
+    scoreHideStartTimer.current = window.setTimeout(() => {
+      setScoresRevealed(false)
+      scoreHideStartTimer.current = null
+    }, SCORE_DRAWER_OPEN_DELAY_MS)
+    const delay = SCORE_DRAWER_OPEN_DELAY_MS + SCORE_DRAWER_TRANSITION_MS
+    scoreCloseTimer.current = window.setTimeout(() => {
+      setScoresMounted(false)
+      setHidingScores(false)
+      scoreCloseTimer.current = null
+    }, delay)
   }
 
   if (!challenge) return null
 
   return (
-    <div className={`display-view ${page === 'voting' ? 'display-view--voting' : ''}`}>
+    <div className={`display-view ${page === 'voting' ? 'display-view--voting' : ''} ${scoresMounted ? 'display-view--scores-revealed' : ''}`}>
       <header className="display-header">
         <button className="brand brand--display brand--button" onClick={onExit}><b>HOUSE</b><span>EXIT TV MODE</span></button>
         <nav className="display-tabs" aria-label="TV mode views">
@@ -106,7 +186,7 @@ export function DisplayView({ challenges, refreshToken, onExit }: { challenges: 
         <Timer compact />
       </header>
 
-      {page !== 'tutorial' && <>
+      {(page === 'gallery' || page === 'voting') && <>
         <section className="display-title">
           <button type="button" aria-label="Previous challenge" onClick={() => move(-1)}>←</button>
           <div>
@@ -151,19 +231,48 @@ export function DisplayView({ challenges, refreshToken, onExit }: { challenges: 
         </aside>
       </div>}
 
+      {page === 'voting' && scoresMounted && (
+        <section className={`display-score-drawer ${scoresRevealed ? 'display-score-drawer--open' : ''} ${scoresSettled ? 'display-score-drawer--settled' : ''}`} id="final-scores" aria-label="Final scores">
+          <Leaderboard refreshToken={refreshToken} highlightPodium />
+        </section>
+      )}
+
       <footer className={`display-footer display-footer--${page}`}>
         {page === 'gallery' ? <>
           <span>{photos.length} submissions</span>
           <button className="button button--dark" onClick={toggleResults}>{revealed ? 'Hide results' : 'Reveal results'}</button>
         </> : page === 'voting' ? <>
           <span>{photos.length} anonymous submissions</span>
-          <strong>Waiting for everyone to finish voting…</strong>
+          <button
+            className="button button--dark display-score-toggle"
+            type="button"
+            aria-expanded={scoresRevealed}
+            aria-controls="final-scores"
+            disabled={hidingScores}
+            onClick={() => scoresRevealed ? hideScores() : setConfirmingScores(true)}
+          >
+            {hidingScores ? 'Hiding scores…' : scoresRevealed ? 'Hide scores' : 'Reveal final scores'}
+          </button>
           <span>← → to change challenge</span>
         </> : <>
           <span>House Photo Hunt</span>
           <span>Use the tabs to return to the gallery</span>
         </>}
       </footer>
+
+      {confirmingScores && (
+        <div className="name-dialog score-reveal-dialog" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setConfirmingScores(false) }}>
+          <form role="dialog" aria-modal="true" aria-labelledby="score-reveal-title" onSubmit={revealScores}>
+            <span className="eyebrow">Host action</span>
+            <h2 id="score-reveal-title">Reveal final scores?</h2>
+            <p className="dialog-warning">Are you sure you want to reveal the scores? Please only do this if you are the host.</p>
+            <div>
+              <button className="button" type="button" autoFocus onClick={() => setConfirmingScores(false)}>Cancel</button>
+              <button className="button button--dark">Reveal scores</button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   )
 }
