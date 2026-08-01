@@ -200,15 +200,6 @@ export default function App() {
     return () => { void realtime.removeChannel(channel) }
   }, [profile])
 
-  useEffect(() => {
-    if (view !== 'display') return
-    function onKey(event: KeyboardEvent) {
-      if (event.key === 'Escape') setView('challenges')
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [view])
-
   async function enterParty(currentUser: User) {
     setPartyStatus({ is_open: true, is_member: true })
     const [currentProfile, availableChallenges] = await Promise.all([
