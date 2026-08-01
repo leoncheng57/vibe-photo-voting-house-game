@@ -1,14 +1,22 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import type { Challenge, Submission } from '../types'
 import { getSubmissions } from '../lib/api'
 import { Timer } from './Timer'
+import { Tutorial } from './Tutorial'
+
+const PAGE_DURATION_SECONDS = 30
+const PAGE_DURATION_MS = PAGE_DURATION_SECONDS * 1000
+type DisplayPage = 'gallery' | 'voting' | 'tutorial'
 
 export function DisplayView({ challenges, refreshToken, onExit }: { challenges: Challenge[]; refreshToken: number; onExit: () => void }) {
   const [index, setIndex] = useState(0)
   const [photos, setPhotos] = useState<Submission[]>([])
   const [revealed, setRevealed] = useState(false)
   const [error, setError] = useState('')
+  const [page, setPage] = useState<DisplayPage>('gallery')
+  const [pageSeconds, setPageSeconds] = useState(PAGE_DURATION_SECONDS)
+  const pageEndsAt = useRef(Date.now() + PAGE_DURATION_MS)
   const challenge = challenges[index]
   const joinUrl = useMemo(() => `${window.location.origin}${import.meta.env.BASE_URL}`, [])
 
@@ -23,19 +31,46 @@ export function DisplayView({ challenges, refreshToken, onExit }: { challenges: 
   }, [challenge, refreshToken])
 
   useEffect(() => {
+    if (!challenges.length || page !== 'gallery') return
+    pageEndsAt.current = Date.now() + PAGE_DURATION_MS
+    setPageSeconds(PAGE_DURATION_SECONDS)
+    setIndex((current) => Math.min(current, challenges.length - 1))
+
+    const interval = window.setInterval(() => {
+      const now = Date.now()
+      if (now >= pageEndsAt.current) {
+        setIndex((current) => (current + 1) % challenges.length)
+        pageEndsAt.current = now + PAGE_DURATION_MS
+        setPageSeconds(PAGE_DURATION_SECONDS)
+        return
+      }
+      setPageSeconds(Math.ceil((pageEndsAt.current - now) / 1000))
+    }, 250)
+
+    return () => window.clearInterval(interval)
+  }, [challenges.length, page])
+
+  useEffect(() => {
     function onKey(event: KeyboardEvent) {
-      if (event.key === 'ArrowLeft') setIndex((current) => (current - 1 + challenges.length) % challenges.length)
-      if (event.key === 'ArrowRight') setIndex((current) => (current + 1) % challenges.length)
+      const delta = event.key === 'ArrowLeft' ? -1 : event.key === 'ArrowRight' ? 1 : 0
+      if (!delta || !challenges.length || page === 'tutorial') return
+      pageEndsAt.current = Date.now() + PAGE_DURATION_MS
+      setPageSeconds(PAGE_DURATION_SECONDS)
+      setIndex((current) => (current + delta + challenges.length) % challenges.length)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [challenges.length])
+  }, [challenges.length, page])
 
   const sorted = revealed
     ? [...photos].sort((a, b) => (b.voteCount ?? 0) - (a.voteCount ?? 0))
     : photos
+  const voteTarget = Math.min(3, photos.length)
 
   function move(delta: number) {
+    if (!challenges.length) return
+    pageEndsAt.current = Date.now() + PAGE_DURATION_MS
+    setPageSeconds(PAGE_DURATION_SECONDS)
     setIndex((current) => (current + delta + challenges.length) % challenges.length)
   }
 
@@ -52,48 +87,82 @@ export function DisplayView({ challenges, refreshToken, onExit }: { challenges: 
     }
   }
 
+  function selectPage(nextPage: DisplayPage) {
+    if (nextPage === 'voting') setRevealed(false)
+    setPage(nextPage)
+  }
+
   if (!challenge) return null
 
   return (
-    <div className="display-view">
+    <div className={`display-view ${page === 'voting' ? 'display-view--voting' : ''}`}>
       <header className="display-header">
         <button className="brand brand--display brand--button" onClick={onExit}><b>HOUSE</b><span>EXIT TV MODE</span></button>
+        <nav className="display-tabs" aria-label="TV mode views">
+          <button type="button" aria-current={page === 'tutorial' ? 'page' : undefined} onClick={() => selectPage('tutorial')}>How to play</button>
+          <button type="button" aria-current={page === 'gallery' ? 'page' : undefined} onClick={() => selectPage('gallery')}>Gallery</button>
+          <button type="button" aria-current={page === 'voting' ? 'page' : undefined} onClick={() => selectPage('voting')}>Voting</button>
+        </nav>
         <Timer compact />
-        <div className="display-join">
-          <span>Scan to play</span>
-          <QRCodeSVG value={joinUrl} size={74} bgColor="transparent" fgColor="#111111" />
-        </div>
       </header>
 
-      <section className="display-title">
-        <button aria-label="Previous challenge" onClick={() => move(-1)}>←</button>
-        <div>
-          <span className="eyebrow">Challenge {String(index + 1).padStart(2, '0')} / {String(challenges.length).padStart(2, '0')}</span>
-          <h2>{challenge.title}</h2>
-          <p>{challenge.prompt}</p>
+      {page !== 'tutorial' && <>
+        <section className="display-title">
+          <button type="button" aria-label="Previous challenge" onClick={() => move(-1)}>←</button>
+          <div>
+            <span className="eyebrow">Challenge {String(index + 1).padStart(2, '0')} / {String(challenges.length).padStart(2, '0')}</span>
+            <h2>{challenge.title}</h2>
+            <p>{challenge.prompt}</p>
+          </div>
+          <button type="button" aria-label="Next challenge" onClick={() => move(1)}>→</button>
+        </section>
+
+        {page === 'voting' && <section className="display-voting-callout"><span>Voting is open</span><h1>Choose on your phone.</h1><p>{voteTarget ? <>Open <b>Vote</b> and select {voteTarget} {voteTarget === 1 ? 'favorite' : 'favorites'} for this challenge.</> : 'Photos will appear here as guests submit them.'}</p></section>}
+        {error && <div className="notice notice--error">{error}</div>}
+        <div className={`photo-grid photo-grid--display ${page === 'gallery' && revealed ? 'revealed' : ''}`}>
+          {(page === 'gallery' ? sorted : photos).map((photo, photoIndex) => (
+            <figure key={photo.id}>
+              <img src={photo.photoUrl} alt={`Anonymous submission ${photoIndex + 1} for ${challenge.title}`} />
+              <figcaption>
+                {page === 'gallery' && revealed ? <><strong>{photo.ownerName}</strong><span>{photo.voteCount} votes</span></> : <span>Photo {photoIndex + 1}</span>}
+              </figcaption>
+            </figure>
+          ))}
         </div>
-        <button aria-label="Next challenge" onClick={() => move(1)}>→</button>
-      </section>
+        {!photos.length && <div className="empty-state">Photos will appear here.</div>}
+        {page === 'gallery' && <div className="display-gallery-pager">Next in {pageSeconds}s <span>· ← → to move</span></div>}
+      </>}
 
-      {error && <div className="notice notice--error">{error}</div>}
-      <div className={`photo-grid photo-grid--display ${revealed ? 'revealed' : ''}`}>
-        {sorted.map((photo, photoIndex) => (
-          <figure key={photo.id}>
-            <img src={photo.photoUrl} alt={`Submission ${photoIndex + 1}`} />
-            <figcaption>
-              {revealed ? <><strong>{photo.ownerName}</strong><span>{photo.voteCount} votes</span></> : <span>Photo {photoIndex + 1}</span>}
-            </figcaption>
-          </figure>
-        ))}
-      </div>
-      {!photos.length && <div className="empty-state">Photos will appear here.</div>}
+      {page === 'tutorial' && <div className="display-tutorial-page">
+        <aside className="display-tutorial-summary" aria-label="Game at a glance">
+          <span className="eyebrow">Game at a glance</span>
+          <dl>
+            <div><dt>6</dt><dd>photo challenges</dd></div>
+            <div><dt>1</dt><dd>photo for each</dd></div>
+            <div><dt>3 max</dt><dd>votes per round</dd></div>
+          </dl>
+        </aside>
+        <Tutorial variant="tv" />
+        <aside className="display-tutorial-join" aria-label="Join the party">
+          <span className="eyebrow">Join on your phone</span>
+          <QRCodeSVG value={joinUrl} size={220} bgColor="transparent" fgColor="#f5f8f7" />
+          <strong>Scan to play</strong>
+          <p>No app download needed.</p>
+        </aside>
+      </div>}
 
-      <footer className="display-footer">
-        <span>{photos.length} submissions</span>
-        <button className="button button--dark" onClick={toggleResults}>
-          {revealed ? 'Hide results' : 'Reveal results'}
-        </button>
-        <span>Use ← → to move</span>
+      <footer className={`display-footer display-footer--${page}`}>
+        {page === 'gallery' ? <>
+          <span>{photos.length} submissions</span>
+          <button className="button button--dark" onClick={toggleResults}>{revealed ? 'Hide results' : 'Reveal results'}</button>
+        </> : page === 'voting' ? <>
+          <span>{photos.length} anonymous submissions</span>
+          <strong>Waiting for everyone to finish voting…</strong>
+          <span>← → to change challenge</span>
+        </> : <>
+          <span>House Photo Hunt</span>
+          <span>Use the tabs to return to the gallery</span>
+        </>}
       </footer>
     </div>
   )
