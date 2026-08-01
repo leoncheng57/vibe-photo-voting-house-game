@@ -1,5 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { HomeIcon } from './components/HomeIcon'
 import './landing.css'
 
 const appRoot = import.meta.env.BASE_URL
@@ -11,6 +12,7 @@ export function LandingPage() {
       <header className="landing-nav">
         <a className="landing-brand" href={appRoot}><b>HOUSE</b><span>PHOTO HUNT</span></a>
         <nav aria-label="Landing navigation">
+          <a className="landing-nav__home" href={appRoot} aria-label="Home" aria-current="page"><HomeIcon /></a>
           <a href={`${playUrl}?tutorial`}>How to play</a>
           <a href={`${appRoot}developer/github-progress/`}>Developer</a>
           <a className="landing-nav__play" href={playUrl}>Join the party</a>

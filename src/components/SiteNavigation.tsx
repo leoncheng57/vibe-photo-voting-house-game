@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { HomeIcon } from './HomeIcon'
 import type { View } from '../types'
 
 const appRoot = import.meta.env.BASE_URL
@@ -43,6 +44,7 @@ function TvIcon() {
 function NavigationLinks({ active, onSelect }: NavigationProps) {
   return (
     <>
+      <a className="home-link" href={appRoot} aria-label="Home"><HomeIcon /></a>
       {navigationItems.map((item) => onSelect ? (
         <button key={item.id} className={`${active === item.id ? 'active' : ''} ${item.icon ? 'nav-with-icon' : ''} ${item.id === 'display' ? 'tv-mode-link' : ''}`} aria-current={active === item.id ? 'page' : undefined} onClick={() => onSelect(item.id)}>{item.icon === 'tv' && <TvIcon />}{item.label}</button>
       ) : (
