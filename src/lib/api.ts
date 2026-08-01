@@ -1,5 +1,5 @@
 import type { User } from '@supabase/supabase-js'
-import type { Challenge, LeaderboardEntry, OriginalRecord, PartyStatus, Profile, StorageUsage, Submission } from '../types'
+import type { Challenge, LeaderboardEntry, OriginalRecord, OriginalStatus, PartyStatus, Profile, StorageUsage, Submission } from '../types'
 import type { PreparedPhoto } from './images'
 import { supabase } from './supabase'
 
@@ -183,7 +183,9 @@ export async function uploadSubmission(userId: string, challengeId: number, phot
       original_bytes: photo.archive.size,
       original_width: photo.width,
       original_height: photo.height,
-      original_reduced: photo.archiveReduced,
+      original_status: photo.archiveStatus,
+      original_source_bytes: photo.sourceBytes,
+      original_source_mime: photo.sourceMime,
     },
     { onConflict: 'challenge_id,user_id' },
   )
@@ -215,7 +217,7 @@ export async function getStorageUsage(): Promise<StorageUsage[]> {
 export async function getAllOriginals(): Promise<OriginalRecord[]> {
   const { data, error } = await client()
     .from('submissions')
-    .select('id, challenge_id, user_id, original_path, original_filename, original_mime, original_bytes, original_reduced, created_at, profile:profiles!submissions_user_id_fkey(display_name), challenge:challenges!submissions_challenge_id_fkey(slug, title, sort_order)')
+    .select('id, challenge_id, user_id, original_path, original_filename, original_mime, original_bytes, original_status, original_source_bytes, created_at, profile:profiles!submissions_user_id_fkey(display_name), challenge:challenges!submissions_challenge_id_fkey(slug, title, sort_order)')
     .not('original_path', 'is', null)
     .order('challenge_id')
     .order('created_at')
@@ -236,7 +238,8 @@ export async function getAllOriginals(): Promise<OriginalRecord[]> {
       originalFilename: row.original_filename ?? '',
       originalMime: row.original_mime ?? 'image/jpeg',
       originalBytes: row.original_bytes ?? 0,
-      originalReduced: row.original_reduced ?? false,
+      originalStatus: (row.original_status ?? 'exact') as OriginalStatus,
+      originalSourceBytes: row.original_source_bytes ?? null,
     }
   })
 }

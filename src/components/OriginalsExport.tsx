@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { downloadOriginal, getAllOriginals, getPartyStatus } from '../lib/api'
-import { exportEntryName, exportFolderName, formatBytes } from '../lib/photo-policy'
+import { archiveStatusLabel, exportEntryName, exportFolderName, formatBytes } from '../lib/photo-policy'
 import { zipBlob, type ZipEntry } from '../lib/zip'
 import { isSupabaseConfigured } from '../lib/supabase'
 import { useStorageUsage } from '../lib/useStorageUsage'
@@ -26,7 +26,7 @@ interface PlannedFolder {
   title: string
   files: PlannedFile[]
   totalBytes: number
-  reducedCount: number
+  processedCount: number
 }
 
 const ZIP_NAME = 'house-photo-hunt-originals.zip'
@@ -56,7 +56,7 @@ function planArchive(records: OriginalRecord[]): PlannedFolder[] {
         title: record.challengeTitle,
         files: [],
         totalBytes: 0,
-        reducedCount: 0,
+        processedCount: 0,
       }
       folders.set(record.challengeId, folder)
     }
@@ -65,7 +65,7 @@ function planArchive(records: OriginalRecord[]): PlannedFolder[] {
       fileName: exportEntryName(folder.files.length, record.ownerName, pathExtension(record.originalPath)),
     })
     folder.totalBytes += record.originalBytes
-    if (record.originalReduced) folder.reducedCount += 1
+    if (record.originalStatus !== 'exact') folder.processedCount += 1
   }
 
   return [...folders.values()]
@@ -131,7 +131,8 @@ export function OriginalsExport() {
             original_filename: file.record.originalFilename,
             bytes: file.record.originalBytes,
             mime: file.record.originalMime,
-            reduced_from_capture: file.record.originalReduced,
+            status: file.record.originalStatus,
+            source_bytes: file.record.originalSourceBytes,
             storage_path: file.record.originalPath,
           })
           done += 1
@@ -217,7 +218,7 @@ export function OriginalsExport() {
                     <code>{folder.folderName}/</code>
                     <span>
                       {folder.files.length} {folder.files.length === 1 ? 'photo' : 'photos'} · {formatBytes(folder.totalBytes)}
-                      {folder.reducedCount > 0 && ` · ${folder.reducedCount} optimized`}
+                      {folder.processedCount > 0 && ` · ${folder.processedCount} not byte-exact`}
                     </span>
                   </summary>
                   <ul>
@@ -226,7 +227,7 @@ export function OriginalsExport() {
                         <code>{file.fileName}</code>
                         <span>
                           {formatBytes(file.record.originalBytes)}
-                          {file.record.originalReduced && <em className="zip-preview__badge">optimized</em>}
+                          {archiveStatusLabel(file.record.originalStatus) && <em className="zip-preview__badge">{archiveStatusLabel(file.record.originalStatus)}</em>}
                         </span>
                       </li>
                     ))}

@@ -18,6 +18,7 @@ House Party Photo Hunt is a mobile-first party photo challenge. The frontend is 
 - `src/developer-system.tsx` and `src/developer-system.css`: developer system reference page
 - `SCREENSHOT_CAPTURE_PLAN.md`: privacy-safe automated documentation screenshot workflow
 - `supabase/migrations/`: database schema, policies, views, functions, and data migrations
+- `scripts/backfill-legacy-originals.mjs`: one-time service-role backfill adopting pre-archive game copies as `legacy` originals
 - `index.html`, `home/index.html`, and the pages under `developer/` (system, db-design, security-ops, host-runbook, photo-export, github-progress): Vite entry points; the Developer nav link lands on GitHub project progress
 - `.github/workflows/deploy.yml`: GitHub Pages deployment
 
@@ -41,8 +42,8 @@ Run tests, lint, and build before considering a change complete.
 - The join order is fixed: anonymous sign-in, then passphrase membership, then profile creation. Profile inserts fail without membership.
 - Each guest may have at most one submission per challenge.
 - Game-copy photo keys must be `{user_id}/{challenge_id}.jpg`. This convention is enforced by `public.submissions.storage_path`.
-- Original photo keys must be `{challenge_id}/{user_id}/{version}.{ext}` in the private `photo-originals` bucket, referenced by `public.submissions.original_path`. Originals are never overwritten: replacements upload a new versioned object, update the row, then remove the superseded object. Originals at or below 6 MiB are preserved byte-for-byte; larger or non-HEIC/JPEG captures are optimized client-side and flagged with `original_reduced`.
-- Host cleanup of exported originals clears `original_*` columns first, then deletes the challenge folder from the bucket — never the reverse. The flow lives on `/developer/photo-export/`.
+- Original photo keys must be `{challenge_id}/{user_id}/{version}.{ext}` in the private `photo-originals` bucket, referenced by `public.submissions.original_path`. Originals are never overwritten: replacements upload a new versioned object, update the row, then remove the superseded object. Originals at or below 6 MiB are preserved byte-for-byte; larger or non-HEIC/JPEG captures are processed client-side. `original_status` records provenance: `exact`, `optimized` (full-res re-encode), `resized`, or `legacy` (pre-archive game copy adopted via `scripts/backfill-legacy-originals.mjs`).
+- Host cleanup of exported originals clears `original_*` columns first, then empties the bucket — never the reverse. The flow lives on `/developer/photo-export/`.
 - The `photos` bucket is private. The app fetches image bytes with authenticated `storage.download()` calls and renders browser-local blob URLs; do not reintroduce reusable signed URLs. Blob URLs are cached per `storage_path` in `src/lib/api.ts` and must be invalidated when a submission changes, because photo replacement reuses the same path.
 - Storage objects and `public.submissions` rows do not cascade to each other. Never document or implement storage-only cleanup for a referenced photo.
 - Upload is not transactional: the object is uploaded before the submission row is upserted. Account for possible orphaned objects or dangling database rows when changing this flow.

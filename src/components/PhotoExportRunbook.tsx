@@ -18,15 +18,15 @@ export function PhotoExportRunbook() {
       </section>
 
       <section className="dev-section" id="cleanup">
-        <header><span>02</span><div><h2>Cleanup After Export</h2><p>Cleanup is per challenge and irreversible — only clean up challenges whose photos you have verified inside a backed-up ZIP.</p></div></header>
+        <header><span>02</span><div><h2>Cleanup After Export</h2><p>Cleanup is irreversible — only run it after the exported ZIP is verified and backed up. The ZIP contains every stored original, so cleanup clears them all at once.</p></div></header>
 
         <ol className="originals-runbook">
-          <li><b>Export.</b> Download the ZIP above on a desktop browser once one or more challenges have finished voting. The archive is assembled locally; nothing leaves this device.</li>
+          <li><b>Export.</b> Download the ZIP above on a desktop browser. The archive is assembled locally; nothing leaves this device.</li>
           <li><b>Verify.</b> Open the ZIP, confirm each challenge folder's photo count matches the preview, and spot-check a few images plus <code>manifest.json</code>.</li>
           <li><b>Back up.</b> Copy the ZIP to Drive, iCloud, or another location outside this computer.</li>
-          <li><b>Clear database references.</b> In the Supabase SQL editor, run the command below once per challenge you are cleaning up.</li>
-          <li><b>Delete the objects.</b> In the Supabase dashboard open Storage → <code>photo-originals</code> and delete the folder named after the challenge id (originals are stored under <code>{'{challenge_id}/{user_id}/…'}</code>). Do this only after step 4, so no submission still references those objects.</li>
-          <li><b>Confirm.</b> Reload this page; the storage meter above should show the reclaimed space, and the cleaned challenge disappears from the ZIP preview.</li>
+          <li><b>Clear database references.</b> In the Supabase SQL editor, run the command below. It clears every submission's original reference in one step.</li>
+          <li><b>Delete the objects.</b> In the Supabase dashboard open Storage → <code>photo-originals</code> and delete every folder (originals are stored under <code>{'{challenge_id}/{user_id}/…'}</code>). Do this only after step 4, so no submission still references those objects.</li>
+          <li><b>Confirm.</b> Reload this page; the storage meter above should show the reclaimed space, and the ZIP preview should be empty. Photos uploaded after cleanup store fresh originals and appear in the next export.</li>
         </ol>
 
         <div className="dev-table-wrap">
@@ -34,9 +34,9 @@ export function PhotoExportRunbook() {
             <thead><tr><th>Action</th><th>SQL editor command</th><th>Effect</th></tr></thead>
             <tbody>
               <tr>
-                <th>Clear original references for one exported challenge</th>
-                <td><CopySqlCell sql={"update submissions\nset original_path = null, original_filename = null,\n    original_mime = null, original_bytes = null,\n    original_width = null, original_height = null,\n    original_reduced = null\nwhere challenge_id = 1; -- replace 1 with the exported challenge id"} /></td>
-                <td>Detaches the archived originals from that challenge's submissions. Game copies, votes, and scores are untouched. Run this before deleting the challenge folder from the bucket.</td>
+                <th>Clear all exported original references</th>
+                <td><CopySqlCell sql={"update submissions\nset original_path = null, original_filename = null,\n    original_mime = null, original_bytes = null,\n    original_width = null, original_height = null,\n    original_status = null, original_source_bytes = null,\n    original_source_mime = null\nwhere original_path is not null;"} /></td>
+                <td>Detaches every archived original from its submission. Game copies, votes, and scores are untouched. Run this before emptying the photo-originals bucket.</td>
               </tr>
             </tbody>
           </table>

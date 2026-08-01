@@ -105,6 +105,19 @@ export function exportFolderName(sortOrder: number, slug: string): string {
   return `${String(sortOrder).padStart(2, '0')}-${sanitizeExportName(slug)}`
 }
 
+/**
+ * Human label for how an archived copy relates to the guest's capture.
+ * 'exact' returns null: byte-identical files need no badge.
+ */
+export function archiveStatusLabel(status: 'exact' | 'optimized' | 'resized' | 'legacy'): string | null {
+  switch (status) {
+    case 'exact': return null
+    case 'optimized': return 'full res · re-encoded'
+    case 'resized': return 'resolution reduced'
+    case 'legacy': return 'legacy game copy'
+  }
+}
+
 export type StorageLevel = 'ok' | 'warn' | 'critical'
 
 export interface StorageBucketUsage {

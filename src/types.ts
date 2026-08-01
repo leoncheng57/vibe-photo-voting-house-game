@@ -34,6 +34,8 @@ export interface StorageUsage {
   objectCount: number
 }
 
+export type OriginalStatus = 'exact' | 'optimized' | 'resized' | 'legacy'
+
 export interface OriginalRecord {
   submissionId: string
   challengeId: number
@@ -46,7 +48,8 @@ export interface OriginalRecord {
   originalFilename: string
   originalMime: string
   originalBytes: number
-  originalReduced: boolean
+  originalStatus: OriginalStatus
+  originalSourceBytes: number | null
 }
 
 export interface LeaderboardEntry {

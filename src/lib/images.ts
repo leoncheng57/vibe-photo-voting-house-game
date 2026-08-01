@@ -15,16 +15,21 @@ import {
   scaledDimensions,
 } from './photo-policy'
 
+/** How the archived copy relates to the selected capture. */
+export type ArchiveStatus = 'exact' | 'optimized' | 'resized'
+
 export interface PreparedPhoto {
   /** Bytes stored in the photo-originals bucket. */
   archive: Blob
   archiveMime: string
   archiveExtension: string
-  /** True when the archive copy is not byte-identical to the capture. */
-  archiveReduced: boolean
+  /** exact = byte-identical; optimized = full-res re-encode; resized = downscaled. */
+  archiveStatus: ArchiveStatus
   /** True when the capture was larger than the preserve limit (drives the notice). */
   oversizedOriginal: boolean
   originalFilename: string
+  sourceBytes: number
+  sourceMime: string | null
   width: number
   height: number
   /** 2400 px JPEG used for voting and TV mode. */
@@ -95,14 +100,14 @@ async function encodeWithin(
   }
 }
 
-async function buildArchive(bitmap: ImageBitmap): Promise<Blob> {
+async function buildArchive(bitmap: ImageBitmap): Promise<{ blob: Blob; status: ArchiveStatus }> {
   const steps: EncodePlanStep[] = [
     ...ARCHIVE_QUALITY_STEPS.map((quality) => ({ scale: 1, quality })),
     ...ARCHIVE_SCALE_STEPS.map((scale) => ({ scale, quality: ARCHIVE_SCALE_QUALITY })),
   ]
   const result = await encodeWithin(bitmap, steps, ARCHIVE_PRESERVE_LIMIT)
   if (!result) throw new Error('This photo is too complex to store. Try a smaller photo.')
-  return result.blob
+  return { blob: result.blob, status: result.scale < 1 ? 'resized' : 'optimized' }
 }
 
 async function buildGameCopy(bitmap: ImageBitmap): Promise<Blob> {
@@ -140,9 +145,11 @@ export async function preparePhoto(file: File): Promise<PreparedPhoto> {
         archive: file,
         archiveMime: kind.mime ?? 'image/jpeg',
         archiveExtension: kind.extension ?? 'jpg',
-        archiveReduced: false,
+        archiveStatus: 'exact',
         oversizedOriginal: false,
         originalFilename: file.name,
+        sourceBytes: file.size,
+        sourceMime: kind.mime,
         width: bitmap.width,
         height: bitmap.height,
         gameCopy,
@@ -151,12 +158,14 @@ export async function preparePhoto(file: File): Promise<PreparedPhoto> {
 
     const archive = await buildArchive(bitmap)
     return {
-      archive,
+      archive: archive.blob,
       archiveMime: 'image/jpeg',
       archiveExtension: 'jpg',
-      archiveReduced: true,
+      archiveStatus: archive.status,
       oversizedOriginal: kind.preservable && file.size > ARCHIVE_PRESERVE_LIMIT,
       originalFilename: file.name,
+      sourceBytes: file.size,
+      sourceMime: kind.mime ?? (file.type || null),
       width: bitmap.width,
       height: bitmap.height,
       gameCopy,

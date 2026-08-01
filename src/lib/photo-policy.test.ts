@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   ARCHIVE_PRESERVE_LIMIT,
+  archiveStatusLabel,
   chooseArchiveAction,
   classifyOriginal,
   exportEntryName,
@@ -87,6 +88,13 @@ describe('export naming', () => {
   it('builds challenge folder names', () => {
     expect(exportFolderName(1, 'dog-date')).toBe('01-dog-date')
     expect(exportFolderName(6, 'candid')).toBe('06-candid')
+  })
+
+  it('labels archive statuses, leaving exact copies unbadged', () => {
+    expect(archiveStatusLabel('exact')).toBeNull()
+    expect(archiveStatusLabel('optimized')).toBe('full res · re-encoded')
+    expect(archiveStatusLabel('resized')).toBe('resolution reduced')
+    expect(archiveStatusLabel('legacy')).toBe('legacy game copy')
   })
 })
 
