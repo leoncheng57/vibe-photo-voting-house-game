@@ -18,7 +18,7 @@
 .developer-back strong { margin-top: .2rem; font-size: .74rem; text-transform: uppercase; }
 .player-chip:hover strong, .developer-back:hover strong { text-decoration: underline; }
 .mobile-nav { display: none; }
-.developer-tabs { display: flex; width: min(1280px, calc(100% - 48px)); margin: 0 auto; border-right: var(--line); border-bottom: var(--line); border-left: var(--line); background: var(--paper); }
+.developer-tabs { display: flex; overflow-x: auto; width: min(1280px, calc(100% - 48px)); margin: 0 auto; border-right: var(--line); border-bottom: var(--line); border-left: var(--line); background: var(--paper); }
 .developer-tabs a { flex: 0 0 auto; border-right: 2px solid var(--ink); color: var(--ink); padding: .72rem 1rem; font-size: .7rem; font-weight: 900; letter-spacing: .06em; text-decoration: none; text-transform: uppercase; }
 .developer-tabs a.active { background: var(--sky); }
 .developer-tabs a:hover { background: var(--pool); }

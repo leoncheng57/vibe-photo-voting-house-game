@@ -8,6 +8,7 @@ const securityUrl = `${appRoot}developer/security-ops/`
 const runbookUrl = `${appRoot}developer/host-runbook/`
 const photoExportUrl = `${appRoot}developer/photo-export/`
 const progressUrl = `${appRoot}developer/github-progress/`
+const repositoryFilesUrl = `${appRoot}developer/repository-files/`
 const developerUrl = progressUrl
 
 const navigationItems: Array<{ id: View; label: string; href: string; icon?: 'tv' }> = [
@@ -76,10 +77,11 @@ export function MobileNavigation(props: NavigationProps) {
   return <nav className="mobile-nav" aria-label="Mobile navigation"><NavigationLinks {...props} /></nav>
 }
 
-export function DeveloperTabs({ active }: { active: 'system' | 'database' | 'security' | 'runbook' | 'export' | 'progress' }) {
+export function DeveloperTabs({ active }: { active: 'system' | 'database' | 'security' | 'runbook' | 'export' | 'progress' | 'files' }) {
   return (
     <nav className="developer-tabs" aria-label="Developer pages">
       <a className={active === 'progress' ? 'active' : ''} href={progressUrl}>GitHub project progress</a>
+      <a className={active === 'files' ? 'active' : ''} href={repositoryFilesUrl}>Repository Files</a>
       <a className={active === 'system' ? 'active' : ''} href={systemUrl}>System reference</a>
       <a className={active === 'database' ? 'active' : ''} href={databaseUrl}>DB design</a>
       <a className={active === 'security' ? 'active' : ''} href={securityUrl}>Security and Ops</a>

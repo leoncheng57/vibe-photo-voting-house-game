@@ -1,9 +1,5 @@
 import { useEffect, useState, type CSSProperties } from 'react'
-import Markdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
 import { getGitHubProgress, repositoryUrl, type GitHubIssue, type GitHubProgressData } from '../lib/github'
-
-type DocumentName = 'readme' | 'agents' | 'screenshot-plan'
 
 const priorityGroups = [
   { id: 'high', label: 'High priority', labelName: 'priority: high' },
@@ -46,7 +42,6 @@ function IssueRows({ issues }: { issues: GitHubIssue[] }) {
 
 export function GitHubProgress() {
   const [data, setData] = useState<GitHubProgressData | null>(null)
-  const [documentName, setDocumentName] = useState<DocumentName>('readme')
   const [requestId, setRequestId] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -86,7 +81,7 @@ export function GitHubProgress() {
           <code>/developer/github-progress</code>
           <span className="progress-kicker">Live repository dashboard</span>
           <h1>GitHub Project Progress</h1>
-          <p>Issues, pull requests, and project documentation synchronized from the public repository.</p>
+          <p>Issues and pull requests synchronized from the public repository.</p>
         </div>
         <div className="progress-sync">
           <span>{data ? `Last synced ${formatDate(data.fetchedAt)}` : 'Waiting for GitHub'}</span>
@@ -104,48 +99,25 @@ export function GitHubProgress() {
 
       {loading && !data && <div className="progress-loading">Syncing repository data…</div>}
 
-      {data && <>
-          <div className="progress-lists">
-            <section>
-              <header><div><span>Tracker</span><h2>Issues</h2></div><a href={`${repositoryUrl}/issues`}>View all on GitHub ↗</a></header>
-              {data.issues.length === 0 ? <p className="progress-empty">No issues found.</p> : (
-                <div className="issue-groups">{groupedIssues.map((group) => (
-                  <section className={`issue-group issue-group--${group.id}`} key={group.id}>
-                    <header className="issue-group__heading"><strong>{group.label}</strong><span>{group.issues.length}</span></header>
-                    <IssueRows issues={group.issues} />
-                  </section>
-                ))}</div>
-              )}
-            </section>
-            <section>
-              <header><div><span>Changes</span><h2>Pull Requests</h2></div><a href={`${repositoryUrl}/pulls`}>View all on GitHub ↗</a></header>
-              {data.pullRequests.length === 0 ? <p className="progress-empty">No pull requests found.</p> : (
-                <ol>{data.pullRequests.map((pullRequest) => { const status = pullRequest.merged_at ? 'merged' : pullRequest.draft ? 'draft' : pullRequest.state; return <li key={pullRequest.number}><a href={pullRequest.html_url}><span className={`status status--${status}`}>{status}</span><b>#{pullRequest.number}</b><strong>{pullRequest.title}</strong><time dateTime={pullRequest.updated_at}>{formatDate(pullRequest.updated_at)}</time></a></li> })}</ol>
-              )}
-            </section>
-          </div>
-
-          <section className="progress-files">
-            <header><span>Reference</span><h2>Repository Files</h2><p>Rendered directly from the repository’s main branch.</p></header>
-            <nav className="progress-tabs" aria-label="Repository files">
-              <button className={documentName === 'readme' ? 'active' : ''} onClick={() => setDocumentName('readme')}>README.md</button>
-              <button className={documentName === 'agents' ? 'active' : ''} onClick={() => setDocumentName('agents')}>AGENTS.md</button>
-              <button className={documentName === 'screenshot-plan' ? 'active' : ''} onClick={() => setDocumentName('screenshot-plan')}>Screenshot Capture Plan</button>
-            </nav>
-
-            {documentName === 'readme' && <article className="progress-markdown"><Markdown remarkPlugins={[remarkGfm]}>{data.readme}</Markdown></article>}
-            {documentName === 'agents' && (data.agents ? (
-              <article className="progress-markdown"><Markdown remarkPlugins={[remarkGfm]}>{data.agents}</Markdown></article>
-            ) : (
-              <section className="missing-document"><code>AGENTS.md</code><h2>Document not found</h2><p>This file is not present on the repository’s <code>main</code> branch. The dashboard will display it automatically if it is added later.</p></section>
-            ))}
-            {documentName === 'screenshot-plan' && (data.screenshotPlan ? (
-              <article className="progress-markdown"><Markdown remarkPlugins={[remarkGfm]}>{data.screenshotPlan}</Markdown></article>
-            ) : (
-              <section className="missing-document"><code>SCREENSHOT_CAPTURE_PLAN.md</code><h2>Document not found</h2><p>This file is not present on the repository’s <code>main</code> branch. The dashboard will display it automatically if it is added later.</p></section>
-            ))}
-          </section>
-        </>}
+      {data && <div className="progress-lists">
+        <section>
+          <header><div><span>Tracker</span><h2>Issues</h2></div><a href={`${repositoryUrl}/issues`}>View all on GitHub ↗</a></header>
+          {data.issues.length === 0 ? <p className="progress-empty">No issues found.</p> : (
+            <div className="issue-groups">{groupedIssues.map((group) => (
+              <section className={`issue-group issue-group--${group.id}`} key={group.id}>
+                <header className="issue-group__heading"><strong>{group.label}</strong><span>{group.issues.length}</span></header>
+                <IssueRows issues={group.issues} />
+              </section>
+            ))}</div>
+          )}
+        </section>
+        <section>
+          <header><div><span>Changes</span><h2>Pull Requests</h2></div><a href={`${repositoryUrl}/pulls`}>View all on GitHub ↗</a></header>
+          {data.pullRequests.length === 0 ? <p className="progress-empty">No pull requests found.</p> : (
+            <ol>{data.pullRequests.map((pullRequest) => { const status = pullRequest.merged_at ? 'merged' : pullRequest.draft ? 'draft' : pullRequest.state; return <li key={pullRequest.number}><a href={pullRequest.html_url}><span className={`status status--${status}`}>{status}</span><b>#{pullRequest.number}</b><strong>{pullRequest.title}</strong><time dateTime={pullRequest.updated_at}>{formatDate(pullRequest.updated_at)}</time></a></li> })}</ol>
+          )}
+        </section>
+      </div>}
     </main>
   )
 }
