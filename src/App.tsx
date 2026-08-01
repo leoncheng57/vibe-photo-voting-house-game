@@ -5,11 +5,13 @@ import { DisplayView } from './components/DisplayView'
 import { Leaderboard } from './components/Leaderboard'
 import { Palette } from './components/Palette'
 import { MobileNavigation, SiteHeader } from './components/SiteNavigation'
+import { StorageMeter } from './components/StorageMeter'
 import { Timer } from './components/Timer'
 import { Tutorial } from './components/Tutorial'
 import { VoteView } from './components/VoteView'
 import { createProfile, ensureAnonymousUser, getChallenges, getPartyStatus, getProfile, invalidatePhoto, joinParty, signOut, updateProfile } from './lib/api'
 import { isSupabaseConfigured, supabase } from './lib/supabase'
+import { useStorageUsage } from './lib/useStorageUsage'
 import type { Challenge, PartyStatus, Profile, View } from './types'
 
 const appRoot = import.meta.env.BASE_URL
@@ -164,6 +166,7 @@ export default function App() {
   const [confirmingLeave, setConfirmingLeave] = useState(false)
   const [leaveError, setLeaveError] = useState('')
   const [leaving, setLeaving] = useState(false)
+  const storageUsage = useStorageUsage(Boolean(profile), submissionToken)
 
   useEffect(() => {
     if (!isSupabaseConfigured) return
@@ -282,8 +285,14 @@ export default function App() {
   return (
     <div className="app-shell">
       <SiteHeader active={view} onSelect={setView} playerName={profile.display_name} onEditProfile={openNameEditor} />
+      <div className="storage-strip">
+        <StorageMeter summary={storageUsage.summary} failed={storageUsage.failed} variant="bar" />
+      </div>
 
-      <div className="mobile-timer"><Timer compact /></div>
+      <div className="mobile-timer">
+        <Timer compact />
+        <StorageMeter summary={storageUsage.summary} failed={storageUsage.failed} variant="bar" />
+      </div>
       <main className="content">
         {view === 'challenges' && <><Timer /><ChallengeList challenges={challenges} userId={user.id} refreshToken={submissionToken} onChanged={() => { setSubmissionToken((value) => value + 1); setResultsToken((value) => value + 1) }} /></>}
         {view === 'tutorial' && <Tutorial />}

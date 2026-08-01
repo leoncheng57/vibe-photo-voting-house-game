@@ -6,6 +6,7 @@ const systemUrl = `${appRoot}developer/system/`
 const databaseUrl = `${appRoot}developer/db-design/`
 const securityUrl = `${appRoot}developer/security-ops/`
 const runbookUrl = `${appRoot}developer/host-runbook/`
+const photoExportUrl = `${appRoot}developer/photo-export/`
 const progressUrl = `${appRoot}developer/github-progress/`
 const developerUrl = progressUrl
 
@@ -75,7 +76,7 @@ export function MobileNavigation(props: NavigationProps) {
   return <nav className="mobile-nav" aria-label="Mobile navigation"><NavigationLinks {...props} /></nav>
 }
 
-export function DeveloperTabs({ active }: { active: 'system' | 'database' | 'security' | 'runbook' | 'progress' }) {
+export function DeveloperTabs({ active }: { active: 'system' | 'database' | 'security' | 'runbook' | 'export' | 'progress' }) {
   return (
     <nav className="developer-tabs" aria-label="Developer pages">
       <a className={active === 'progress' ? 'active' : ''} href={progressUrl}>GitHub project progress</a>
@@ -83,6 +84,7 @@ export function DeveloperTabs({ active }: { active: 'system' | 'database' | 'sec
       <a className={active === 'database' ? 'active' : ''} href={databaseUrl}>DB design</a>
       <a className={active === 'security' ? 'active' : ''} href={securityUrl}>Security and Ops</a>
       <a className={active === 'runbook' ? 'active' : ''} href={runbookUrl}>Host Password Runbook</a>
+      <a className={active === 'export' ? 'active' : ''} href={photoExportUrl}>Photo Export Runbook</a>
     </nav>
   )
 }

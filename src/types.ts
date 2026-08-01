@@ -28,6 +28,30 @@ export interface Submission {
   voteCount?: number
 }
 
+export interface StorageUsage {
+  bucketId: string
+  totalBytes: number
+  objectCount: number
+}
+
+export type OriginalStatus = 'exact' | 'optimized' | 'resized' | 'legacy'
+
+export interface OriginalRecord {
+  submissionId: string
+  challengeId: number
+  challengeSlug: string
+  challengeTitle: string
+  challengeSortOrder: number
+  userId: string
+  ownerName: string
+  originalPath: string
+  originalFilename: string
+  originalMime: string
+  originalBytes: number
+  originalStatus: OriginalStatus
+  originalSourceBytes: number | null
+}
+
 export interface LeaderboardEntry {
   user_id: string
   display_name: string
