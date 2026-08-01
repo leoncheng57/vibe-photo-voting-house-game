@@ -78,7 +78,15 @@ VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_your_key
 
 The publishable key is designed for browser use. Never add a Supabase secret key or service-role key to this repository or the frontend environment.
 
-Anonymous sessions belong to one browser. A guest who clears site data or changes devices will need to re-enter the passphrase and pick a new display name. Supabase limits anonymous sign-ups by IP; if the party will exceed 30 guests on one network, review the Auth rate limit before the event.
+Supabase limits anonymous sign-ups by IP; if the party will exceed 30 guests on one network, review the Auth rate limit before the event.
+
+## Guest Identity And Display Names
+
+Each guest identity belongs to one browser profile. Returning in the same browser keeps the same identity, submissions, and votes. Changing the display name updates that existing profile; it does not create a new guest or disconnect any game data.
+
+Display names are unique after trimming spaces and ignoring letter case. For example, `Leon`, ` leon `, and `LEON` are treated as the same name. If another guest already uses that name, the app shows `That name is already taken.`
+
+A separate guest needs a different browser or browser profile. Another tab or window in the same browser shares the existing identity. Clearing site data, logging out and leaving the party, changing devices, or using another browser creates a new anonymous identity that must re-enter the passphrase and choose an available name; the previous identity's submissions and votes remain in the game.
 
 ## Party Access
 
