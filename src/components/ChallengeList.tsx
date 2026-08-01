@@ -60,28 +60,34 @@ export function ChallengeList({ challenges, userId, refreshToken, onChanged }: P
           return (
             <article className={`challenge-card challenge-card--${(index % 4) + 1}`} key={challenge.id}>
               <div className="challenge-card__number">{String(index + 1).padStart(2, '0')}</div>
-              {own?.photoUrl && <img src={own.photoUrl} alt="Your submission" />}
-              <div className="challenge-card__body">
-                <span className="eyebrow">{challenge.kicker}</span>
-                <h3>{challenge.title}</h3>
-                <p>{challenge.prompt}</p>
-                <div className="challenge-card__footer">
-                  <span>{count} {count === 1 ? 'photo' : 'photos'}</span>
-                  <button
-                    className="button"
-                    disabled={busyId !== null}
-                    onClick={() => inputRefs.current[challenge.id]?.click()}
-                  >
-                    {busyId === challenge.id ? 'Preparing…' : own ? 'Replace mine' : 'Add my photo'}
-                  </button>
-                  <input
-                    ref={(element) => { inputRefs.current[challenge.id] = element }}
-                    className="visually-hidden"
-                    type="file"
-                    accept="image/*"
-                    capture="environment"
-                    onChange={(event) => selectPhoto(challenge, event.target.files?.[0])}
-                  />
+              <div className="challenge-card__content">
+                {own?.photoUrl && (
+                  <div className="challenge-card__preview">
+                    <img src={own.photoUrl} alt={`Your submission for ${challenge.title}`} />
+                  </div>
+                )}
+                <div className="challenge-card__body">
+                  <span className="eyebrow">{challenge.kicker}</span>
+                  <h3>{challenge.title}</h3>
+                  <p>{challenge.prompt}</p>
+                  <div className="challenge-card__footer">
+                    <span>{count} {count === 1 ? 'photo' : 'photos'}</span>
+                    <button
+                      className="button"
+                      disabled={busyId !== null}
+                      onClick={() => inputRefs.current[challenge.id]?.click()}
+                    >
+                      {busyId === challenge.id ? 'Preparing…' : own ? 'Replace mine' : 'Add my photo'}
+                    </button>
+                    <input
+                      ref={(element) => { inputRefs.current[challenge.id] = element }}
+                      className="visually-hidden"
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      onChange={(event) => selectPhoto(challenge, event.target.files?.[0])}
+                    />
+                  </div>
                 </div>
               </div>
             </article>
