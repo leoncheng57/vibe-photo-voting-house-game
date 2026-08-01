@@ -1,6 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { DeveloperBanner, DeveloperTabs, MobileNavigation, SiteHeader } from './components/SiteNavigation'
+import { DeveloperShell } from './components/SiteNavigation'
 import { Palette } from './components/Palette'
 import { PhotoExportRunbook } from './components/PhotoExportRunbook'
 import { DatabaseDesign, HostPasswordRunbook, SecurityOps, SystemDiagram } from './components/SystemDiagram'
@@ -21,10 +21,8 @@ const page = location.pathname.includes('/palette')
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <SiteHeader active="developer" />
-    <DeveloperBanner />
-    <DeveloperTabs active={page} />
-    {page === 'palette' ? <Palette /> : page === 'database' ? <DatabaseDesign /> : page === 'security' ? <SecurityOps /> : page === 'runbook' ? <HostPasswordRunbook /> : page === 'export' ? <PhotoExportRunbook /> : <SystemDiagram />}
-    <MobileNavigation active="developer" />
+    <DeveloperShell active={page}>
+      {page === 'palette' ? <Palette /> : page === 'database' ? <DatabaseDesign /> : page === 'security' ? <SecurityOps /> : page === 'runbook' ? <HostPasswordRunbook /> : page === 'export' ? <PhotoExportRunbook /> : <SystemDiagram />}
+    </DeveloperShell>
   </StrictMode>,
 )

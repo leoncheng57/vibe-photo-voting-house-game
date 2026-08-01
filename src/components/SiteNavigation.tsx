@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import type { View } from '../types'
 
 const appRoot = import.meta.env.BASE_URL
@@ -144,16 +144,18 @@ export function MobileNavigation(props: NavigationProps) {
   )
 }
 
-export function DeveloperTabs({ active }: { active: 'system' | 'database' | 'security' | 'runbook' | 'export' | 'progress' | 'palette' }) {
+type DeveloperPage = 'system' | 'database' | 'security' | 'runbook' | 'export' | 'progress' | 'palette'
+
+export function DeveloperTabs({ active }: { active: DeveloperPage }) {
   return (
     <nav className="developer-tabs" aria-label="Developer pages">
-      <a className={active === 'progress' ? 'active' : ''} href={progressUrl}>GitHub project progress</a>
-      <a className={active === 'palette' ? 'active' : ''} href={paletteUrl}>Palette</a>
-      <a className={active === 'system' ? 'active' : ''} href={systemUrl}>System reference</a>
-      <a className={active === 'database' ? 'active' : ''} href={databaseUrl}>DB design</a>
-      <a className={active === 'security' ? 'active' : ''} href={securityUrl}>Security and Ops</a>
-      <a className={active === 'runbook' ? 'active' : ''} href={runbookUrl}>Host Password Runbook</a>
-      <a className={active === 'export' ? 'active' : ''} href={photoExportUrl}>Photo Export Runbook</a>
+      <a aria-current={active === 'progress' ? 'page' : undefined} className={active === 'progress' ? 'active' : ''} href={progressUrl}>GitHub project progress</a>
+      <a aria-current={active === 'palette' ? 'page' : undefined} className={active === 'palette' ? 'active' : ''} href={paletteUrl}>Palette</a>
+      <a aria-current={active === 'system' ? 'page' : undefined} className={active === 'system' ? 'active' : ''} href={systemUrl}>System reference</a>
+      <a aria-current={active === 'database' ? 'page' : undefined} className={active === 'database' ? 'active' : ''} href={databaseUrl}>DB design</a>
+      <a aria-current={active === 'security' ? 'page' : undefined} className={active === 'security' ? 'active' : ''} href={securityUrl}>Security and Ops</a>
+      <a aria-current={active === 'runbook' ? 'page' : undefined} className={active === 'runbook' ? 'active' : ''} href={runbookUrl}>Host Password Runbook</a>
+      <a aria-current={active === 'export' ? 'page' : undefined} className={active === 'export' ? 'active' : ''} href={photoExportUrl}>Photo Export Runbook</a>
     </nav>
   )
 }
@@ -167,5 +169,19 @@ export function DeveloperBanner() {
       </span>
       <code>architecture · data · security · delivery</code>
     </aside>
+  )
+}
+
+export function DeveloperShell({ active, children }: { active: DeveloperPage; children: ReactNode }) {
+  return (
+    <>
+      <SiteHeader active="developer" />
+      <div className="developer-workspace">
+        <DeveloperBanner />
+        <DeveloperTabs active={active} />
+        {children}
+      </div>
+      <MobileNavigation active="developer" />
+    </>
   )
 }
