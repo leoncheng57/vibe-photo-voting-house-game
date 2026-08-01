@@ -1,14 +1,19 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import type { Challenge, Submission } from '../types'
 import { getSubmissions } from '../lib/api'
 import { Timer } from './Timer'
+
+const PAGE_DURATION_SECONDS = 30
+const PAGE_DURATION_MS = PAGE_DURATION_SECONDS * 1000
 
 export function DisplayView({ challenges, refreshToken, onExit }: { challenges: Challenge[]; refreshToken: number; onExit: () => void }) {
   const [index, setIndex] = useState(0)
   const [photos, setPhotos] = useState<Submission[]>([])
   const [revealed, setRevealed] = useState(false)
   const [error, setError] = useState('')
+  const [pageSeconds, setPageSeconds] = useState(PAGE_DURATION_SECONDS)
+  const pageEndsAt = useRef(Date.now() + PAGE_DURATION_MS)
   const challenge = challenges[index]
   const joinUrl = useMemo(() => `${window.location.origin}${import.meta.env.BASE_URL}`, [])
 
@@ -23,9 +28,32 @@ export function DisplayView({ challenges, refreshToken, onExit }: { challenges: 
   }, [challenge, refreshToken])
 
   useEffect(() => {
+    if (!challenges.length) return
+    pageEndsAt.current = Date.now() + PAGE_DURATION_MS
+    setPageSeconds(PAGE_DURATION_SECONDS)
+    setIndex((current) => Math.min(current, challenges.length - 1))
+
+    const interval = window.setInterval(() => {
+      const now = Date.now()
+      if (now >= pageEndsAt.current) {
+        setIndex((current) => (current + 1) % challenges.length)
+        pageEndsAt.current = now + PAGE_DURATION_MS
+        setPageSeconds(PAGE_DURATION_SECONDS)
+        return
+      }
+      setPageSeconds(Math.ceil((pageEndsAt.current - now) / 1000))
+    }, 250)
+
+    return () => window.clearInterval(interval)
+  }, [challenges.length])
+
+  useEffect(() => {
     function onKey(event: KeyboardEvent) {
-      if (event.key === 'ArrowLeft') setIndex((current) => (current - 1 + challenges.length) % challenges.length)
-      if (event.key === 'ArrowRight') setIndex((current) => (current + 1) % challenges.length)
+      const delta = event.key === 'ArrowLeft' ? -1 : event.key === 'ArrowRight' ? 1 : 0
+      if (!delta || !challenges.length) return
+      pageEndsAt.current = Date.now() + PAGE_DURATION_MS
+      setPageSeconds(PAGE_DURATION_SECONDS)
+      setIndex((current) => (current + delta + challenges.length) % challenges.length)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -36,6 +64,9 @@ export function DisplayView({ challenges, refreshToken, onExit }: { challenges: 
     : photos
 
   function move(delta: number) {
+    if (!challenges.length) return
+    pageEndsAt.current = Date.now() + PAGE_DURATION_MS
+    setPageSeconds(PAGE_DURATION_SECONDS)
     setIndex((current) => (current + delta + challenges.length) % challenges.length)
   }
 
@@ -93,7 +124,7 @@ export function DisplayView({ challenges, refreshToken, onExit }: { challenges: 
         <button className="button button--dark" onClick={toggleResults}>
           {revealed ? 'Hide results' : 'Reveal results'}
         </button>
-        <span>Use ← → to move</span>
+        <span>Next in {pageSeconds}s · ← → to move</span>
       </footer>
     </div>
   )
