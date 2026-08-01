@@ -99,7 +99,7 @@ code, pre { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospac
 .missing-document p { max-width: 700px; margin-bottom: 0; font: 700 1rem/1.5 Georgia, serif; }
 
 @media (max-width: 800px) {
-  body { padding-bottom: 58px; }
+  body { padding-bottom: calc(65px + env(safe-area-inset-bottom)); }
   .progress-page { width: calc(100% - 28px); padding: 32px 0 90px; }
   .progress-hero { grid-template-columns: 1fr; gap: 28px; }
   .progress-kicker { margin-top: 26px; }

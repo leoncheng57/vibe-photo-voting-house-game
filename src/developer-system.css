@@ -169,7 +169,7 @@ code, pre { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospac
 .dev-grid code { color: #087da8; font-size: 12px; }
 
 @media (max-width: 760px) {
-  body { padding-bottom: 58px; }
+  body { padding-bottom: calc(65px + env(safe-area-inset-bottom)); }
   .palette-page { width: calc(100% - 28px); padding-top: 28px; }
   .palette-hero { display: block; padding: 2rem 1.2rem; }
   .palette-hero h1 { margin: 1rem 0 2rem; font-size: clamp(3.8rem, 19vw, 6rem); }
