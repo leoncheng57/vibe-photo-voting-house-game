@@ -89,7 +89,7 @@ const requestFlows = [
   ['Party admission', 'rpc(\'join_party\')', 'party_settings → memberships', 'SECURITY DEFINER bcrypt check; a wrong passphrase never creates a membership.'],
   ['Photo submission', 'preparePhoto() + storage.upload()', 'photo-originals + photos → submissions', 'Untouched HEIC/JPEG original (≤6 MB, optimized above) plus a 2400 px game JPEG; metadata upsert follows both object writes.'],
   ['Photo read', 'storage.download()', 'photos bucket → local blob URL', 'Authenticated, membership-gated download; no reusable signed URLs are issued.'],
-  ['Ballot write', 'rpc(\'submit_votes\')', 'submissions → votes', 'SECURITY DEFINER function requires membership plus min(3, available submissions) distinct IDs and writes atomically.'],
+  ['Ballot write', 'rpc(\'submit_votes\')', 'submissions → votes', 'SECURITY DEFINER function requires membership plus 1–3 valid distinct submission IDs and replaces the ballot atomically.'],
   ['Result query', 'challenge_results + leaderboard', 'votes → ranked views', 'Membership-gated views; Postgres rank() implements competition ranking with 3/2/1 podium points.'],
 ]
 
