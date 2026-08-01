@@ -16,6 +16,7 @@ export default defineConfig({
         runbook: resolve(__dirname, 'developer/host-runbook/index.html'),
         photoExport: resolve(__dirname, 'developer/photo-export/index.html'),
         progress: resolve(__dirname, 'developer/github-progress/index.html'),
+        palette: resolve(__dirname, 'developer/palette/index.html'),
       },
     },
   },

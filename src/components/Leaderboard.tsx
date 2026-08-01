@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { getLeaderboard } from '../lib/api'
+import { rankLeaderboardEntries } from '../lib/scoring'
 import type { LeaderboardEntry } from '../types'
 
-export function Leaderboard({ refreshToken }: { refreshToken: number }) {
+export function Leaderboard({ refreshToken, highlightPodium = false }: { refreshToken: number; highlightPodium?: boolean }) {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([])
   const [error, setError] = useState('')
 
@@ -13,8 +14,7 @@ export function Leaderboard({ refreshToken }: { refreshToken: number }) {
     return () => window.clearInterval(interval)
   }, [refreshToken])
 
-  let previous: LeaderboardEntry | undefined
-  let displayedRank = 0
+  const rankedEntries = rankLeaderboardEntries(entries)
 
   return (
     <div>
@@ -27,11 +27,10 @@ export function Leaderboard({ refreshToken }: { refreshToken: number }) {
       </header>
       {error && <div className="notice notice--error">{error}</div>}
       <ol className="leaderboard">
-        {entries.map((entry, index) => {
-          if (!previous || entry.points !== previous.points || entry.wins !== previous.wins) displayedRank = index + 1
-          previous = entry
-          return <li key={entry.user_id}>
-            <span className="leaderboard__rank">{String(displayedRank).padStart(2, '0')}</span>
+        {rankedEntries.map((entry) => {
+          const podiumClass = highlightPodium && entry.rank <= 3 ? ` leaderboard__entry--rank-${entry.rank}` : ''
+          return <li className={podiumClass.trim() || undefined} key={entry.user_id}>
+            <span className="leaderboard__rank">{String(entry.rank).padStart(2, '0')}</span>
             <strong>{entry.display_name}</strong>
             <span>{entry.wins} {entry.wins === 1 ? 'win' : 'wins'}</span>
             <b>{entry.points}<small> pts</small></b>

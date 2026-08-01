@@ -13,7 +13,7 @@ const steps = [
   {
     number: '02',
     title: 'Hunt for shots',
-    copy: 'Browse all six challenges and join any you like. Take a new picture or choose one from your camera roll.',
+    copy: 'Work through all six challenges. Take a new picture or choose one from your camera roll for every prompt.',
     note: 'One photo per challenge. Replace it any time before it receives a vote.',
   },
   {
@@ -25,7 +25,7 @@ const steps = [
   {
     number: '04',
     title: 'Choose up to three',
-    copy: 'Choose every available photo until there are three, then select your three favorites. Every choice is worth one vote.',
+    copy: 'Submit one, two, or three favorites. Every choice is worth one vote, and you can change your ballot later.',
     note: 'Voting for your own masterpiece is completely allowed.',
   },
   {
@@ -37,10 +37,9 @@ const steps = [
 ]
 
 const tvSteps = [
-  ['01', 'Pick a challenge', 'Choose a prompt that gives you an idea.'],
-  ['02', 'Take your photo', 'Get creative with a new shot or your camera roll.'],
-  ['03', 'Submit it', 'Send one anonymous entry for each challenge.'],
-  ['04', 'Vote together', 'Choose up to three favorites, then reveal the room.'],
+  ['01', 'Shoot every challenge', 'Work through all six prompts. Take a new photo or choose one from your camera roll for each.'],
+  ['02', 'Submit your set', 'Send one anonymous entry for every challenge.'],
+  ['03', 'Vote together', 'Choose up to three favorites for each challenge, then reveal the room.'],
 ]
 
 export function Tutorial({ onBack, variant = 'guest' }: Props) {
@@ -48,7 +47,6 @@ export function Tutorial({ onBack, variant = 'guest' }: Props) {
     <section className="tv-tutorial" aria-labelledby="tv-tutorial-title">
       <header><span className="eyebrow">The one-minute briefing</span><h1 id="tv-tutorial-title">How to play</h1><p>Phones take the photos. The TV brings everyone together.</p></header>
       <div>{tvSteps.map(([number, title, copy]) => <article key={number}><b>{number}</b><h2>{title}</h2><p>{copy}</p></article>)}</div>
-      <strong>Highest score wins the highly questionable bragging rights.</strong>
     </section>
   )
 
