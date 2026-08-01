@@ -141,7 +141,7 @@ code, pre { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospac
 .dev-grid code { color: #087da8; font-size: 12px; }
 
 @media (max-width: 760px) {
-  body { padding-bottom: 58px; }
+  body { padding-bottom: calc(65px + env(safe-area-inset-bottom)); }
   .developer-system { width: min(100% - 28px, 1280px); padding-top: 28px; }
   .dev-header { grid-template-columns: 1fr; gap: 28px; }
   .dev-index { top: 0; margin-bottom: 56px; }

@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react'
 import type { View } from '../types'
 
 const appRoot = import.meta.env.BASE_URL
@@ -44,11 +45,11 @@ function NavigationLinks({ active, onSelect }: NavigationProps) {
   return (
     <>
       {navigationItems.map((item) => onSelect ? (
-        <button key={item.id} className={`${active === item.id ? 'active' : ''} ${item.icon ? 'nav-with-icon' : ''}`} onClick={() => onSelect(item.id)}>{item.icon === 'tv' && <TvIcon />}{item.label}</button>
+        <button key={item.id} className={`${active === item.id ? 'active' : ''} ${item.icon ? 'nav-with-icon' : ''}`} aria-current={active === item.id ? 'page' : undefined} onClick={() => onSelect(item.id)}>{item.icon === 'tv' && <TvIcon />}{item.label}</button>
       ) : (
-        <a key={item.id} className={`${active === item.id ? 'active' : ''} ${item.icon ? 'nav-with-icon' : ''}`} href={item.href}>{item.icon === 'tv' && <TvIcon />}{item.label}</a>
+        <a key={item.id} className={`${active === item.id ? 'active' : ''} ${item.icon ? 'nav-with-icon' : ''}`} href={item.href} aria-current={active === item.id ? 'page' : undefined}>{item.icon === 'tv' && <TvIcon />}{item.label}</a>
       ))}
-      <a className={`developer-link ${active === 'developer' ? 'active' : ''}`} href={developerUrl}><RobotIcon />Developer</a>
+      <a className={`developer-link ${active === 'developer' ? 'active' : ''}`} href={developerUrl} aria-current={active === 'developer' ? 'page' : undefined}><RobotIcon />Developer</a>
     </>
   )
 }
@@ -73,7 +74,74 @@ export function SiteHeader({ active, onSelect, playerName, onEditProfile }: Site
 }
 
 export function MobileNavigation(props: NavigationProps) {
-  return <nav className="mobile-nav" aria-label="Mobile navigation"><NavigationLinks {...props} /></nav>
+  const navRef = useRef<HTMLElement>(null)
+  const [scrollEdges, setScrollEdges] = useState({ left: false, right: false })
+
+  useEffect(() => {
+    const nav = navRef.current
+    if (!nav) return
+    let revealFrame = 0
+
+    const updateScrollEdges = () => {
+      const maxScrollLeft = nav.scrollWidth - nav.clientWidth
+      setScrollEdges({
+        left: nav.scrollLeft > 1,
+        right: nav.scrollLeft < maxScrollLeft - 1,
+      })
+    }
+    const revealActive = () => {
+      cancelAnimationFrame(revealFrame)
+      revealFrame = requestAnimationFrame(() => {
+        nav.querySelector<HTMLElement>('[aria-current="page"]')?.scrollIntoView({
+          behavior: 'auto',
+          block: 'nearest',
+          inline: 'center',
+        })
+      })
+    }
+
+    updateScrollEdges()
+    nav.addEventListener('scroll', updateScrollEdges, { passive: true })
+    const resizeObserver = new ResizeObserver(() => {
+      updateScrollEdges()
+      revealActive()
+    })
+    resizeObserver.observe(nav)
+    window.addEventListener('resize', revealActive)
+
+    return () => {
+      cancelAnimationFrame(revealFrame)
+      nav.removeEventListener('scroll', updateScrollEdges)
+      resizeObserver.disconnect()
+      window.removeEventListener('resize', revealActive)
+    }
+  }, [])
+
+  useEffect(() => {
+    navRef.current?.querySelector<HTMLElement>('[aria-current="page"]')?.scrollIntoView({
+      behavior: 'auto',
+      block: 'nearest',
+      inline: 'center',
+    })
+  }, [props.active])
+
+  const edgeClasses = [
+    scrollEdges.left && 'mobile-nav-shell--left',
+    scrollEdges.right && 'mobile-nav-shell--right',
+  ].filter(Boolean).join(' ')
+
+  return (
+    <div className={`mobile-nav-shell ${edgeClasses}`}>
+      <nav
+        ref={navRef}
+        className="mobile-nav"
+        aria-label="Mobile navigation"
+        onFocusCapture={(event) => event.target.scrollIntoView({ behavior: 'auto', block: 'nearest', inline: 'nearest' })}
+      >
+        <NavigationLinks {...props} />
+      </nav>
+    </div>
+  )
 }
 
 export function DeveloperTabs({ active }: { active: 'system' | 'database' | 'security' | 'runbook' | 'export' | 'progress' }) {
