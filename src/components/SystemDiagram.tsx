@@ -123,7 +123,7 @@ export function SystemDiagram() {
           <section className="architecture-layer architecture-layer--clients">
             <header><span>01</span><div><b>Client layer</b><small>Browsers at the party</small></div></header>
             <div className="architecture-client-grid">
-              <article><i className="architecture-device architecture-device--phone" aria-hidden="true" /><div><h3>Guest devices</h3><p>Mobile browsers capture photos, submit ballots, and view scores.</p></div></article>
+              <article><i className="architecture-device architecture-device--phone" aria-hidden="true" /><div><h3>Guest devices</h3><p>Mobile browsers capture photos and submit ballots.</p></div></article>
               <article><i className="architecture-device architecture-device--tv" aria-hidden="true" /><div><h3>Presentation display</h3><p>TV browser runs the shared timer, QR entry point, and result reveal.</p></div></article>
             </div>
           </section>
@@ -133,7 +133,7 @@ export function SystemDiagram() {
           <section className="architecture-layer architecture-layer--app">
             <header><span>02</span><div><b>Application layer</b><small>GitHub Pages</small></div><em>STATIC</em></header>
             <div className="architecture-app-grid">
-              <article><code>/home/</code><h3>React game client</h3><p>Camera, challenges, voting, scores, and TV mode.</p></article>
+              <article><code>/home/</code><h3>React game client</h3><p>Camera, challenges, voting, and TV mode.</p></article>
               <article><code>/developer/*</code><h3>Developer workspace</h3><p>Architecture, database, security, operations, and project progress.</p></article>
             </div>
           </section>
