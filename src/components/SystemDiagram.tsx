@@ -133,7 +133,8 @@ export function SystemDiagram() {
           <section className="architecture-layer architecture-layer--app">
             <header><span>02</span><div><b>Application layer</b><small>GitHub Pages</small></div><em>STATIC</em></header>
             <div className="architecture-app-grid">
-              <article><code>/home/</code><h3>React game client</h3><p>Camera, challenges, voting, and TV mode.</p></article>
+              <article><code>/</code><h3>Public landing page</h3><p>Party overview and direct calls to join the game.</p></article>
+              <article><code>/play/</code><h3>React game client</h3><p>Camera, challenges, voting, and TV mode.</p></article>
               <article><code>/developer/*</code><h3>Developer workspace</h3><p>Architecture, database, security, operations, and project progress.</p></article>
             </div>
           </section>

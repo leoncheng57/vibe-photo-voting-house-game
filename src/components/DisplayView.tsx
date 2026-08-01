@@ -30,7 +30,7 @@ export function DisplayView({ challenges, refreshToken, onExit }: { challenges: 
   const scoreOpenTimer = useRef<number | null>(null)
   const scoreSettleTimer = useRef<number | null>(null)
   const challenge = challenges[index]
-  const joinUrl = useMemo(() => `${window.location.origin}${import.meta.env.BASE_URL}`, [])
+  const joinUrl = useMemo(() => `${window.location.origin}${import.meta.env.BASE_URL}play/`, [])
 
   useEffect(() => {
     if (!challenge) return
