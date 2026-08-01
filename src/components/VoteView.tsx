@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { Challenge, Submission } from '../types'
 import { getSubmissions, getVotes, submitVotes } from '../lib/api'
+import { canSubmitVotes, getVoteLimit } from '../lib/voting'
 
 interface Props {
   challenges: Challenge[]
@@ -25,18 +26,18 @@ export function VoteView({ challenges, userId, refreshToken, onChanged }: Props)
         if (!current) return
         setSubmissions(photos)
         setSelected(votes)
-        setSaved(photos.length > 0 && votes.length === Math.min(3, photos.length))
+        setSaved(canSubmitVotes(votes.length, photos.length))
       })
       .catch((error: Error) => { if (current) setMessage(error.message) })
     return () => { current = false }
   }, [challengeId, userId, refreshToken])
 
   function toggle(id: string) {
-    const requiredVotes = Math.min(3, submissions.length)
+    const voteLimit = getVoteLimit(submissions.length)
     setSaved(false)
     setSelected((current) => current.includes(id)
       ? current.filter((item) => item !== id)
-      : current.length < requiredVotes ? [...current, id] : current)
+      : current.length < voteLimit ? [...current, id] : current)
   }
 
   async function saveVotes() {
@@ -55,7 +56,7 @@ export function VoteView({ challenges, userId, refreshToken, onChanged }: Props)
   }
 
   const challenge = challenges.find((item) => item.id === challengeId)
-  const requiredVotes = Math.min(3, submissions.length)
+  const voteLimit = getVoteLimit(submissions.length)
 
   return (
     <div>
@@ -64,7 +65,7 @@ export function VoteView({ challenges, userId, refreshToken, onChanged }: Props)
           <span className="eyebrow">02 / Choose your favorites</span>
           <h2>Up to three.<br />Make them count.</h2>
         </div>
-        <p>Choose every available photo until there are three, then pick your three favorites. Your own photo is fair game.</p>
+        <p>Submit one, two, or three favorites. Every choice is worth one vote, and your own photo is fair game.</p>
       </header>
 
       <div className="challenge-tabs" aria-label="Choose a challenge">
@@ -84,9 +85,9 @@ export function VoteView({ challenges, userId, refreshToken, onChanged }: Props)
           <span className="eyebrow">Now voting</span>
           <h3>{challenge?.title}</h3>
         </div>
-        <strong>{selected.length}<small>/{requiredVotes} selected</small></strong>
-        <button className="button button--dark" disabled={requiredVotes === 0 || selected.length !== requiredVotes || busy} onClick={saveVotes}>
-          {busy ? 'Saving…' : saved ? 'Votes saved' : `Confirm ${requiredVotes} ${requiredVotes === 1 ? 'vote' : 'votes'}`}
+        <strong>{selected.length}<small>/{voteLimit} max</small></strong>
+        <button className="button button--dark" disabled={!canSubmitVotes(selected.length, submissions.length) || busy} onClick={saveVotes}>
+          {busy ? 'Saving…' : saved ? 'Votes saved' : selected.length ? `Confirm ${selected.length} ${selected.length === 1 ? 'vote' : 'votes'}` : 'Select a photo'}
         </button>
       </div>
 
