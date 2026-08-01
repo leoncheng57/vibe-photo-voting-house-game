@@ -124,7 +124,7 @@ export function DisplayView({ challenges, refreshToken, onExit }: { challenges: 
         <button className="button button--dark" onClick={toggleResults}>
           {revealed ? 'Hide results' : 'Reveal results'}
         </button>
-        <span>Next in {pageSeconds}s · ← → to move</span>
+        <span>Next in {pageSeconds}<b className="display-footer__unit">s</b> · ← → to move</span>
       </footer>
     </div>
   )
