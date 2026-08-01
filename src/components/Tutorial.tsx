@@ -73,7 +73,7 @@ export function Tutorial({ onBack }: Props) {
 
       <section className="tutorial-tv-tip">
         <span>Big-screen tip</span>
-        <p>Open <b>TV mode</b>, use the left and right arrow keys to switch challenges, and press <b>Reveal results</b> after everyone confirms their ballot.</p>
+        <p>Open <b>TV mode</b> to rotate challenges every 30 seconds. Use the left and right arrow keys to switch early, and press <b>Reveal results</b> after everyone confirms their ballot.</p>
       </section>
     </div>
   )
