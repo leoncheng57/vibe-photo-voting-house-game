@@ -25,7 +25,7 @@ const steps = [
   {
     number: '04',
     title: 'Choose up to three',
-    copy: 'Choose every available photo until there are three, then select your three favorites. Every choice is worth one vote.',
+    copy: 'Submit one, two, or three favorites. Every choice is worth one vote, and you can change your ballot later.',
     note: 'Voting for your own masterpiece is completely allowed.',
   },
   {

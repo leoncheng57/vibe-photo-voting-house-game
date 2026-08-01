@@ -1,6 +1,6 @@
 # House Party Photo Hunt
 
-A mobile-first housewarming photo challenge with passphrase-gated entry, anonymous guest profiles, direct photo uploads, three-vote rounds, TV presentation mode, and a live 3-2-1 leaderboard.
+A mobile-first housewarming photo challenge with passphrase-gated entry, anonymous guest profiles, direct photo uploads, up-to-three-vote rounds, TV presentation mode, and a live 3-2-1 leaderboard.
 
 The frontend is React, TypeScript, and Vite on GitHub Pages. Supabase provides anonymous authentication, PostgreSQL, private photo storage, and realtime updates. No application server or Vercel deployment is required.
 
@@ -61,7 +61,9 @@ The frontend is React, TypeScript, and Vite on GitHub Pages. Supabase provides a
      - `supabase/migrations/003_flexible_vote_count.sql`
      - `supabase/migrations/004_party_membership.sql`
      - `supabase/migrations/005_relax_passphrase_length.sql`
-     - `supabase/migrations/006_photo_originals.sql`
+      - `supabase/migrations/006_photo_originals.sql`
+      - `supabase/migrations/007_original_status.sql`
+      - `supabase/migrations/008_allow_partial_ballots.sql`
 4. Set the party passphrase in the SQL Editor. Nobody can join until this runs:
 
 ```sql
@@ -129,7 +131,7 @@ The app deploys to:
 2. Each guest enters the passphrase, then a unique display name, and takes one photo for every challenge. The TV device enters the passphrase once too.
 3. Start the informational timer on the display device. It does not lock app actions.
 4. When photo time ends, show the challenges in TV mode, which advances every 30 seconds.
-5. Guests select and confirm three photos for that challenge on their phones.
+5. Guests select and confirm one, two, or three photos for that challenge on their phones. They may revisit and replace a saved ballot.
 6. Reveal that challenge's vote totals and photographers on the TV.
 7. Continue through all challenges, then open **Scores** for the final leaderboard.
 
