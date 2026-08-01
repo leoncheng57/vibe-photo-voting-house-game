@@ -96,20 +96,16 @@ export function DisplayView({ challenges, refreshToken, onExit }: { challenges: 
   if (!challenge) return null
 
   return (
-    <div className="display-view">
+    <div className={`display-view ${page === 'voting' ? 'display-view--voting' : ''}`}>
       <header className="display-header">
         <button className="brand brand--display brand--button" onClick={onExit}><b>HOUSE</b><span>EXIT TV MODE</span></button>
         <nav className="display-tabs" aria-label="TV mode views">
+          <button type="button" aria-current={page === 'tutorial' ? 'page' : undefined} onClick={() => selectPage('tutorial')}>How to play</button>
           <button type="button" aria-current={page === 'gallery' ? 'page' : undefined} onClick={() => selectPage('gallery')}>Gallery</button>
           <button type="button" aria-current={page === 'voting' ? 'page' : undefined} onClick={() => selectPage('voting')}>Voting</button>
-          <button type="button" aria-current={page === 'tutorial' ? 'page' : undefined} onClick={() => selectPage('tutorial')}>How to play</button>
           <button type="button" aria-current={page === 'scores' ? 'page' : undefined} onClick={() => selectPage('scores')}>Scores</button>
         </nav>
         <Timer compact />
-        <div className="display-join">
-          <span>Scan to play</span>
-          <QRCodeSVG value={joinUrl} size={74} bgColor="transparent" fgColor="#111111" />
-        </div>
       </header>
 
       {(page === 'gallery' || page === 'voting') && <>
@@ -136,23 +132,38 @@ export function DisplayView({ challenges, refreshToken, onExit }: { challenges: 
           ))}
         </div>
         {!photos.length && <div className="empty-state">Photos will appear here.</div>}
+        {page === 'gallery' && <div className="display-gallery-pager">Next in {pageSeconds}s <span>· ← → to move</span></div>}
       </>}
 
-      {page === 'tutorial' && <Tutorial variant="tv" />}
+      {page === 'tutorial' && <div className="display-tutorial-page">
+        <aside className="display-tutorial-summary" aria-label="Game at a glance">
+          <span className="eyebrow">Game at a glance</span>
+          <dl>
+            <div><dt>6</dt><dd>photo challenges</dd></div>
+            <div><dt>1</dt><dd>photo for each</dd></div>
+            <div><dt>3 max</dt><dd>votes per round</dd></div>
+          </dl>
+        </aside>
+        <Tutorial variant="tv" />
+        <aside className="display-tutorial-join" aria-label="Join the party">
+          <span className="eyebrow">Join on your phone</span>
+          <QRCodeSVG value={joinUrl} size={220} bgColor="transparent" fgColor="#f5f8f7" />
+          <strong>Scan to play</strong>
+          <p>No app download needed.</p>
+        </aside>
+      </div>}
       {page === 'scores' && <section className="display-scores"><Leaderboard refreshToken={refreshToken} /></section>}
 
-      <footer className="display-footer">
+      <footer className={`display-footer display-footer--${page}`}>
         {page === 'gallery' ? <>
           <span>{photos.length} submissions</span>
           <button className="button button--dark" onClick={toggleResults}>{revealed ? 'Hide results' : 'Reveal results'}</button>
-          <span>Next in {pageSeconds}s · ← → to move</span>
         </> : page === 'voting' ? <>
           <span>{photos.length} anonymous submissions</span>
           <strong>Waiting for everyone to finish voting…</strong>
           <span>← → to change challenge</span>
         </> : page === 'tutorial' ? <>
           <span>House Photo Hunt</span>
-          <strong>Join · Shoot · Vote · Reveal</strong>
           <span>Use the tabs to return to the gallery</span>
         </> : <>
           <span>Final standings</span>
