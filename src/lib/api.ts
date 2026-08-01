@@ -1,5 +1,6 @@
 import type { User } from '@supabase/supabase-js'
-import type { Challenge, LeaderboardEntry, PartyStatus, Profile, Submission } from '../types'
+import type { Challenge, LeaderboardEntry, OriginalRecord, PartyStatus, Profile, StorageUsage, Submission } from '../types'
+import type { PreparedPhoto } from './images'
 import { supabase } from './supabase'
 
 function client() {
@@ -133,19 +134,117 @@ export async function getSubmissions(challengeId?: number): Promise<Submission[]
   }))
 }
 
-export async function uploadSubmission(userId: string, challengeId: number, photo: Blob) {
+// Upload order matters because the flow is not transactional:
+// 1. the new original lands on a fresh versioned path (never overwrites),
+// 2. the game JPEG replaces the fixed {user_id}/{challenge_id}.jpg object,
+// 3. the submission row is updated to reference both,
+// 4. only then is the superseded original removed.
+// A failure at any step removes the just-uploaded original so the bucket
+// never accumulates objects that no submission references.
+export async function uploadSubmission(userId: string, challengeId: number, photo: PreparedPhoto) {
+  const db = client()
   const storagePath = `${userId}/${challengeId}.jpg`
-  const { error: uploadError } = await client().storage
+  const originalPath = `${challengeId}/${userId}/${Date.now()}.${photo.archiveExtension}`
+
+  const { data: existing, error: existingError } = await db
+    .from('submissions')
+    .select('original_path')
+    .eq('challenge_id', challengeId)
+    .eq('user_id', userId)
+    .maybeSingle()
+  if (existingError) throw existingError
+
+  const { error: originalError } = await db.storage
+    .from('photo-originals')
+    .upload(originalPath, photo.archive, { contentType: photo.archiveMime, upsert: false })
+  if (originalError) throw originalError
+
+  async function discardNewOriginal() {
+    await db.storage.from('photo-originals').remove([originalPath]).catch(() => undefined)
+  }
+
+  const { error: uploadError } = await db.storage
     .from('photos')
-    .upload(storagePath, photo, { contentType: 'image/jpeg', upsert: true })
-  if (uploadError) throw uploadError
+    .upload(storagePath, photo.gameCopy, { contentType: 'image/jpeg', upsert: true })
+  if (uploadError) {
+    await discardNewOriginal()
+    throw uploadError
+  }
   invalidatePhoto(storagePath)
 
-  const { error } = await client().from('submissions').upsert(
-    { challenge_id: challengeId, user_id: userId, storage_path: storagePath },
+  const { error } = await db.from('submissions').upsert(
+    {
+      challenge_id: challengeId,
+      user_id: userId,
+      storage_path: storagePath,
+      original_path: originalPath,
+      original_filename: photo.originalFilename,
+      original_mime: photo.archiveMime,
+      original_bytes: photo.archive.size,
+      original_width: photo.width,
+      original_height: photo.height,
+      original_reduced: photo.archiveReduced,
+    },
     { onConflict: 'challenge_id,user_id' },
   )
+  if (error) {
+    await discardNewOriginal()
+    throw error
+  }
+
+  if (existing?.original_path && existing.original_path !== originalPath) {
+    await db.storage.from('photo-originals').remove([existing.original_path]).catch(() => undefined)
+  }
+}
+
+export async function getStorageUsage(): Promise<StorageUsage[]> {
+  const { data, error } = await client().rpc('get_storage_usage')
   if (error) throw error
+  const rows = data as Array<{ bucket_id: string; total_bytes: number; object_count: number }>
+  return rows.map((row) => ({
+    bucketId: row.bucket_id,
+    totalBytes: Number(row.total_bytes),
+    objectCount: row.object_count,
+  }))
+}
+
+// The submissions table relates to profiles both directly (user_id) and
+// through views, so the profile and challenge embeds name their foreign keys
+// explicitly; without that PostgREST refuses to guess and returns
+// "Could not embed because more than one relationship was found".
+export async function getAllOriginals(): Promise<OriginalRecord[]> {
+  const { data, error } = await client()
+    .from('submissions')
+    .select('id, challenge_id, user_id, original_path, original_filename, original_mime, original_bytes, original_reduced, created_at, profile:profiles!submissions_user_id_fkey(display_name), challenge:challenges!submissions_challenge_id_fkey(slug, title, sort_order)')
+    .not('original_path', 'is', null)
+    .order('challenge_id')
+    .order('created_at')
+  if (error) throw error
+
+  return data.map((row) => {
+    const profile = row.profile as unknown as { display_name: string } | null
+    const challenge = row.challenge as unknown as { slug: string; title: string; sort_order: number } | null
+    return {
+      submissionId: row.id,
+      challengeId: row.challenge_id,
+      challengeSlug: challenge?.slug ?? `challenge-${row.challenge_id}`,
+      challengeTitle: challenge?.title ?? `Challenge ${row.challenge_id}`,
+      challengeSortOrder: challenge?.sort_order ?? row.challenge_id,
+      userId: row.user_id,
+      ownerName: profile?.display_name ?? 'guest',
+      originalPath: row.original_path as string,
+      originalFilename: row.original_filename ?? '',
+      originalMime: row.original_mime ?? 'image/jpeg',
+      originalBytes: row.original_bytes ?? 0,
+      originalReduced: row.original_reduced ?? false,
+    }
+  })
+}
+
+export async function downloadOriginal(originalPath: string): Promise<Blob> {
+  const { data, error } = await client().storage.from('photo-originals').download(originalPath)
+  if (error || !data) throw error ?? new Error('The original photo could not be downloaded.')
+  return data
 }
 
 export async function getVotes(challengeId: number): Promise<string[]> {

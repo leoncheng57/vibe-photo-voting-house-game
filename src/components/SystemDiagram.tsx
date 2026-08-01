@@ -1,6 +1,7 @@
 import { useState } from 'react'
 
 const runbookPageUrl = `${import.meta.env.BASE_URL}developer/host-runbook/`
+const photoExportPageUrl = `${import.meta.env.BASE_URL}developer/photo-export/`
 
 const schemaNodes = [
   {
@@ -86,13 +87,13 @@ const schemaNodes = [
 const requestFlows = [
   ['Identity bootstrap', 'supabase.auth.signInAnonymously()', 'auth.users → profiles', 'Persistent JWT session scoped to one browser.'],
   ['Party admission', 'rpc(\'join_party\')', 'party_settings → memberships', 'SECURITY DEFINER bcrypt check; a wrong passphrase never creates a membership.'],
-  ['Photo submission', 'compressPhoto() + storage.upload()', 'photos bucket → submissions', 'JPEG, max 1800 px client-side; metadata upsert follows object write.'],
+  ['Photo submission', 'preparePhoto() + storage.upload()', 'photo-originals + photos → submissions', 'Untouched HEIC/JPEG original (≤6 MB, optimized above) plus a 2400 px game JPEG; metadata upsert follows both object writes.'],
   ['Photo read', 'storage.download()', 'photos bucket → local blob URL', 'Authenticated, membership-gated download; no reusable signed URLs are issued.'],
   ['Ballot write', 'rpc(\'submit_votes\')', 'submissions → votes', 'SECURITY DEFINER function requires membership plus min(3, available submissions) distinct IDs and writes atomically.'],
   ['Result query', 'challenge_results + leaderboard', 'votes → ranked views', 'Membership-gated views; Postgres rank() implements competition ranking with 3/2/1 podium points.'],
 ]
 
-function ReferenceHeader({ path, title, description }: { path: string; title: string; description: string }) {
+export function ReferenceHeader({ path, title, description }: { path: string; title: string; description: string }) {
   return (
     <header className="dev-header">
       <div><code>{path}</code><h1>{title}</h1><p>{description}</p></div>
@@ -222,10 +223,10 @@ export function DatabaseDesign() {
               <ul><li><span className="erd-markers"><abbr className="erd-flag erd-flag--pk" title="Primary key">PK</abbr><i className="erd-required" title="Non-nullable" /></span><code>id</code><span>uuid</span></li></ul>
             </article>
 
-            <article className="erd-card erd-card--storage erd-storage" aria-label="Private Supabase Storage photos bucket">
-              <header><span className="erd-bucket-icon" aria-hidden="true" /><div><small>storage</small><h3>photos</h3></div><b>PRIVATE</b></header>
-              <p>Supabase-managed, S3-like object storage containing the actual JPEG bytes.</p>
-              <dl><div><dt>object key</dt><dd><code>{'{user_id}/{challenge_id}.jpg'}</code></dd></div><div><dt>database reference</dt><dd><code>submissions.storage_path</code></dd></div></dl>
+            <article className="erd-card erd-card--storage erd-storage" aria-label="Private Supabase Storage buckets">
+              <header><span className="erd-bucket-icon" aria-hidden="true" /><div><small>storage</small><h3>photos + photo-originals</h3></div><b>PRIVATE</b></header>
+              <p>Two private buckets: the 2400 px game JPEG and the full-resolution HEIC/JPEG original for the end-of-party export.</p>
+              <dl><div><dt>game copy key</dt><dd><code>{'{user_id}/{challenge_id}.jpg'}</code> → <code>submissions.storage_path</code></dd></div><div><dt>original key</dt><dd><code>{'{challenge_id}/{user_id}/{version}.{ext}'}</code> → <code>submissions.original_path</code></dd></div></dl>
             </article>
 
             <div className="erd-legend" aria-label="Diagram legend">
@@ -268,7 +269,7 @@ export function SecurityOps() {
             <tbody>
               <tr><th>Application orchestration</th><td><code>src/App.tsx</code></td><td>Auth bootstrap, realtime subscriptions, view selection</td></tr>
               <tr><th>Backend adapter</th><td><code>src/lib/api.ts</code></td><td>Typed table, RPC, Auth and Storage operations</td></tr>
-              <tr><th>Image pipeline</th><td><code>src/lib/images.ts</code></td><td>Canvas resize to 1800 px; JPEG quality 0.82</td></tr>
+              <tr><th>Image pipeline</th><td><code>src/lib/images.ts</code></td><td>Original preserved ≤6 MB (optimized above); adaptive 2400 px game JPEG</td></tr>
               <tr><th>Database definition</th><td><code>supabase/migrations/</code></td><td>DDL, RLS, RPC, views and seed data</td></tr>
               <tr><th>Deployment</th><td><code>.github/workflows/deploy.yml</code></td><td>Test → typecheck/build → Pages artifact</td></tr>
               <tr><th>Free-tier constraints</th><td><code>1 GB storage / 5 GB egress</code></td><td>Client compression is required to control object and transfer volume</td></tr>
@@ -303,7 +304,7 @@ const hostCommands = [
   },
 ]
 
-function CopySqlCell({ sql }: { sql: string }) {
+export function CopySqlCell({ sql }: { sql: string }) {
   const [copied, setCopied] = useState(false)
 
   async function copy() {
@@ -362,6 +363,8 @@ export function HostPasswordRunbook() {
           </table>
         </div>
       </section>
+
+      <p className="dev-crosslink">Exporting and cleaning up full-resolution originals lives on the <a href={photoExportPageUrl}>Photo Export Runbook →</a></p>
     </main>
   )
 }

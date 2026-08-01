@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Challenge, Submission } from '../types'
 import { getSubmissions, uploadSubmission } from '../lib/api'
-import { compressPhoto } from '../lib/images'
+import { preparePhoto } from '../lib/images'
+import { ARCHIVE_PRESERVE_LIMIT, classifyOriginal, formatBytes } from '../lib/photo-policy'
 
 interface Props {
   challenges: Challenge[]
@@ -14,6 +15,7 @@ export function ChallengeList({ challenges, userId, refreshToken, onChanged }: P
   const [submissions, setSubmissions] = useState<Submission[]>([])
   const [busyId, setBusyId] = useState<number | null>(null)
   const [message, setMessage] = useState('')
+  const [oversizeBytes, setOversizeBytes] = useState<number | null>(null)
   const inputRefs = useRef<Record<number, HTMLInputElement | null>>({})
 
   useEffect(() => {
@@ -24,9 +26,17 @@ export function ChallengeList({ challenges, userId, refreshToken, onChanged }: P
     if (!file) return
     setBusyId(challenge.id)
     setMessage('')
+
+    // Inform (without blocking) when the capture is larger than the archive
+    // target: the stored original will be lightly compressed below the limit.
+    const kind = classifyOriginal(file.name, file.type)
+    if (kind.preservable && file.size > ARCHIVE_PRESERVE_LIMIT) {
+      setOversizeBytes(file.size)
+    }
+
     try {
-      const compressed = await compressPhoto(file)
-      await uploadSubmission(userId, challenge.id, compressed)
+      const prepared = await preparePhoto(file)
+      await uploadSubmission(userId, challenge.id, prepared)
       setMessage(`Your photo for “${challenge.title}” is in.`)
       setSubmissions(await getSubmissions())
       onChanged()
@@ -94,6 +104,22 @@ export function ChallengeList({ challenges, userId, refreshToken, onChanged }: P
           )
         })}
       </div>
+
+      {oversizeBytes !== null && (
+        <div className="name-dialog" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setOversizeBytes(null) }}>
+          <form role="dialog" aria-modal="true" aria-labelledby="oversize-dialog-title" onSubmit={(event) => { event.preventDefault(); setOversizeBytes(null) }}>
+            <span className="eyebrow">Big photo</span>
+            <h2 id="oversize-dialog-title">Slightly smaller copy</h2>
+            <p className="dialog-warning">
+              This photo is {formatBytes(oversizeBytes)}. To fit the party’s storage, the archived copy is being
+              optimized to under {formatBytes(ARCHIVE_PRESERVE_LIMIT)} at full resolution. Your upload continues automatically.
+            </p>
+            <div>
+              <button className="button button--dark" type="submit" autoFocus>Got it</button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   )
 }
