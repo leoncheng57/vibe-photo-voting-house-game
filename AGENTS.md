@@ -17,6 +17,7 @@ House Party Photo Hunt is a mobile-first party photo challenge. The frontend is 
 - `src/styles.css`: main application styles and responsive behavior
 - `src/developer-system.tsx` and `src/developer-system.css`: developer system reference page
 - `SCREENSHOT_CAPTURE_PLAN.md`: privacy-safe automated documentation screenshot workflow
+- `PARTY_PHASES.md`: host and guest event phases, transitions, storage checks, and hotfix protocol
 - `supabase/migrations/`: database schema, policies, views, functions, and data migrations
 - `scripts/backfill-legacy-originals.mjs`: one-time service-role backfill adopting pre-archive game copies as `legacy` originals
 - `index.html`, `home/index.html`, and the pages under `developer/` (system, db-design, security-ops, host-runbook, photo-export, github-progress): Vite entry points; the Developer nav link lands on GitHub project progress
