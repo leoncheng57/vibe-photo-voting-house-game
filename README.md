@@ -64,6 +64,7 @@ The frontend is React, TypeScript, and Vite on GitHub Pages. Supabase provides a
       - `supabase/migrations/006_photo_originals.sql`
       - `supabase/migrations/007_original_status.sql`
       - `supabase/migrations/008_allow_partial_ballots.sql`
+      - `supabase/migrations/009_preserve_original_versions.sql`
 4. Set the party passphrase in the SQL Editor. Nobody can join until this runs:
 
 ```sql
@@ -139,18 +140,18 @@ Use the left and right arrow keys in TV mode to switch challenges early and rest
 
 ## Capacity
 
-Supabase Free currently includes 1 GB file storage and 5 GB egress per project (shared across all Storage buckets). Every submission stores two copies:
+Supabase Free currently includes 1 GB file storage and 5 GB egress per project (shared across all Storage buckets). Every active submission has one game copy and one or more retained original versions:
 
-- **Game copy** (`photos` bucket): a JPEG resized to at most 2400 pixels on its longest side, adaptively compressed toward ~1.5 MB and always below the bucket's 5 MiB limit. This is what voting and TV mode download.
-- **Original** (`photo-originals` bucket): the untouched HEIC/JPEG capture when it is 6 MiB or smaller. Larger captures are optimized client-side below 6 MiB at full resolution (the guest sees a one-time notice), and other formats are converted to full-resolution JPEG. The bucket enforces a 25 MiB hard ceiling as defense in depth.
+- **Game copy** (`photos` bucket): a JPEG resized to at most 2400 pixels on its longest side, adaptively compressed toward ~1.5 MB and always below the bucket's 5 MiB limit. New copies use immutable `{user_id}/{challenge_id}/{version}.jpg` keys; `submissions.storage_path` selects the active one.
+- **Original versions** (`photo-originals` bucket): the untouched HEIC/JPEG capture when it is 6 MiB or smaller. Larger captures are optimized client-side below 6 MiB at full resolution, and other formats are converted to full-resolution JPEG. Replacing a submission adds an immutable version; participant actions never delete earlier originals.
 
-Budget estimate for 20 guests × 6 challenges (120 submissions): roughly 720 MB of originals plus up to 180 MB of game copies — near the 1 GB quota. A storage meter is always visible in the app (below the desktop header, under the mobile timer, and on `/developer/photo-export/`); it turns yellow at 75% and red at 90%. When it warns, export the originals and clean them up using the Photo Export Runbook.
+Budget estimate for 20 guests × 6 challenges (120 submissions) with no replacements: roughly 720 MB of originals plus up to 180 MB of game copies — near the 1 GB quota. Every replacement creates immutable original and game paths; only originals enter the ZIP, while the runbook can safely identify superseded derived JPEGs for host cleanup. The storage meter turns yellow at 75% and red at 90%.
 
 Egress adds up too: every guest device downloads every game copy, and each originals export downloads that challenge's originals once. Avoid repeated full exports and unnecessary page reloads on the party network.
 
 ### Original Photo Export
 
-Any active party member can download every stored full-resolution original as one ZIP from **Developer → Photo Export Runbook** (`/developer/photo-export/`) on a desktop browser. The archive contains one folder per challenge (for example `01-dog-date/03-alex.heic`) plus a `manifest.json`, and the page previews that exact folder tree — with per-file sizes and provenance badges — before anything downloads. Each file's `original_status` records how it relates to the capture: `exact` (byte-identical), `optimized` (full resolution, re-encoded), `resized` (downscaled to fit the limit), or `legacy` (a pre-archive game copy adopted as the best available original). The ZIP is assembled locally in the browser; nothing is uploaded. After verifying and backing up a ZIP, the host clears all original references with the SQL on the runbook page, then empties the `photo-originals` bucket. This keeps peak storage low during the event while preserving every original at the highest stored quality.
+Any active party member can download every physically stored original version as one ZIP from **Developer → Photo Export Runbook** (`/developer/photo-export/`) on a desktop browser. The preview labels current, superseded, and recovery copies; `manifest.json` records each version ID, state, current status, upload time, provenance, and Storage path. Participant replacement and upload failures never clean up original bytes. After verifying and backing up the ZIP, only the host uses the runbook SQL and Storage dashboard to approve, detach, delete, and tombstone exported versions.
 
 Submissions made before the originals feature only have game copies. `scripts/backfill-legacy-originals.mjs` (run locally with the service-role key; see the script header) copies those JPEGs into `photo-originals` with `original_status = 'legacy'` so they are included in exports.
 
@@ -164,7 +165,7 @@ For the routine mid-party flow — exporting originals and reclaiming their stor
 
 ### Remove One Submission
 
-1. Copy the object's complete path from the `photos` bucket. Paths use `{user_id}/{challenge_id}.jpg`.
+1. Copy the active object's complete path from `submissions.storage_path`. Migrated paths may use `{user_id}/{challenge_id}.jpg`; new paths use `{user_id}/{challenge_id}/{version}.jpg`.
 2. Confirm exactly one matching submission, and note its original path, before deleting anything:
 
 ```sql
@@ -181,8 +182,8 @@ where id = '<submission-id>'
   and storage_path = '<user-id>/<challenge-id>.jpg';
 ```
 
-4. Delete the same object from **Storage > photos**, and the noted `original_path` object (if any) from **Storage > photo-originals**.
-5. Verify that neither `public.submissions` nor `storage.objects` contains either path.
+4. Delete the game copy from **Storage > photos**. Leave every `photo-originals` object in place for the versioned export workflow.
+5. Verify that `public.submissions` and the game object are gone. Archived original versions remain until host cleanup.
 
 Delete the database row first. If Storage deletion then fails, retrying leaves only an unreferenced object; deleting Storage first can leave a live submission with a missing image.
 
@@ -194,6 +195,6 @@ The following removes all submissions and votes while retaining guest profiles a
 delete from public.submissions;
 ```
 
-Votes cascade from the deleted submissions. After the query succeeds, empty both the `photos` and `photo-originals` buckets in the Supabase Storage dashboard. Export any originals you want to keep first — this deletion is final. Verify both systems before starting the next event.
+Votes cascade from the deleted submissions. After the query succeeds, empty the `photos` bucket. Export and clean `photo-originals` only through the Photo Export Runbook so archived revision metadata remains coordinated with Storage.
 
-To reset participant names as well, delete `public.profiles` instead; submissions and votes cascade. This does not delete users from Supabase Auth, and it does not remove party memberships — run `delete from public.memberships;` to require the passphrase again. Empty both photo buckets separately.
+To reset participant names as well, delete `public.profiles` instead; submissions and votes cascade, while append-only original-version metadata remains available for export. This does not delete users from Supabase Auth or memberships. Empty game copies separately and use the original cleanup runbook.

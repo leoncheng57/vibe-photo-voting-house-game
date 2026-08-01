@@ -77,8 +77,8 @@ export async function getChallenges(): Promise<Challenge[]> {
 
 // Photos are fetched through authenticated Storage downloads and rendered as
 // browser-local blob URLs, so no reusable bearer URL ever leaves this device.
-// Cached object URLs are keyed by storage path; replacing a photo reuses the
-// same path, so callers must invalidate the path when a submission changes.
+// Cached object URLs are keyed by storage path. New uploads use immutable game
+// paths, while migrated legacy rows may still use the old fixed path.
 const photoUrlCache = new Map<string, string>()
 
 async function getPhotoUrl(storagePath: string): Promise<string | undefined> {
@@ -134,69 +134,43 @@ export async function getSubmissions(challengeId?: number): Promise<Submission[]
   }))
 }
 
-// Upload order matters because the flow is not transactional:
-// 1. the new original lands on a fresh versioned path (never overwrites),
-// 2. the game JPEG replaces the fixed {user_id}/{challenge_id}.jpg object,
-// 3. the submission row is updated to reference both,
-// 4. only then is the superseded original removed.
-// A failure at any step removes the just-uploaded original so the bucket
-// never accumulates objects that no submission references.
-export async function uploadSubmission(userId: string, challengeId: number, photo: PreparedPhoto) {
+// Original metadata is reserved before upload and remains append-only. Once
+// original bytes exist, no participant failure or replacement path deletes
+// them; pending stored originals remain discoverable to the host export.
+export async function uploadSubmission(challengeId: number, photo: PreparedPhoto) {
   const db = client()
-  const storagePath = `${userId}/${challengeId}.jpg`
-  const originalPath = `${challengeId}/${userId}/${Date.now()}.${photo.archiveExtension}`
-
-  const { data: existing, error: existingError } = await db
-    .from('submissions')
-    .select('original_path')
-    .eq('challenge_id', challengeId)
-    .eq('user_id', userId)
-    .maybeSingle()
-  if (existingError) throw existingError
+  const { data: reservations, error: reservationError } = await db.rpc('reserve_original_version', {
+    selected_challenge_id: challengeId,
+    archive_extension: photo.archiveExtension,
+    archive_filename: photo.originalFilename,
+    archive_mime: photo.archiveMime,
+    archive_bytes: photo.archive.size,
+    archive_width: photo.width,
+    archive_height: photo.height,
+    archive_status: photo.archiveStatus,
+    source_bytes: photo.sourceBytes,
+    source_mime: photo.sourceMime,
+    game_copy_bytes: photo.gameCopy.size,
+  })
+  if (reservationError) throw reservationError
+  const reservation = (reservations as Array<{ version_id: string; original_path: string; game_path: string }> | null)?.[0]
+  if (!reservation) throw new Error('Could not reserve the original photo archive.')
 
   const { error: originalError } = await db.storage
     .from('photo-originals')
-    .upload(originalPath, photo.archive, { contentType: photo.archiveMime, upsert: false })
+    .upload(reservation.original_path, photo.archive, { contentType: photo.archiveMime, upsert: false })
   if (originalError) throw originalError
-
-  async function discardNewOriginal() {
-    await db.storage.from('photo-originals').remove([originalPath]).catch(() => undefined)
-  }
 
   const { error: uploadError } = await db.storage
     .from('photos')
-    .upload(storagePath, photo.gameCopy, { contentType: 'image/jpeg', upsert: true })
-  if (uploadError) {
-    await discardNewOriginal()
-    throw uploadError
-  }
-  invalidatePhoto(storagePath)
+    .upload(reservation.game_path, photo.gameCopy, { contentType: 'image/jpeg', upsert: false })
+  if (uploadError) throw uploadError
+  invalidatePhoto(reservation.game_path)
 
-  const { error } = await db.from('submissions').upsert(
-    {
-      challenge_id: challengeId,
-      user_id: userId,
-      storage_path: storagePath,
-      original_path: originalPath,
-      original_filename: photo.originalFilename,
-      original_mime: photo.archiveMime,
-      original_bytes: photo.archive.size,
-      original_width: photo.width,
-      original_height: photo.height,
-      original_status: photo.archiveStatus,
-      original_source_bytes: photo.sourceBytes,
-      original_source_mime: photo.sourceMime,
-    },
-    { onConflict: 'challenge_id,user_id' },
-  )
-  if (error) {
-    await discardNewOriginal()
-    throw error
-  }
-
-  if (existing?.original_path && existing.original_path !== originalPath) {
-    await db.storage.from('photo-originals').remove([existing.original_path]).catch(() => undefined)
-  }
+  const { error: activationError } = await db.rpc('activate_original_version', {
+    selected_version_id: reservation.version_id,
+  })
+  if (activationError) throw activationError
 }
 
 export async function getStorageUsage(): Promise<StorageUsage[]> {
@@ -215,33 +189,53 @@ export async function getStorageUsage(): Promise<StorageUsage[]> {
 // explicitly; without that PostgREST refuses to guess and returns
 // "Could not embed because more than one relationship was found".
 export async function getAllOriginals(): Promise<OriginalRecord[]> {
-  const { data, error } = await client()
-    .from('submissions')
-    .select('id, challenge_id, user_id, original_path, original_filename, original_mime, original_bytes, original_status, original_source_bytes, created_at, profile:profiles!submissions_user_id_fkey(display_name), challenge:challenges!submissions_challenge_id_fkey(slug, title, sort_order)')
-    .not('original_path', 'is', null)
-    .order('challenge_id')
-    .order('created_at')
+  const { data, error } = await client().rpc('list_original_versions')
   if (error) throw error
+  const rows = data as Array<{
+    version_id: string
+    submission_id: string | null
+    challenge_id: number
+    challenge_slug: string
+    challenge_title: string
+    challenge_sort_order: number
+    user_id: string
+    owner_name: string
+    original_path: string
+    original_filename: string
+    original_mime: string
+    original_bytes: number
+    original_width: number | null
+    original_height: number | null
+    original_status: string
+    original_source_bytes: number | null
+    original_source_mime: string | null
+    version_state: string
+    is_current: boolean
+    created_at: string
+  }>
 
-  return data.map((row) => {
-    const profile = row.profile as unknown as { display_name: string } | null
-    const challenge = row.challenge as unknown as { slug: string; title: string; sort_order: number } | null
-    return {
-      submissionId: row.id,
-      challengeId: row.challenge_id,
-      challengeSlug: challenge?.slug ?? `challenge-${row.challenge_id}`,
-      challengeTitle: challenge?.title ?? `Challenge ${row.challenge_id}`,
-      challengeSortOrder: challenge?.sort_order ?? row.challenge_id,
+  return rows.map((row) => ({
+      versionId: row.version_id,
+      submissionId: row.submission_id,
+      challengeId: Number(row.challenge_id),
+      challengeSlug: row.challenge_slug,
+      challengeTitle: row.challenge_title,
+      challengeSortOrder: Number(row.challenge_sort_order),
       userId: row.user_id,
-      ownerName: profile?.display_name ?? 'guest',
-      originalPath: row.original_path as string,
-      originalFilename: row.original_filename ?? '',
-      originalMime: row.original_mime ?? 'image/jpeg',
-      originalBytes: row.original_bytes ?? 0,
-      originalStatus: (row.original_status ?? 'exact') as OriginalStatus,
+      ownerName: row.owner_name,
+      originalPath: row.original_path,
+      originalFilename: row.original_filename,
+      originalMime: row.original_mime,
+      originalBytes: Number(row.original_bytes),
+      originalWidth: row.original_width,
+      originalHeight: row.original_height,
+      originalStatus: row.original_status as OriginalStatus,
       originalSourceBytes: row.original_source_bytes ?? null,
-    }
-  })
+      originalSourceMime: row.original_source_mime ?? null,
+      versionState: row.version_state as 'pending' | 'ready',
+      isCurrent: row.is_current,
+      createdAt: row.created_at,
+    }))
 }
 
 export async function downloadOriginal(originalPath: string): Promise<Blob> {
@@ -259,10 +253,11 @@ export async function getVotes(challengeId: number): Promise<string[]> {
   return data.map((vote) => vote.submission_id)
 }
 
-export async function submitVotes(challengeId: number, submissionIds: string[]) {
+export async function submitVotes(challengeId: number, selections: Array<{ id: string; storagePath: string }>) {
   const { error } = await client().rpc('submit_votes', {
     selected_challenge_id: challengeId,
-    selected_submission_ids: submissionIds,
+    selected_submission_ids: selections.map((selection) => selection.id),
+    selected_storage_paths: selections.map((selection) => selection.storagePath),
   })
   if (error) throw error
 }

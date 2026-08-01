@@ -87,9 +87,9 @@ const schemaNodes = [
 const requestFlows = [
   ['Identity bootstrap', 'supabase.auth.signInAnonymously()', 'auth.users → profiles', 'Persistent JWT session scoped to one browser.'],
   ['Party admission', 'rpc(\'join_party\')', 'party_settings → memberships', 'SECURITY DEFINER bcrypt check; a wrong passphrase never creates a membership.'],
-  ['Photo submission', 'preparePhoto() + storage.upload()', 'photo-originals + photos → submissions', 'Untouched HEIC/JPEG original (≤6 MB, optimized above) plus a 2400 px game JPEG; metadata upsert follows both object writes.'],
+  ['Photo submission', 'reserve_original_version() + Storage + activate_original_version()', 'original_versions → photo-originals + photos → submissions', 'Append-only original metadata is reserved before upload; activation switches only the current submission pointer.'],
   ['Photo read', 'storage.download()', 'photos bucket → local blob URL', 'Authenticated, membership-gated download; no reusable signed URLs are issued.'],
-  ['Ballot write', 'rpc(\'submit_votes\')', 'submissions → votes', 'SECURITY DEFINER function requires membership plus 1–3 valid distinct submission IDs and replaces the ballot atomically.'],
+  ['Ballot write', 'rpc(\'submit_votes\')', 'submissions → votes', 'Choices bind to immutable game paths and lock against concurrent photo activation before atomically replacing the ballot.'],
   ['Result query', 'challenge_results + leaderboard', 'votes → ranked views', 'Membership-gated views; Postgres rank() implements competition ranking with 3/2/1 podium points.'],
 ]
 
@@ -187,6 +187,7 @@ export function DatabaseDesign() {
               <li>votes.challenge_id references challenges.id.</li>
               <li>votes submission_id and challenge_id reference submissions id and challenge_id.</li>
               <li>submissions.storage_path identifies an object in the private photos storage bucket.</li>
+              <li>original_versions records every immutable original path; submissions.original_path identifies only the current version.</li>
             </ul>
             <svg className="erd-links" viewBox="0 0 1180 880" aria-hidden="true">
               <path d="M 760 104 H 900" />
@@ -225,8 +226,8 @@ export function DatabaseDesign() {
 
             <article className="erd-card erd-card--storage erd-storage" aria-label="Private Supabase Storage buckets">
               <header><span className="erd-bucket-icon" aria-hidden="true" /><div><small>storage</small><h3>photos + photo-originals</h3></div><b>PRIVATE</b></header>
-              <p>Two private buckets: the 2400 px game JPEG and the full-resolution HEIC/JPEG original for the end-of-party export.</p>
-              <dl><div><dt>game copy key</dt><dd><code>{'{user_id}/{challenge_id}.jpg'}</code> → <code>submissions.storage_path</code></dd></div><div><dt>original key</dt><dd><code>{'{challenge_id}/{user_id}/{version}.{ext}'}</code> → <code>submissions.original_path</code></dd></div></dl>
+              <p>Uploads use immutable game and original paths. Originals enter the ZIP; superseded derived JPEGs are host-cleaned separately.</p>
+              <dl><div><dt>game copy key</dt><dd><code>{'{user_id}/{challenge_id}/{version}.jpg'}</code> → active <code>submissions.storage_path</code></dd></div><div><dt>original key</dt><dd><code>{'{challenge_id}/{user_id}/{version}.{ext}'}</code> → archive ledger; current → <code>submissions.original_path</code></dd></div></dl>
             </article>
 
             <div className="erd-legend" aria-label="Diagram legend">
@@ -255,9 +256,9 @@ export function SecurityOps() {
           <article><h3>Authentication</h3><ul><li>Anonymous Auth issues an authenticated-role JWT.</li><li>Identity persists in browser storage.</li><li>Clearing storage creates a new user identity that must re-enter the passphrase.</li></ul></article>
           <article><h3>Party membership</h3><ul><li><code>join_party()</code> compares the passphrase to a bcrypt hash inside Postgres.</li><li>A wrong passphrase never creates a membership.</li><li>Every table, view, RPC, and Storage policy requires an active membership while <code>is_open</code> is true.</li></ul></article>
           <article><h3>Database RLS</h3><ul><li>All party tables require an active membership.</li><li>Profiles may only be inserted for <code>auth.uid()</code>.</li><li>Submission mutation requires ownership and zero existing votes.</li><li>Direct vote writes are denied; ballots use the RPC.</li></ul></article>
-          <article><h3>Storage RLS</h3><ul><li>Bucket is private and JPEG-only.</li><li>Uploads are restricted to the user ID prefix.</li><li>Reads require an active party membership, not merely a profile.</li></ul></article>
+          <article><h3>Storage RLS</h3><ul><li>Both buckets are private.</li><li>Original uploads require an owned pending reservation with an exact path.</li><li>Participants have no original-delete policy; cleanup is host-only.</li><li>Reads require active party membership.</li></ul></article>
           <article><h3>Image delivery</h3><ul><li>Images are fetched with authenticated <code>storage.download()</code> calls.</li><li>The browser renders device-local blob URLs; no reusable signed URLs are issued.</li><li>Members can still save or photograph what their own screen displays.</li></ul></article>
-          <article><h3>Privileged logic</h3><ul><li><code>submit_votes</code> derives voter ID from JWT and requires membership.</li><li><code>set_party_passphrase</code> is callable only from the Supabase dashboard.</li><li>Service-role keys never enter the client build.</li></ul></article>
+          <article><h3>Privileged logic</h3><ul><li><code>submit_votes</code> derives voter ID from JWT and requires membership.</li><li>Original reservation and activation RPCs validate ownership, membership, object presence, and replacement eligibility.</li><li>Cleanup SQL and service-role keys never enter the client build.</li></ul></article>
         </div>
         <p className="dev-crosslink">Passphrase and party lifecycle commands live on the <a href={runbookPageUrl}>Host Password Runbook →</a></p>
       </section>

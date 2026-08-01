@@ -36,7 +36,7 @@ export function ChallengeList({ challenges, userId, refreshToken, onChanged }: P
 
     try {
       const prepared = await preparePhoto(file)
-      await uploadSubmission(userId, challenge.id, prepared)
+      await uploadSubmission(challenge.id, prepared)
       setMessage(`Your photo for “${challenge.title}” is in.`)
       setSubmissions(await getSubmissions())
       onChanged()

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { downloadOriginal, getAllOriginals, getPartyStatus } from '../lib/api'
-import { archiveStatusLabel, exportEntryName, exportFolderName, formatBytes } from '../lib/photo-policy'
+import { buildOriginalCleanupSql, originalVersionLabel, planOriginalArchive } from '../lib/original-export'
+import { archiveStatusLabel, formatBytes } from '../lib/photo-policy'
 import { zipBlob, type ZipEntry } from '../lib/zip'
 import { isSupabaseConfigured } from '../lib/supabase'
 import { useStorageUsage } from '../lib/useStorageUsage'
@@ -14,62 +15,7 @@ interface Progress {
   total: number
 }
 
-interface PlannedFile {
-  record: OriginalRecord
-  /** Entry name inside the challenge folder, e.g. `03-alex.heic`. */
-  fileName: string
-}
-
-interface PlannedFolder {
-  challengeId: number
-  folderName: string
-  title: string
-  files: PlannedFile[]
-  totalBytes: number
-  processedCount: number
-}
-
 const ZIP_NAME = 'house-photo-hunt-originals.zip'
-
-function pathExtension(path: string): string {
-  const match = /\.([a-z0-9]+)$/i.exec(path)
-  return match ? match[1].toLowerCase() : 'jpg'
-}
-
-/**
- * Deterministic archive layout: one folder per challenge, ordered files per
- * guest. The preview and the generated ZIP share this exact plan, so what is
- * shown is what downloads.
- */
-function planArchive(records: OriginalRecord[]): PlannedFolder[] {
-  const folders = new Map<number, PlannedFolder>()
-  const sorted = [...records].sort(
-    (a, b) => a.challengeSortOrder - b.challengeSortOrder || a.ownerName.localeCompare(b.ownerName),
-  )
-
-  for (const record of sorted) {
-    let folder = folders.get(record.challengeId)
-    if (!folder) {
-      folder = {
-        challengeId: record.challengeId,
-        folderName: exportFolderName(record.challengeSortOrder, record.challengeSlug),
-        title: record.challengeTitle,
-        files: [],
-        totalBytes: 0,
-        processedCount: 0,
-      }
-      folders.set(record.challengeId, folder)
-    }
-    folder.files.push({
-      record,
-      fileName: exportEntryName(folder.files.length, record.ownerName, pathExtension(record.originalPath)),
-    })
-    folder.totalBytes += record.originalBytes
-    if (record.originalStatus !== 'exact') folder.processedCount += 1
-  }
-
-  return [...folders.values()]
-}
 
 export function OriginalsExport() {
   const [status, setStatus] = useState<Status>(isSupabaseConfigured ? 'loading' : 'unconfigured')
@@ -97,7 +43,7 @@ export function OriginalsExport() {
     return () => { active = false }
   }, [])
 
-  const folders = useMemo(() => planArchive(records ?? []), [records])
+  const folders = useMemo(() => planOriginalArchive(records ?? []), [records])
   const totalFiles = folders.reduce((total, folder) => total + folder.files.length, 0)
   const totalBytes = folders.reduce((total, folder) => total + folder.totalBytes, 0)
 
@@ -131,9 +77,16 @@ export function OriginalsExport() {
             original_filename: file.record.originalFilename,
             bytes: file.record.originalBytes,
             mime: file.record.originalMime,
+            width: file.record.originalWidth,
+            height: file.record.originalHeight,
             status: file.record.originalStatus,
             source_bytes: file.record.originalSourceBytes,
+            source_mime: file.record.originalSourceMime,
             storage_path: file.record.originalPath,
+            version_id: file.record.versionId,
+            version_state: file.record.versionState,
+            current: file.record.isCurrent,
+            uploaded_at: file.record.createdAt,
           })
           done += 1
           setProgress({ done, total: totalFiles })
@@ -153,6 +106,12 @@ export function OriginalsExport() {
         }, null, 2)),
       })
 
+      const versionIds = folders.flatMap((folder) => folder.files.map((file) => file.record.versionId))
+      entries.push({
+        name: 'cleanup.sql',
+        data: new TextEncoder().encode(buildOriginalCleanupSql(versionIds)),
+      })
+
       const archive = zipBlob(entries)
       const url = URL.createObjectURL(archive)
       const anchor = document.createElement('a')
@@ -160,7 +119,7 @@ export function OriginalsExport() {
       anchor.download = ZIP_NAME
       anchor.click()
       URL.revokeObjectURL(url)
-      setMessage(`ZIP with ${totalFiles} originals (${formatBytes(archive.size)}) saved. Verify it opens and back it up before any cleanup.`)
+      setMessage(`ZIP with ${totalFiles} original versions (${formatBytes(archive.size)}) saved. Verify it opens and back it up before any cleanup.`)
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Export failed.')
     } finally {
@@ -200,7 +159,7 @@ export function OriginalsExport() {
         )}
         <span className="originals-export__note">
           {totalFiles
-            ? `${totalFiles} original${totalFiles === 1 ? '' : 's'} · ~${formatBytes(totalBytes)}. Use a desktop browser; the ZIP is built on this device only and nothing is uploaded.`
+            ? `${totalFiles} original version${totalFiles === 1 ? '' : 's'} · ~${formatBytes(totalBytes)}. Current, superseded, and recoverable pending uploads are included.`
             : 'No originals are stored yet (submissions made before the archive feature have game copies only).'}
         </span>
       </div>
@@ -217,16 +176,17 @@ export function OriginalsExport() {
                   <summary>
                     <code>{folder.folderName}/</code>
                     <span>
-                      {folder.files.length} {folder.files.length === 1 ? 'photo' : 'photos'} · {formatBytes(folder.totalBytes)}
+                      {folder.files.length} {folder.files.length === 1 ? 'version' : 'versions'} · {formatBytes(folder.totalBytes)}
                       {folder.processedCount > 0 && ` · ${folder.processedCount} not byte-exact`}
                     </span>
                   </summary>
                   <ul>
                     {folder.files.map((file) => (
-                      <li key={file.record.submissionId}>
+                      <li key={file.record.versionId}>
                         <code>{file.fileName}</code>
                         <span>
                           {formatBytes(file.record.originalBytes)}
+                          <em className="zip-preview__badge">{originalVersionLabel(file.record)}</em>
                           {archiveStatusLabel(file.record.originalStatus) && <em className="zip-preview__badge">{archiveStatusLabel(file.record.originalStatus)}</em>}
                         </span>
                       </li>
@@ -236,6 +196,7 @@ export function OriginalsExport() {
               </li>
             ))}
             <li className="zip-preview__manifest"><code>manifest.json</code></li>
+            <li className="zip-preview__manifest"><code>cleanup.sql</code> · exact exported version IDs</li>
           </ul>
         </div>
       )}
