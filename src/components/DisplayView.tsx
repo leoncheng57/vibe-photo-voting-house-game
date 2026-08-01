@@ -145,7 +145,7 @@ export function DisplayView({ challenges, refreshToken, onExit }: { challenges: 
         <Tutorial variant="tv" />
         <aside className="display-tutorial-join" aria-label="Join the party">
           <span className="eyebrow">Join on your phone</span>
-          <QRCodeSVG value={joinUrl} size={220} bgColor="transparent" fgColor="#111111" />
+          <QRCodeSVG value={joinUrl} size={220} bgColor="transparent" fgColor="#f5f8f7" />
           <strong>Scan to play</strong>
           <p>No app download needed.</p>
         </aside>

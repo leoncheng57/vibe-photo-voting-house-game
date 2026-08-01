@@ -223,7 +223,7 @@ img { display: block; max-width: 100%; }
 .display-tutorial-summary dl > div { display: grid; grid-template-columns: 72px 1fr; align-items: center; min-height: 72px; border-bottom: 2px solid var(--ink); }
 .display-tutorial-summary dt { font: italic 900 1.8rem/1 Georgia, serif; }
 .display-tutorial-summary dd { margin: 0; font-size: .7rem; font-weight: 900; text-transform: uppercase; }
-.display-tutorial-join { grid-column: 3; grid-row: 1; display: grid; justify-items: center; border: var(--line); background: var(--sky); padding: 1.2rem; text-align: center; box-shadow: 7px 7px 0 var(--ink); }
+.display-tutorial-join { grid-column: 3; grid-row: 1; display: grid; justify-items: center; border: var(--line); color: var(--paper); background: var(--ink); padding: 1.2rem; text-align: center; box-shadow: 7px 7px 0 var(--ink); }
 .display-tutorial-join svg { width: min(220px, 100%); height: auto; margin: 1rem 0; }
 .display-tutorial-join strong { font: 900 1.5rem/1 Arial Black, Arial, sans-serif; text-transform: uppercase; }
 .display-tutorial-join p { margin: .5rem 0 0; font: 700 .85rem Georgia, serif; }
