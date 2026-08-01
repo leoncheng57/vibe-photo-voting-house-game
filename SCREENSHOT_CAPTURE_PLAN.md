@@ -153,7 +153,7 @@ cmux browser --surface <surface> screenshot --out "$(pwd)/docs/images/voting-mob
 1. Use a desktop-width browser surface.
 2. Open TV mode and wait for `.display-view`.
 3. Replace all `.photo-grid--display img` sources with generated artwork.
-4. Keep results hidden so photographer names do not render.
+4. Keep the Gallery tab active and results hidden so photographer names do not render.
 5. Capture:
 
 ```bash
@@ -193,6 +193,17 @@ cmux browser --surface <surface> screenshot --out "$(pwd)/docs/images/developer-
 
 ```bash
 cmux browser --surface <surface> screenshot --out "$(pwd)/docs/images/github-priority-groups.png" --json
+```
+
+### Developer Palette
+
+1. Navigate to `http://127.0.0.1:5173/developer/palette/`.
+2. Wait for the page to load and scroll to the top.
+3. Confirm the developer shell, active Palette tab, hero, and first swatches are visible at a desktop width of at least 1200 px.
+4. Capture:
+
+```bash
+cmux browser --surface <surface> screenshot --out "$(pwd)/docs/images/developer-palette-desktop.png" --json
 ```
 
 ## Playwright Fallback

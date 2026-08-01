@@ -8,10 +8,9 @@ const colors = [
   { name: 'Alert Red', value: '#FFD6D6', className: 'palette-swatch--alert', use: 'Errors, missing content, destructive actions' },
 ]
 
-export function Palette({ onBack }: { onBack?: () => void }) {
+export function Palette() {
   return (
     <div className="palette-page">
-      {onBack && <button className="tutorial-back" onClick={onBack}>← Back to setup</button>}
       <header className="palette-hero">
         <span className="eyebrow">House Photo Hunt / visual system</span>
         <h1>Cool colors.<br /><i>Bright night.</i></h1>

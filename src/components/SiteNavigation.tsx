@@ -8,12 +8,12 @@ const securityUrl = `${appRoot}developer/security-ops/`
 const runbookUrl = `${appRoot}developer/host-runbook/`
 const photoExportUrl = `${appRoot}developer/photo-export/`
 const progressUrl = `${appRoot}developer/github-progress/`
+const paletteUrl = `${appRoot}developer/palette/`
 const developerUrl = progressUrl
 
 const navigationItems: Array<{ id: View; label: string; href: string; icon?: 'tv' }> = [
   { id: 'challenges', label: 'Home', href: homeUrl },
   { id: 'tutorial', label: 'How to play', href: `${homeUrl}?tutorial` },
-  { id: 'palette', label: 'Palette', href: `${homeUrl}?palette` },
   { id: 'vote', label: 'Vote', href: `${homeUrl}?vote` },
   { id: 'leaderboard', label: 'Scores', href: `${homeUrl}?leaderboard` },
   { id: 'display', label: 'TV mode', href: `${homeUrl}?display`, icon: 'tv' },
@@ -44,9 +44,9 @@ function NavigationLinks({ active, onSelect }: NavigationProps) {
   return (
     <>
       {navigationItems.map((item) => onSelect ? (
-        <button key={item.id} className={`${active === item.id ? 'active' : ''} ${item.icon ? 'nav-with-icon' : ''}`} onClick={() => onSelect(item.id)}>{item.icon === 'tv' && <TvIcon />}{item.label}</button>
+        <button key={item.id} className={`${active === item.id ? 'active' : ''} ${item.icon ? 'nav-with-icon' : ''} ${item.id === 'display' ? 'tv-mode-link' : ''}`} onClick={() => onSelect(item.id)}>{item.icon === 'tv' && <TvIcon />}{item.label}</button>
       ) : (
-        <a key={item.id} className={`${active === item.id ? 'active' : ''} ${item.icon ? 'nav-with-icon' : ''}`} href={item.href}>{item.icon === 'tv' && <TvIcon />}{item.label}</a>
+        <a key={item.id} className={`${active === item.id ? 'active' : ''} ${item.icon ? 'nav-with-icon' : ''} ${item.id === 'display' ? 'tv-mode-link' : ''}`} href={item.href}>{item.icon === 'tv' && <TvIcon />}{item.label}</a>
       ))}
       <a className={`developer-link ${active === 'developer' ? 'active' : ''}`} href={developerUrl}><RobotIcon />Developer</a>
     </>
@@ -76,10 +76,11 @@ export function MobileNavigation(props: NavigationProps) {
   return <nav className="mobile-nav" aria-label="Mobile navigation"><NavigationLinks {...props} /></nav>
 }
 
-export function DeveloperTabs({ active }: { active: 'system' | 'database' | 'security' | 'runbook' | 'export' | 'progress' }) {
+export function DeveloperTabs({ active }: { active: 'system' | 'database' | 'security' | 'runbook' | 'export' | 'progress' | 'palette' }) {
   return (
     <nav className="developer-tabs" aria-label="Developer pages">
       <a className={active === 'progress' ? 'active' : ''} href={progressUrl}>GitHub project progress</a>
+      <a className={active === 'palette' ? 'active' : ''} href={paletteUrl}>Palette</a>
       <a className={active === 'system' ? 'active' : ''} href={systemUrl}>System reference</a>
       <a className={active === 'database' ? 'active' : ''} href={databaseUrl}>DB design</a>
       <a className={active === 'security' ? 'active' : ''} href={securityUrl}>Security and Ops</a>
