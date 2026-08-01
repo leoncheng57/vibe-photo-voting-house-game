@@ -193,8 +193,12 @@ img { display: block; max-width: 100%; }
 .palette-combo--navy { color: var(--ice); background: var(--ink); }
 
 .display-view { min-height: 100vh; padding: 1.3rem 2rem 6rem; background: var(--paper); }
-.display-header { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding-bottom: 1rem; border-bottom: var(--line); }
+.display-header { display: grid; grid-template-columns: auto 1fr auto auto; align-items: center; gap: 1rem; padding-bottom: 1rem; border-bottom: var(--line); }
 .brand--display { justify-self: start; color: var(--ink); }
+.display-tabs { display: flex; justify-content: center; }
+.display-tabs button { min-height: 42px; border: 2px solid var(--ink); border-right: 0; background: var(--paper); padding: .6rem .9rem; font-size: .65rem; font-weight: 900; text-transform: uppercase; cursor: pointer; }
+.display-tabs button:last-child { border-right: 2px solid var(--ink); }
+.display-tabs button[aria-current="page"] { color: white; background: var(--ink); }
 .display-join { justify-self: end; display: flex; align-items: center; gap: .8rem; font-size: .7rem; font-weight: 900; text-transform: uppercase; }
 .display-title { display: grid; grid-template-columns: 80px 1fr 80px; align-items: center; gap: 1rem; padding: clamp(1rem, 3vh, 2.5rem) 0; text-align: center; }
 .display-title button { border: 0; background: transparent; font-size: 3.5rem; cursor: pointer; }
@@ -207,6 +211,19 @@ img { display: block; max-width: 100%; }
 .photo-grid--display img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
 .photo-grid--display figcaption { display: flex; justify-content: space-between; padding: .6rem; font-size: .72rem; font-weight: 900; text-transform: uppercase; }
 .revealed figure:first-child { outline: 8px solid var(--sky); }
+.display-voting-callout { margin: 0 auto 1.5rem; border: var(--line); background: var(--sky); padding: 1rem 1.5rem; text-align: center; box-shadow: 6px 6px 0 var(--ink); }
+.display-voting-callout > span { font-size: .68rem; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
+.display-voting-callout h1 { margin: .25rem 0; font: 900 clamp(2.2rem, 4vw, 4rem)/.9 Arial Black, Arial, sans-serif; letter-spacing: -.06em; text-transform: uppercase; }
+.display-voting-callout p { margin: .4rem 0 0; font: 700 clamp(.95rem, 1.4vw, 1.2rem)/1.4 Georgia, serif; }
+.tv-tutorial { padding: clamp(1.5rem, 4vh, 3rem) 0 1rem; text-align: center; }
+.tv-tutorial > header h1 { margin: .3rem 0; font: 900 clamp(3.5rem, 7vw, 7rem)/.85 Arial Black, Arial, sans-serif; letter-spacing: -.07em; text-transform: uppercase; }
+.tv-tutorial > header p { margin: .6rem auto 1.5rem; font: 700 clamp(1rem, 1.5vw, 1.3rem)/1.4 Georgia, serif; }
+.tv-tutorial > div { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: var(--line); border-left: var(--line); text-align: left; }
+.tv-tutorial article { min-height: 220px; border-right: var(--line); border-bottom: var(--line); background: white; padding: 1.2rem; }
+.tv-tutorial article b { font: italic 900 2.5rem/1 Georgia, serif; }
+.tv-tutorial article h2 { margin: 2.5rem 0 .5rem; font: 900 clamp(1.25rem, 2vw, 2rem)/1 Arial Black, Arial, sans-serif; text-transform: uppercase; }
+.tv-tutorial article p { margin: 0; font: 700 clamp(.85rem, 1vw, 1rem)/1.4 Georgia, serif; }
+.tv-tutorial > strong { display: block; margin-top: 1.3rem; font-size: .78rem; text-transform: uppercase; }
 .display-footer { position: fixed; right: 0; bottom: 0; left: 0; z-index: 20; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: .8rem 2rem; border-top: var(--line); background: var(--sky); font-size: .7rem; font-weight: 900; text-transform: uppercase; }
 .display-footer span:last-child { justify-self: end; }
 
@@ -260,9 +277,12 @@ img { display: block; max-width: 100%; }
 @media (max-width: 1000px) {
   .display-view { padding: 1rem 1rem 6rem; }
   .display-header { grid-template-columns: 1fr auto; }
+  .display-tabs { grid-column: 1 / -1; grid-row: 2; }
+  .display-tabs button { flex: 1; }
   .display-header > .timer { display: none; }
   .display-title { grid-template-columns: 50px 1fr 50px; }
   .photo-grid--display { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tv-tutorial > div { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (min-width: 1800px) {

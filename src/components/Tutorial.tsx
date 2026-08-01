@@ -1,5 +1,6 @@
 interface Props {
   onBack?: () => void
+  variant?: 'guest' | 'tv'
 }
 
 const steps = [
@@ -35,7 +36,22 @@ const steps = [
   },
 ]
 
-export function Tutorial({ onBack }: Props) {
+const tvSteps = [
+  ['01', 'Pick a challenge', 'Choose a prompt that gives you an idea.'],
+  ['02', 'Take your photo', 'Get creative with a new shot or your camera roll.'],
+  ['03', 'Submit it', 'Send one anonymous entry for each challenge.'],
+  ['04', 'Vote together', 'Choose up to three favorites, then reveal the room.'],
+]
+
+export function Tutorial({ onBack, variant = 'guest' }: Props) {
+  if (variant === 'tv') return (
+    <section className="tv-tutorial" aria-labelledby="tv-tutorial-title">
+      <header><span className="eyebrow">The one-minute briefing</span><h1 id="tv-tutorial-title">How to play</h1><p>Phones take the photos. The TV brings everyone together.</p></header>
+      <div>{tvSteps.map(([number, title, copy]) => <article key={number}><b>{number}</b><h2>{title}</h2><p>{copy}</p></article>)}</div>
+      <strong>Highest score wins the highly questionable bragging rights.</strong>
+    </section>
+  )
+
   return (
     <div className="tutorial-page">
       {onBack && <button className="tutorial-back" onClick={onBack}>← Back to the party</button>}
