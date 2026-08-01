@@ -44,7 +44,11 @@ export function VoteView({ challenges, userId, refreshToken, onChanged }: Props)
     setBusy(true)
     setMessage('')
     try {
-      await submitVotes(challengeId, selected)
+      await submitVotes(challengeId, selected.map((id) => {
+        const submission = submissions.find((item) => item.id === id)
+        if (!submission) throw new Error('A selected photo is no longer available.')
+        return { id, storagePath: submission.storage_path }
+      }))
       setSaved(true)
       setMessage(`${selected.length === 1 ? 'Vote' : 'Votes'} locked in. You can still change them later.`)
       onChanged()

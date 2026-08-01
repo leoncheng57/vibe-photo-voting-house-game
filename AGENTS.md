@@ -43,15 +43,17 @@ Run tests, lint, and build before considering a change complete.
 - Party access is passphrase-gated. `public.join_party()` validates the passphrase against a bcrypt hash in `public.party_settings` and creates a `public.memberships` row; every table, view, RPC, and Storage policy requires `public.is_member()`, which also checks the `is_open` switch. Never store or log the plaintext passphrase, and never weaken a policy below active membership.
 - The join order is fixed: anonymous sign-in, then passphrase membership, then profile creation. Profile inserts fail without membership.
 - Each guest may have at most one submission per challenge.
-- Game-copy photo keys must be `{user_id}/{challenge_id}.jpg`. This convention is enforced by `public.submissions.storage_path`.
-- Original photo keys must be `{challenge_id}/{user_id}/{version}.{ext}` in the private `photo-originals` bucket, referenced by `public.submissions.original_path`. Originals are never overwritten: replacements upload a new versioned object, update the row, then remove the superseded object. Originals at or below 6 MiB are preserved byte-for-byte; larger or non-HEIC/JPEG captures are processed client-side. `original_status` records provenance: `exact`, `optimized` (full-res re-encode), `resized`, or `legacy` (pre-archive game copy adopted via `scripts/backfill-legacy-originals.mjs`).
-- Host cleanup of exported originals clears `original_*` columns first, then empties the bucket — never the reverse. The flow lives on `/developer/photo-export/`.
+- Migrated game-copy keys may be `{user_id}/{challenge_id}.jpg`; new immutable game copies use `{user_id}/{challenge_id}/{version}.jpg`. `submissions.storage_path` points to the active copy.
+- Original keys are `{challenge_id}/{user_id}/{version}.{ext}` in `photo-originals`. `public.original_versions` is the append-only ledger for current, superseded, and stored pending revisions; `submissions.original_path` points only to the active revision. Participant code and Storage policies must never delete originals.
+- Uploads reserve ledger metadata before writing bytes, upload immutable original and game paths, then activate the revision through `activate_original_version()`. Failed steps leave original bytes represented for host recovery/export rather than deleting them.
+- Historical game JPEGs are derived copies, excluded from the originals ZIP, and may be deleted only by the host after querying unreferenced `original_versions.game_path` values. Participants have no Storage update/delete policies.
+- Host cleanup approves ledger rows and clears `submissions.original_*` first, then deletes bucket objects, then tombstones missing approved versions — never reverse that order. The flow lives on `/developer/photo-export/`.
 - The `photos` bucket is private. The app fetches image bytes with authenticated `storage.download()` calls and renders browser-local blob URLs; do not reintroduce reusable signed URLs. Blob URLs are cached per `storage_path` in `src/lib/api.ts` and must be invalidated when a submission changes, because photo replacement reuses the same path.
 - Storage objects and `public.submissions` rows do not cascade to each other. Never document or implement storage-only cleanup for a referenced photo.
-- Upload is not transactional: the object is uploaded before the submission row is upserted. Account for possible orphaned objects or dangling database rows when changing this flow.
+- Upload is not transactional across Storage and Postgres. Pending ledger rows and physically stored recovery copies are intentional failure records, not participant-cleaned orphans.
 - Delete a submission before deleting its Storage object. Votes referencing that submission cascade automatically.
 - Existing voted submissions cannot be replaced or deleted by participants under the current policies.
-- Voting uses submission IDs and can continue to count a database submission even if its object is missing.
+- Voting submits submission IDs plus the immutable game paths the voter saw; the RPC locks and rejects stale paths so replacement cannot race with ballot creation.
 - Realtime subscriptions cover `submissions` and `votes`, not Storage changes.
 - The timer is informational and device-local. It does not lock uploads or voting.
 - Apply Supabase migrations in numeric order. Add a new migration for schema changes; do not rewrite migrations that may already have been applied.

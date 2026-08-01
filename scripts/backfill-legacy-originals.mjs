@@ -3,8 +3,9 @@
 //
 // Submissions created before migration 006 only have a 2400px-or-smaller game
 // copy in the photos bucket. This script copies that JPEG into the private
-// photo-originals bucket and records it on the submission with
-// original_status = 'legacy', so it appears in the Photo Export Runbook ZIP.
+// photo-originals bucket, records it in the append-only original_versions
+// ledger, and points the active submission at it with original_status =
+// 'legacy', so it appears in the Photo Export Runbook ZIP.
 // The copies are NOT full-resolution captures — 'legacy' marks exactly that.
 //
 // Requires the service-role key (bypasses RLS); never commit it.
@@ -14,9 +15,12 @@
 //   node scripts/backfill-legacy-originals.mjs           # dry run
 //   node scripts/backfill-legacy-originals.mjs --apply   # perform the copy
 //
-// Safe to re-run: only submissions with original_path IS NULL are touched.
+// Only submissions with original_path IS NULL are touched. If a write fails
+// after Storage upload, the script preserves the bytes and prints their path
+// for host reconciliation; it never removes an original.
 
 import { createClient } from '@supabase/supabase-js'
+import { randomUUID } from 'node:crypto'
 
 const url = process.env.SUPABASE_URL
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -31,7 +35,7 @@ const db = createClient(url, serviceKey, { auth: { persistSession: false } })
 
 const { data: rows, error } = await db
   .from('submissions')
-  .select('id, challenge_id, user_id, storage_path')
+  .select('id, challenge_id, user_id, storage_path, profile:profiles!submissions_user_id_fkey(display_name)')
   .is('original_path', null)
   .order('challenge_id')
 if (error) throw error
@@ -45,11 +49,21 @@ console.log(`${apply ? 'Backfilling' : 'Dry run:'} ${rows.length} submission(s) 
 
 let copied = 0
 for (const row of rows) {
-  const originalPath = `${row.challenge_id}/${row.user_id}/${Date.now()}-legacy.jpg`
   const label = `submission ${row.id} (challenge ${row.challenge_id})`
+  const { data: existingVersion, error: existingVersionError } = await db
+    .from('original_versions')
+    .select('id, original_path, state')
+    .eq('game_path', row.storage_path)
+    .eq('original_status', 'legacy')
+    .is('deleted_at', null)
+    .maybeSingle()
+  if (existingVersionError) throw existingVersionError
+
+  const versionId = existingVersion?.id ?? randomUUID()
+  const originalPath = existingVersion?.original_path ?? `${row.challenge_id}/${row.user_id}/${versionId}.jpg`
 
   if (!apply) {
-    console.log(`  would copy photos/${row.storage_path} -> photo-originals/${originalPath}`)
+    console.log(`  would ${existingVersion ? 'resume' : 'copy'} photos/${row.storage_path} -> photo-originals/${originalPath}`)
     continue
   }
 
@@ -59,33 +73,63 @@ for (const row of rows) {
     continue
   }
 
-  const { error: uploadError } = await db.storage
-    .from('photo-originals')
-    .upload(originalPath, blob, { contentType: 'image/jpeg', upsert: false })
-  if (uploadError) {
-    console.error(`  SKIP ${label}: original upload failed (${uploadError.message})`)
-    continue
-  }
-
-  const { error: updateError } = await db
-    .from('submissions')
-    .update({
+  if (!existingVersion) {
+    const { error: ledgerError } = await db.from('original_versions').insert({
+      id: versionId,
+      submission_id: row.id,
+      challenge_id: row.challenge_id,
+      user_id: row.user_id,
+      owner_name_at_upload: row.profile?.display_name ?? 'guest',
       original_path: originalPath,
+      game_path: row.storage_path,
+      game_bytes: blob.size,
       original_filename: 'legacy-game-copy.jpg',
       original_mime: 'image/jpeg',
       original_bytes: blob.size,
       original_status: 'legacy',
+      state: 'pending',
     })
-    .eq('id', row.id)
-    .is('original_path', null)
+    if (ledgerError) {
+      console.error(`  FAIL ${label}: archive ledger reservation failed (${ledgerError.message}); no object uploaded`)
+      continue
+    }
+  }
+
+  if (existingVersion?.state !== 'ready') {
+    const { data: storedOriginal } = await db.storage.from('photo-originals').download(originalPath)
+    if (!storedOriginal) {
+      const { error: uploadError } = await db.storage
+        .from('photo-originals')
+        .upload(originalPath, blob, { contentType: 'image/jpeg', upsert: false })
+      if (uploadError) {
+        console.error(`  SKIP ${label}: original upload failed (${uploadError.message}); pending ledger row retained`)
+        continue
+      }
+    }
+  }
+
+  if (existingVersion?.state !== 'ready') {
+    const { error: readyError } = await db.from('original_versions').update({
+      state: 'ready',
+      activated_at: new Date().toISOString(),
+    }).eq('id', versionId)
+    if (readyError) {
+      console.error(`  FAIL ${label}: ledger activation failed (${readyError.message}); stored bytes remain visible as a recovery copy`)
+      continue
+    }
+  }
+
+  const { error: updateError } = await db.rpc('attach_legacy_original', {
+    selected_version_id: versionId,
+    selected_submission_id: row.id,
+  })
   if (updateError) {
-    console.error(`  FAIL ${label}: row update failed (${updateError.message}); removing copied object`)
-    await db.storage.from('photo-originals').remove([originalPath])
+    console.error(`  FAIL ${label}: row update failed (${updateError.message}); archived original remains exportable`)
     continue
   }
 
   copied += 1
-  console.log(`  copied ${label} (${Math.round(blob.size / 1024)} KB)`)
+  console.log(`  ${existingVersion ? 'resumed' : 'copied'} ${label} (${Math.round(blob.size / 1024)} KB)`)
 }
 
 if (apply) console.log(`Done: ${copied}/${rows.length} legacy originals recorded.`)

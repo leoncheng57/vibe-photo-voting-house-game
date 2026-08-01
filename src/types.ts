@@ -37,7 +37,8 @@ export interface StorageUsage {
 export type OriginalStatus = 'exact' | 'optimized' | 'resized' | 'legacy'
 
 export interface OriginalRecord {
-  submissionId: string
+  versionId: string
+  submissionId: string | null
   challengeId: number
   challengeSlug: string
   challengeTitle: string
@@ -48,8 +49,14 @@ export interface OriginalRecord {
   originalFilename: string
   originalMime: string
   originalBytes: number
+  originalWidth: number | null
+  originalHeight: number | null
   originalStatus: OriginalStatus
   originalSourceBytes: number | null
+  originalSourceMime: string | null
+  versionState: 'pending' | 'ready'
+  isCurrent: boolean
+  createdAt: string
 }
 
 export interface LeaderboardEntry {
