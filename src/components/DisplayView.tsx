@@ -4,10 +4,11 @@ import type { Challenge, Submission } from '../types'
 import { getSubmissions } from '../lib/api'
 import { Timer } from './Timer'
 import { Tutorial } from './Tutorial'
+import { Leaderboard } from './Leaderboard'
 
 const PAGE_DURATION_SECONDS = 30
 const PAGE_DURATION_MS = PAGE_DURATION_SECONDS * 1000
-type DisplayPage = 'gallery' | 'voting' | 'tutorial'
+type DisplayPage = 'gallery' | 'voting' | 'tutorial' | 'scores'
 
 export function DisplayView({ challenges, refreshToken, onExit }: { challenges: Challenge[]; refreshToken: number; onExit: () => void }) {
   const [index, setIndex] = useState(0)
@@ -53,7 +54,7 @@ export function DisplayView({ challenges, refreshToken, onExit }: { challenges: 
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
       const delta = event.key === 'ArrowLeft' ? -1 : event.key === 'ArrowRight' ? 1 : 0
-      if (!delta || !challenges.length || page === 'tutorial') return
+      if (!delta || !challenges.length || (page !== 'gallery' && page !== 'voting')) return
       pageEndsAt.current = Date.now() + PAGE_DURATION_MS
       setPageSeconds(PAGE_DURATION_SECONDS)
       setIndex((current) => (current + delta + challenges.length) % challenges.length)
@@ -102,6 +103,7 @@ export function DisplayView({ challenges, refreshToken, onExit }: { challenges: 
           <button type="button" aria-current={page === 'gallery' ? 'page' : undefined} onClick={() => selectPage('gallery')}>Gallery</button>
           <button type="button" aria-current={page === 'voting' ? 'page' : undefined} onClick={() => selectPage('voting')}>Voting</button>
           <button type="button" aria-current={page === 'tutorial' ? 'page' : undefined} onClick={() => selectPage('tutorial')}>How to play</button>
+          <button type="button" aria-current={page === 'scores' ? 'page' : undefined} onClick={() => selectPage('scores')}>Scores</button>
         </nav>
         <Timer compact />
         <div className="display-join">
@@ -110,7 +112,7 @@ export function DisplayView({ challenges, refreshToken, onExit }: { challenges: 
         </div>
       </header>
 
-      {page !== 'tutorial' && <>
+      {(page === 'gallery' || page === 'voting') && <>
         <section className="display-title">
           <button type="button" aria-label="Previous challenge" onClick={() => move(-1)}>←</button>
           <div>
@@ -137,6 +139,7 @@ export function DisplayView({ challenges, refreshToken, onExit }: { challenges: 
       </>}
 
       {page === 'tutorial' && <Tutorial variant="tv" />}
+      {page === 'scores' && <section className="display-scores"><Leaderboard refreshToken={refreshToken} /></section>}
 
       <footer className="display-footer">
         {page === 'gallery' ? <>
@@ -147,10 +150,14 @@ export function DisplayView({ challenges, refreshToken, onExit }: { challenges: 
           <span>{photos.length} anonymous submissions</span>
           <strong>Waiting for everyone to finish voting…</strong>
           <span>← → to change challenge</span>
-        </> : <>
+        </> : page === 'tutorial' ? <>
           <span>House Photo Hunt</span>
           <strong>Join · Shoot · Vote · Reveal</strong>
           <span>Use the tabs to return to the gallery</span>
+        </> : <>
+          <span>Final standings</span>
+          <strong>Top three choose the prizes</strong>
+          <span>Scores update as votes change</span>
         </>}
       </footer>
     </div>

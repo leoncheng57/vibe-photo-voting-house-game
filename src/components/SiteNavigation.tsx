@@ -15,7 +15,6 @@ const navigationItems: Array<{ id: View; label: string; href: string; icon?: 'tv
   { id: 'tutorial', label: 'How to play', href: `${homeUrl}?tutorial` },
   { id: 'palette', label: 'Palette', href: `${homeUrl}?palette` },
   { id: 'vote', label: 'Vote', href: `${homeUrl}?vote` },
-  { id: 'leaderboard', label: 'Scores', href: `${homeUrl}?leaderboard` },
   { id: 'display', label: 'TV mode', href: `${homeUrl}?display`, icon: 'tv' },
 ]
 
