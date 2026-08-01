@@ -4,6 +4,8 @@ A mobile-first housewarming photo challenge with passphrase-gated entry, anonymo
 
 The frontend is React, TypeScript, and Vite on GitHub Pages. Supabase provides anonymous authentication, PostgreSQL, private photo storage, and realtime updates. No application server or Vercel deployment is required.
 
+**[Try the live demo](https://leoncheng.dev/vibe-photo-voting-house-game/)**
+
 ## Screenshots
 
 ### Guest experience
@@ -119,7 +121,7 @@ See [`SCREENSHOT_CAPTURE_PLAN.md`](SCREENSHOT_CAPTURE_PLAN.md) for the privacy-s
 
 The app deploys to:
 
-<https://leoncheng57.github.io/vibe-photo-voting-house-game/>
+<https://leoncheng.dev/vibe-photo-voting-house-game/>
 
 ## Party Flow
 
