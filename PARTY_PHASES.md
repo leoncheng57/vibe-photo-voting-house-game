@@ -44,7 +44,8 @@ Move to Phase 2 when most expected guests have joined, the TV shows the gallery 
 - Move around the house and take photos for any challenges they want to join.
 - Submit one photo per challenge.
 - Review the uploaded preview before leaving the page.
-- Avoid replacing a submission after voting begins.
+- Replacements before voting retain every full-resolution original revision and therefore consume additional storage.
+- Once voting begins, the immutable-path ballot protocol rejects replacement.
 
 ### Host
 
@@ -52,8 +53,8 @@ Move to Phase 2 when most expected guests have joined, the TV shows the gallery 
 - Leave the TV on the rotating Gallery so guests can see new submissions arrive.
 - Watch the storage meter periodically.
 - Below 50%: no action is normally needed.
-- At 50-75%: prepare to export originals and avoid unnecessary repeated exports.
-- At or above 75%: pause new uploads if practical, export and verify originals, then use the Photo Export Runbook's database-first cleanup procedure.
+- At 50-75%: prepare to export all current, superseded, and recovery originals; avoid unnecessary replacements.
+- At or above 75%: pause new uploads if practical, export and verify the versioned ZIP, then run only that ZIP's generated `cleanup.sql` before deleting its exact manifest paths.
 - Never delete a referenced Storage object directly.
 
 ### Transition Check
@@ -81,7 +82,7 @@ Move to Phase 3 after announcing a final-photo warning, allowing active uploads 
 
 ### Finish
 
-1. Export and verify all originals before cleanup.
+1. Export and verify all original revisions plus `manifest.json` and the exact-ID `cleanup.sql` before cleanup.
 2. Save any desired screenshots using synthetic or approved data only.
 3. Close the party to block further database and Storage access.
 4. Follow the Event Cleanup section in the README before reusing the project.
@@ -105,6 +106,6 @@ This operating plan assumes the following tracked changes are available before t
 - Timer editing in TV mode: issue #36.
 - Flexible, editable 1-3 vote ballots: issue #35.
 - Scores visible only in TV mode: issue #41.
-- Replacement-photo preservation policy: issue #37 must be resolved before guests are encouraged to replace photos.
+- Append-only replacement-photo preservation and revision-aware cleanup: issue #37.
 
 Run the full test issue #24 against a disposable Supabase project after these features are integrated.
