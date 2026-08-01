@@ -27,6 +27,8 @@ The frontend is React, TypeScript, and Vite on GitHub Pages. Supabase provides a
 
 ![Desktop developer system reference showing architecture documentation and navigation](docs/images/developer-system-desktop.png)
 
+![Desktop developer palette showing the House Photo Hunt color system](docs/images/developer-palette-desktop.png)
+
 ### GitHub project priorities
 
 ![Desktop GitHub project progress dashboard with issues grouped by high, medium, and low priority](docs/images/github-priority-groups.png)
@@ -41,7 +43,7 @@ The frontend is React, TypeScript, and Vite on GitHub Pages. Supabase provides a
 - TV-only 3-2-1 podium scoring with competition ranking for ties
 - Informational, device-local configurable timer
 - Built-in tutorial walkthrough for first-time guests
-- Developer references for architecture, database design, security and operations, the host password runbook, and GitHub project progress under `/developer/`
+- Developer references for the color palette, architecture, database design, security and operations, host runbooks, and GitHub project progress under `/developer/`
 - Anonymous photographer names during voting
 - TV mode with Gallery, Voting, and How to Play pages, QR join code, automatic 30-second gallery paging, keyboard navigation, result reveal, and a host-confirmed final scoreboard
 - Full-resolution HEIC/JPEG originals preserved alongside optimized game copies

@@ -195,6 +195,17 @@ cmux browser --surface <surface> screenshot --out "$(pwd)/docs/images/developer-
 cmux browser --surface <surface> screenshot --out "$(pwd)/docs/images/github-priority-groups.png" --json
 ```
 
+### Developer Palette
+
+1. Navigate to `http://127.0.0.1:5173/developer/palette/`.
+2. Wait for the page to load and scroll to the top.
+3. Confirm the developer shell, active Palette tab, hero, and first swatches are visible at a desktop width of at least 1200 px.
+4. Capture:
+
+```bash
+cmux browser --surface <surface> screenshot --out "$(pwd)/docs/images/developer-palette-desktop.png" --json
+```
+
 ## Playwright Fallback
 
 Playwright is not a project dependency. If cmux cannot provide a suitable viewport, use an ephemeral Playwright installation rather than changing `package.json`. Point it only at a local app backed by disposable demo data.

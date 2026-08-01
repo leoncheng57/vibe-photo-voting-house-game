@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { ChallengeList } from './components/ChallengeList'
 import { DisplayView } from './components/DisplayView'
-import { Palette } from './components/Palette'
 import { MobileNavigation, SiteHeader } from './components/SiteNavigation'
 import { StorageMeter } from './components/StorageMeter'
 import { Timer } from './components/Timer'
@@ -15,9 +14,10 @@ import type { Challenge, PartyStatus, Profile, View } from './types'
 
 const appRoot = import.meta.env.BASE_URL
 const homeUrl = `${appRoot}home/`
+const paletteUrl = `${appRoot}developer/palette/`
 const isHomeEntry = location.pathname.startsWith(homeUrl)
 
-function SetupRequired({ onTutorial, onPalette }: { onTutorial: () => void; onPalette: () => void }) {
+function SetupRequired({ onTutorial }: { onTutorial: () => void }) {
   return (
     <main className="setup-page">
       <div className="brand"><b>HOUSE</b><span>PHOTO HUNT</span></div>
@@ -28,7 +28,7 @@ function SetupRequired({ onTutorial, onPalette }: { onTutorial: () => void; onPa
         <pre>VITE_SUPABASE_URL=https://your-project.supabase.co{`\n`}VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...</pre>
         <div className="setup-page__actions">
           <button className="button button--dark" onClick={onTutorial}>Preview how to play →</button>
-          <button className="button" onClick={onPalette}>View color palette →</button>
+          <a className="button" href={paletteUrl}>View color palette →</a>
         </div>
         <p className="setup-page__note">Full setup and GitHub Pages instructions are in <code>README.md</code>.</p>
       </section>
@@ -149,7 +149,6 @@ export default function App() {
     const params = new URLSearchParams(location.search)
     if (params.has('display')) return 'display'
     if (params.has('tutorial')) return 'tutorial'
-    if (params.has('palette')) return 'palette'
     if (params.has('vote')) return 'vote'
     return 'challenges'
   })
@@ -221,19 +220,16 @@ export default function App() {
   }
 
   if (!isSupabaseConfigured && view === 'tutorial') return <main className="public-tutorial"><Tutorial onBack={() => setView('challenges')} /></main>
-  if (!isSupabaseConfigured && view === 'palette') return <main className="public-palette"><Palette onBack={() => setView('challenges')} /></main>
-  if (!isSupabaseConfigured) return <SetupRequired onTutorial={() => setView('tutorial')} onPalette={() => setView('palette')} />
+  if (!isSupabaseConfigured) return <SetupRequired onTutorial={() => setView('tutorial')} />
   if (loading) return <div className="loading-screen"><div className="brand"><b>HOUSE</b><span>PHOTO HUNT</span></div><span>Opening the door…</span></div>
   if (error) return <main className="error-page"><h1>Couldn’t open the party.</h1><p>{error}</p><button className="button" onClick={() => location.reload()}>Try again</button></main>
   if (user && partyStatus && !partyStatus.is_open) return <PartyClosed />
   if (user && partyStatus && !partyStatus.is_member && view === 'tutorial') return <main className="public-tutorial"><Tutorial onBack={() => setView('challenges')} /></main>
-  if (user && partyStatus && !partyStatus.is_member && view === 'palette') return <main className="public-palette"><Palette onBack={() => setView('challenges')} /></main>
   if (user && partyStatus && !partyStatus.is_member) {
     const currentUser = user
     return <PassphraseGate onJoined={() => enterParty(currentUser)} onTutorial={() => setView('tutorial')} />
   }
   if (user && !profile && view === 'tutorial') return <main className="public-tutorial"><Tutorial onBack={() => setView('challenges')} /></main>
-  if (user && !profile && view === 'palette') return <main className="public-palette"><Palette onBack={() => setView('challenges')} /></main>
   if (user && profile && !isHomeEntry && view === 'tutorial') return <main className="public-tutorial"><Tutorial onBack={() => setView('challenges')} /></main>
   if (user && profile && !isHomeEntry) return <JoinForm user={user} profile={profile} onJoined={(nextProfile) => { setProfile(nextProfile); location.assign(homeUrl) }} onTutorial={() => setView('tutorial')} />
   if (user && !profile) return <JoinForm user={user} onJoined={(nextProfile) => { setProfile(nextProfile); if (!isHomeEntry) location.assign(homeUrl) }} onTutorial={() => setView('tutorial')} />
@@ -294,7 +290,6 @@ export default function App() {
       <main className="content">
         {view === 'challenges' && <><Timer /><ChallengeList challenges={challenges} userId={user.id} refreshToken={submissionToken} onChanged={() => { setSubmissionToken((value) => value + 1); setResultsToken((value) => value + 1) }} /></>}
         {view === 'tutorial' && <Tutorial />}
-        {view === 'palette' && <Palette />}
         {view === 'vote' && <VoteView challenges={challenges} userId={user.id} refreshToken={submissionToken} onChanged={() => setResultsToken((value) => value + 1)} />}
       </main>
 
@@ -322,7 +317,7 @@ export default function App() {
           <form role="dialog" aria-modal="true" aria-labelledby="leave-dialog-title" onSubmit={leaveParty}>
             <span className="eyebrow">Log out</span>
             <h2 id="leave-dialog-title">Leave the party?</h2>
-            <p className="dialog-warning">This can’t be undone. Your photos, votes, and name stay behind — but this guest identity is gone for good. Rejoining needs the passphrase and a new name.</p>
+            <p className="dialog-warning dialog-warning--danger">This can’t be undone. Your photos, votes, and name stay behind — but this guest identity is gone for good. Rejoining needs the passphrase and a new name.</p>
             {leaveError && <p className="form-error">{leaveError}</p>}
             <div>
               <button className="button" type="button" autoFocus disabled={leaving} onClick={() => setConfirmingLeave(false)}>Stay in the party</button>
