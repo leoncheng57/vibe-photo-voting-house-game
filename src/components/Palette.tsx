@@ -7,10 +7,9 @@ const colors = [
   { name: 'Cloud', value: '#F5F8F7', className: 'palette-swatch--cloud', use: 'Main canvas' },
 ]
 
-export function Palette({ onBack }: { onBack?: () => void }) {
+export function Palette() {
   return (
     <div className="palette-page">
-      {onBack && <button className="tutorial-back" onClick={onBack}>← Back to setup</button>}
       <header className="palette-hero">
         <span className="eyebrow">House Photo Hunt / visual system</span>
         <h1>Cool colors.<br /><i>Bright night.</i></h1>
