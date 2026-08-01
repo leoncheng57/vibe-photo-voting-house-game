@@ -43,7 +43,7 @@ The frontend is React, TypeScript, and Vite on GitHub Pages. Supabase provides a
 - Built-in tutorial walkthrough for first-time guests
 - Developer references for architecture, database design, security and operations, the host password runbook, and GitHub project progress under `/developer/`
 - Anonymous photographer names during voting
-- TV mode with QR join code, automatic 30-second challenge paging, keyboard navigation, and result reveal
+- TV mode with Gallery, Voting, and How to Play pages, QR join code, automatic 30-second gallery paging, keyboard navigation, and result reveal
 - Full-resolution HEIC/JPEG originals preserved alongside optimized game copies
 - Always-visible storage meter against the Supabase Free 1 GB quota
 - One-click originals export to a local ZIP (folder per challenge) with a pre-download tree preview on the Photo Export Runbook page
@@ -126,7 +126,7 @@ The app deploys to:
 ## Party Flow
 
 1. Put the app URL or TV mode QR code where guests can find it, and share the party passphrase out of band.
-2. Each guest enters the passphrase, then a unique display name, and joins any challenges they want. The TV device enters the passphrase once too.
+2. Each guest enters the passphrase, then a unique display name, and takes one photo for every challenge. The TV device enters the passphrase once too.
 3. Start the informational timer on the display device. It does not lock app actions.
 4. When photo time ends, show the challenges in TV mode, which advances every 30 seconds.
 5. Guests select and confirm three photos for that challenge on their phones.

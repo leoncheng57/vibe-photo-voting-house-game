@@ -44,9 +44,9 @@ function NavigationLinks({ active, onSelect }: NavigationProps) {
   return (
     <>
       {navigationItems.map((item) => onSelect ? (
-        <button key={item.id} className={`${active === item.id ? 'active' : ''} ${item.icon ? 'nav-with-icon' : ''}`} onClick={() => onSelect(item.id)}>{item.icon === 'tv' && <TvIcon />}{item.label}</button>
+        <button key={item.id} className={`${active === item.id ? 'active' : ''} ${item.icon ? 'nav-with-icon' : ''} ${item.id === 'display' ? 'tv-mode-link' : ''}`} onClick={() => onSelect(item.id)}>{item.icon === 'tv' && <TvIcon />}{item.label}</button>
       ) : (
-        <a key={item.id} className={`${active === item.id ? 'active' : ''} ${item.icon ? 'nav-with-icon' : ''}`} href={item.href}>{item.icon === 'tv' && <TvIcon />}{item.label}</a>
+        <a key={item.id} className={`${active === item.id ? 'active' : ''} ${item.icon ? 'nav-with-icon' : ''} ${item.id === 'display' ? 'tv-mode-link' : ''}`} href={item.href}>{item.icon === 'tv' && <TvIcon />}{item.label}</a>
       ))}
       <a className={`developer-link ${active === 'developer' ? 'active' : ''}`} href={developerUrl}><RobotIcon />Developer</a>
     </>
