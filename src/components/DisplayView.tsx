@@ -183,7 +183,7 @@ export function DisplayView({ challenges, refreshToken, onExit }: { challenges: 
           <button type="button" aria-current={page === 'gallery' ? 'page' : undefined} onClick={() => selectPage('gallery')}>Gallery</button>
           <button type="button" aria-current={page === 'voting' ? 'page' : undefined} onClick={() => selectPage('voting')}>Voting</button>
         </nav>
-        <Timer compact />
+        <Timer compact editable />
       </header>
 
       {(page === 'gallery' || page === 'voting') && <>

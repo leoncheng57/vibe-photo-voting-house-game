@@ -288,7 +288,7 @@ export default function App() {
         <StorageMeter summary={storageUsage.summary} failed={storageUsage.failed} variant="bar" />
       </div>
       <main className="content">
-        {view === 'challenges' && <><Timer /><ChallengeList challenges={challenges} userId={user.id} refreshToken={submissionToken} onChanged={() => { setSubmissionToken((value) => value + 1); setResultsToken((value) => value + 1) }} /></>}
+        {view === 'challenges' && <ChallengeList challenges={challenges} userId={user.id} refreshToken={submissionToken} onChanged={() => { setSubmissionToken((value) => value + 1); setResultsToken((value) => value + 1) }} />}
         {view === 'tutorial' && <Tutorial />}
         {view === 'vote' && <VoteView challenges={challenges} userId={user.id} refreshToken={submissionToken} onChanged={() => setResultsToken((value) => value + 1)} />}
       </main>
