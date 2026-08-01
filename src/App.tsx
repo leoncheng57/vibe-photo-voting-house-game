@@ -320,7 +320,7 @@ export default function App() {
           <form role="dialog" aria-modal="true" aria-labelledby="leave-dialog-title" onSubmit={leaveParty}>
             <span className="eyebrow">Log out</span>
             <h2 id="leave-dialog-title">Leave the party?</h2>
-            <p className="dialog-warning">This can’t be undone. Your photos, votes, and name stay behind — but this guest identity is gone for good. Rejoining needs the passphrase and a new name.</p>
+            <p className="dialog-warning dialog-warning--danger">This can’t be undone. Your photos, votes, and name stay behind — but this guest identity is gone for good. Rejoining needs the passphrase and a new name.</p>
             {leaveError && <p className="form-error">{leaveError}</p>}
             <div>
               <button className="button" type="button" autoFocus disabled={leaving} onClick={() => setConfirmingLeave(false)}>Stay in the party</button>

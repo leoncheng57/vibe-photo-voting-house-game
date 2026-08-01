@@ -9,6 +9,7 @@
   --pool: #b7e6f7;
   --powder: #d5f0fa;
   --ice: #eaf8fc;
+  --alert: #ffd6d6;
   --line: 3px solid var(--ink);
 }
 
@@ -87,7 +88,7 @@ img { display: block; max-width: 100%; }
 .section-heading--vote h2 { color: var(--ink); }
 .section-heading--leaderboard h2 { color: var(--ink); }
 .notice { margin: 1rem 0 2rem; border: 2px solid var(--ink); background: var(--pool); padding: .9rem 1rem; font-weight: 800; }
-.notice--error { background: var(--powder); }
+.notice--error { background: var(--alert); }
 
 .challenge-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(1rem, 2.5vw, 2.5rem); }
 .challenge-card { position: relative; display: grid; grid-template-columns: 90px 1fr; min-height: 360px; border: var(--line); background: var(--paper); box-shadow: 8px 8px 0 var(--ink); overflow: hidden; }
@@ -138,6 +139,7 @@ img { display: block; max-width: 100%; }
 .name-dialog input { width: 100%; min-height: 52px; border: 2px solid var(--ink); padding: .8rem; background: white; font-size: 1rem; }
 .name-dialog form > div { display: flex; justify-content: flex-end; gap: .8rem; margin-top: 1.5rem; }
 .name-dialog .dialog-warning { margin: 0; font: 700 1.05rem/1.45 Georgia, serif; }
+.name-dialog .dialog-warning--danger { border: 2px solid var(--ink); background: var(--alert); padding: .8rem; }
 .leave-party-link { display: block; margin: 1.6rem 0 0 auto; border: 0; border-bottom: 2px solid var(--ink); background: transparent; padding: .2rem 0; font-size: .78rem; font-weight: 900; cursor: pointer; }
 
 .public-tutorial { min-height: 100vh; padding: clamp(1rem, 3vw, 3rem); background: var(--paper); }
