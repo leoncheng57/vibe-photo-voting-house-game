@@ -37,7 +37,7 @@ The frontend is React, TypeScript, and Vite on GitHub Pages. Supabase provides a
 - In-browser photo resizing before upload
 - Up to three equal votes for distinct photos; self-voting allowed
 - 3-2-1 podium scoring with competition ranking for ties
-- Informational, device-local configurable timer
+- Informational, device-local timer configured from TV mode
 - Built-in tutorial walkthrough for first-time guests
 - Developer references for architecture, database design, security and operations, the host password runbook, and GitHub project progress under `/developer/`
 - Anonymous photographer names during voting

@@ -77,8 +77,14 @@ img { display: block; max-width: 100%; }
 .timer__controls input { display: block; width: 84px; min-height: 44px; margin-top: .25rem; border: 2px solid var(--ink); padding: .5rem; background: var(--paper); font-weight: 900; }
 .timer > p { grid-column: 1 / -1; margin: 0; font-size: .7rem; }
 .timer--compact { display: flex; min-width: 170px; justify-content: space-between; margin: 0; padding: .55rem .8rem; border-width: 2px; box-shadow: none; }
+.timer--compact > div:first-child { display: flex; align-items: center; justify-content: space-between; gap: .8rem; }
 .timer--compact span { font-size: .65rem; font-weight: 900; text-transform: uppercase; }
 .timer--compact strong { font: 900 1.5rem/1 Arial Black, sans-serif; }
+.timer--editable { gap: .7rem; }
+.timer--editable .timer__controls { align-items: center; gap: .45rem; }
+.timer--editable .timer__controls input { width: 60px; min-height: 34px; margin: 0; padding: .3rem; }
+.timer--editable .timer__controls label { display: flex; align-items: center; gap: .35rem; }
+.timer--editable .button { min-height: 34px; padding: .35rem .55rem; box-shadow: 2px 2px 0 var(--ink); font-size: .65rem; }
 
 .section-heading { display: grid; grid-template-columns: 2fr 1fr; align-items: end; gap: 2rem; margin-bottom: clamp(2rem, 5vw, 5rem); }
 .section-heading h2 { margin: .5rem 0 0; font: 900 clamp(3.6rem, 10vw, 9rem)/.78 Arial Black, sans-serif; letter-spacing: -.08em; text-transform: uppercase; }

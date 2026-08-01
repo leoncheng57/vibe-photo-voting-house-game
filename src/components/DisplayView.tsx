@@ -103,7 +103,7 @@ export function DisplayView({ challenges, refreshToken, onExit }: { challenges: 
           <button type="button" aria-current={page === 'voting' ? 'page' : undefined} onClick={() => selectPage('voting')}>Voting</button>
           <button type="button" aria-current={page === 'tutorial' ? 'page' : undefined} onClick={() => selectPage('tutorial')}>How to play</button>
         </nav>
-        <Timer compact />
+        <Timer compact editable />
         <div className="display-join">
           <span>Scan to play</span>
           <QRCodeSVG value={joinUrl} size={74} bgColor="transparent" fgColor="#111111" />

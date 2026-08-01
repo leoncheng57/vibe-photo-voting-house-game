@@ -14,7 +14,7 @@ function formatTime(milliseconds: number) {
     : `${minutes}:${String(seconds).padStart(2, '0')}`
 }
 
-export function Timer({ compact = false }: { compact?: boolean }) {
+export function Timer({ compact = false, editable = false }: { compact?: boolean; editable?: boolean }) {
   const [minutes, setMinutes] = useState(() => Number(localStorage.getItem(MINUTES_KEY)) || 90)
   const [endsAt, setEndsAt] = useState(() => Number(localStorage.getItem(END_KEY)) || 0)
   const [now, setNow] = useState(Date.now())
@@ -63,9 +63,12 @@ export function Timer({ compact = false }: { compact?: boolean }) {
 
   if (compact) {
     return (
-      <div className="timer timer--compact" aria-live="polite">
-        <span>{isRunning ? 'Photo time' : endsAt ? 'Time!' : 'Timer'}</span>
-        <strong>{formatTime(remaining)}</strong>
+      <div className={`timer timer--compact ${editable ? 'timer--editable' : ''}`} aria-live="polite">
+        <div><span>{isRunning ? 'Photo time' : endsAt ? 'Time!' : 'Timer'}</span><strong>{formatTime(remaining)}</strong></div>
+        {editable && <div className="timer__controls">
+          {!isRunning && <label>Minutes<input type="number" min="1" max="240" value={minutes} onChange={(event) => setMinutes(Math.max(1, Number(event.target.value)))} /></label>}
+          <button className="button button--dark" type="button" onClick={isRunning ? reset : start}>{isRunning ? 'Reset' : 'Start'}</button>
+        </div>}
       </div>
     )
   }
