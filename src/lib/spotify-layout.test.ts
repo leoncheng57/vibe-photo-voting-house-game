@@ -29,9 +29,9 @@ describe('Spotify player layout', () => {
     })
     expect(normalizeSpotifyPlayerLayout({ corner: 'unknown' as 'left', width: 10, height: 10 }, 1920, 1080)).toEqual({
       corner: 'right',
-      height: 132,
+      height: 164,
       minimized: false,
-      width: 300,
+      width: 240,
     })
   })
 })
