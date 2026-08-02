@@ -18,6 +18,7 @@ export function DisplayView({ challenges, refreshToken, onExit }: { challenges: 
   const [revealed, setRevealed] = useState(false)
   const [error, setError] = useState('')
   const [page, setPage] = useState<DisplayPage>('gallery')
+  const [previewPhotoId, setPreviewPhotoId] = useState<string | null>(null)
   const [confirmingScores, setConfirmingScores] = useState(false)
   const [scoresMounted, setScoresMounted] = useState(false)
   const [scoresRevealed, setScoresRevealed] = useState(false)
@@ -29,6 +30,10 @@ export function DisplayView({ challenges, refreshToken, onExit }: { challenges: 
   const scoreHideStartTimer = useRef<number | null>(null)
   const scoreOpenTimer = useRef<number | null>(null)
   const scoreSettleTimer = useRef<number | null>(null)
+  const previewOpen = useRef(false)
+  const previewTrigger = useRef<HTMLButtonElement | null>(null)
+  const previewClose = useRef<HTMLButtonElement | null>(null)
+  const restorePreviewFocus = useRef(false)
   const challenge = challenges[index]
   const joinUrl = useMemo(() => `${window.location.origin}${import.meta.env.BASE_URL}play/`, [])
 
@@ -43,12 +48,13 @@ export function DisplayView({ challenges, refreshToken, onExit }: { challenges: 
   }, [challenge, refreshToken])
 
   useEffect(() => {
-    if (!challenges.length || page !== 'gallery') return
+    if (!challenges.length || page !== 'gallery' || previewPhotoId) return
     pageEndsAt.current = Date.now() + PAGE_DURATION_MS
     setPageSeconds(PAGE_DURATION_SECONDS)
     setIndex((current) => Math.min(current, challenges.length - 1))
 
     const interval = window.setInterval(() => {
+      if (previewOpen.current) return
       const now = Date.now()
       if (now >= pageEndsAt.current) {
         setIndex((current) => (current + 1) % challenges.length)
@@ -60,19 +66,38 @@ export function DisplayView({ challenges, refreshToken, onExit }: { challenges: 
     }, 250)
 
     return () => window.clearInterval(interval)
-  }, [challenges.length, page])
+  }, [challenges.length, page, previewPhotoId])
 
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        if (previewPhotoId) closePhotoPreview()
+        else if (confirmingScores) setConfirmingScores(false)
+        else if (scoresMounted) hideScores()
+        else onExit()
+        return
+      }
       const delta = event.key === 'ArrowLeft' ? -1 : event.key === 'ArrowRight' ? 1 : 0
-      if (!delta || !challenges.length || (page !== 'gallery' && page !== 'voting')) return
+      if (!delta || previewPhotoId || !challenges.length || (page !== 'gallery' && page !== 'voting')) return
       pageEndsAt.current = Date.now() + PAGE_DURATION_MS
       setPageSeconds(PAGE_DURATION_SECONDS)
       setIndex((current) => (current + delta + challenges.length) % challenges.length)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [challenges.length, page])
+  }, [challenges.length, confirmingScores, onExit, page, previewPhotoId, scoresMounted])
+
+  useEffect(() => {
+    if (previewPhotoId) {
+      previewClose.current?.focus()
+      return
+    }
+    if (restorePreviewFocus.current) {
+      previewTrigger.current?.focus()
+      previewTrigger.current = null
+      restorePreviewFocus.current = false
+    }
+  }, [previewPhotoId])
 
   useEffect(() => () => {
     if (scoreCloseTimer.current) window.clearTimeout(scoreCloseTimer.current)
@@ -84,6 +109,9 @@ export function DisplayView({ challenges, refreshToken, onExit }: { challenges: 
   const sorted = revealed
     ? [...photos].sort((a, b) => (b.voteCount ?? 0) - (a.voteCount ?? 0))
     : photos
+  const displayedPhotos = page === 'gallery' ? sorted : photos
+  const previewPhoto = previewPhotoId ? photos.find((photo) => photo.id === previewPhotoId) : undefined
+  const previewPhotoIndex = previewPhotoId ? displayedPhotos.findIndex((photo) => photo.id === previewPhotoId) : -1
   const voteTarget = Math.min(3, photos.length)
 
   function move(delta: number) {
@@ -107,6 +135,10 @@ export function DisplayView({ challenges, refreshToken, onExit }: { challenges: 
   }
 
   function selectPage(nextPage: DisplayPage) {
+    previewOpen.current = false
+    restorePreviewFocus.current = false
+    setPreviewPhotoId(null)
+    previewTrigger.current = null
     if (nextPage === 'voting') setRevealed(false)
     if (nextPage !== 'voting') {
       if (scoreCloseTimer.current) window.clearTimeout(scoreCloseTimer.current)
@@ -120,6 +152,19 @@ export function DisplayView({ challenges, refreshToken, onExit }: { challenges: 
       setHidingScores(false)
     }
     setPage(nextPage)
+  }
+
+  function openPhotoPreview(photoId: string, trigger: HTMLButtonElement) {
+    previewOpen.current = true
+    restorePreviewFocus.current = false
+    previewTrigger.current = trigger
+    setPreviewPhotoId(photoId)
+  }
+
+  function closePhotoPreview() {
+    previewOpen.current = false
+    restorePreviewFocus.current = true
+    setPreviewPhotoId(null)
   }
 
   function revealScores(event: React.FormEvent) {
@@ -203,9 +248,17 @@ export function DisplayView({ challenges, refreshToken, onExit }: { challenges: 
         {page === 'voting' && <section className="display-voting-callout"><span>Voting is open</span><h1>Choose on your phone.</h1><p>{voteTarget ? <>Open <b>Vote</b> and select {voteTarget} {voteTarget === 1 ? 'favorite' : 'favorites'} for this challenge.</> : 'Photos will appear here as guests submit them.'}</p></section>}
         {error && <div className="notice notice--error">{error}</div>}
         <div className={`photo-grid photo-grid--display ${page === 'gallery' && revealed ? 'revealed' : ''}`}>
-          {(page === 'gallery' ? sorted : photos).map((photo, photoIndex) => (
+          {displayedPhotos.map((photo, photoIndex) => (
             <figure key={photo.id}>
-              <img src={photo.photoUrl} alt={`Anonymous submission ${photoIndex + 1} for ${challenge.title}`} />
+              <button
+                className="display-photo-open"
+                type="button"
+                aria-label={`View full photo ${photoIndex + 1} for ${challenge.title}`}
+                onClick={(event) => openPhotoPreview(photo.id, event.currentTarget)}
+              >
+                <img src={photo.photoUrl} alt={`Anonymous submission ${photoIndex + 1} for ${challenge.title}`} />
+                <span>View full</span>
+              </button>
               <figcaption>
                 {page === 'gallery' && revealed ? <><strong>{photo.ownerName}</strong><span>{photo.voteCount} votes</span></> : <span>Photo {photoIndex + 1}</span>}
               </figcaption>
@@ -238,6 +291,29 @@ export function DisplayView({ challenges, refreshToken, onExit }: { challenges: 
         <section className={`display-score-drawer ${scoresRevealed ? 'display-score-drawer--open' : ''} ${scoresSettled ? 'display-score-drawer--settled' : ''}`} id="final-scores" aria-label="Final scores">
           <Leaderboard refreshToken={refreshToken} highlightPodium />
         </section>
+      )}
+
+      {previewPhoto && (
+        <div className="photo-lightbox" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) closePhotoPreview() }}>
+          <section className="photo-lightbox__dialog" role="dialog" aria-modal="true" aria-labelledby="photo-lightbox-title">
+            <header>
+              <div>
+                <span className="eyebrow">{page === 'gallery' ? 'Gallery photo' : 'Anonymous voting photo'}</span>
+                <h2 id="photo-lightbox-title">Photo {previewPhotoIndex + 1}</h2>
+              </div>
+              <button ref={previewClose} className="button" type="button" onClick={closePhotoPreview}>Close full photo</button>
+            </header>
+            <div className="photo-lightbox__image">
+              <img src={previewPhoto.photoUrl} alt={`Full submission ${previewPhotoIndex + 1} for ${challenge.title}`} />
+            </div>
+            <footer>
+              <strong>{challenge.title}</strong>
+              {page === 'gallery' && revealed
+                ? <span>{previewPhoto.ownerName} · {previewPhoto.voteCount} votes</span>
+                : <span>Photographer hidden</span>}
+            </footer>
+          </section>
+        </div>
       )}
 
       <footer className={`display-footer display-footer--${page}`}>
