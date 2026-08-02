@@ -4,7 +4,7 @@
   <img src="docs/images/app-icon.png" width="128" alt="House Party Photo Hunt icon: a navy camera on a light blue rounded square">
 </p>
 
-A mobile-first housewarming photo challenge with passphrase-gated entry, anonymous guest profiles, direct photo uploads, up-to-three-vote rounds, TV presentation mode, optional Spotify playback, and a live 3-2-1 leaderboard.
+A mobile-first housewarming photo challenge with passphrase-gated entry, anonymous guest profiles, direct photo uploads, up-to-three-vote rounds, TV presentation mode, optional Spotify playback, and a live total-vote leaderboard.
 
 The frontend is React, TypeScript, and Vite on GitHub Pages. Supabase provides anonymous authentication, PostgreSQL, private photo storage, and realtime updates. No application server or Vercel deployment is required.
 
@@ -25,7 +25,7 @@ The frontend is React, TypeScript, and Vite on GitHub Pages. Supabase provides a
 
 ### Leaderboard
 
-![Desktop leaderboard showing synthetic player names, wins, and scores](docs/images/leaderboard-desktop.png)
+![Desktop leaderboard showing synthetic player names, challenge wins, and total votes](docs/images/leaderboard-desktop.png)
 
 ### Developer reference
 
@@ -44,13 +44,13 @@ The frontend is React, TypeScript, and Vite on GitHub Pages. Supabase provides a
 - One replaceable photo per guest per challenge
 - In-browser photo resizing before upload
 - Up to three equal votes for distinct photos; self-voting allowed
-- TV-only 3-2-1 podium scoring with competition ranking for ties
+- TV-only leaderboard ranked by total votes received, with competition ranking for ties
 - Informational, device-local timer configured from TV mode
 - Optional Spotify Premium playback in TV mode through a resizable Spotify Connect player
 - Built-in tutorial walkthrough for first-time guests
 - Developer references for the color palette, architecture, database design, security and operations, repository files, and GitHub project progress, plus run-of-show, host password, and photo export runbooks under `/developer/`
 - Anonymous photographer names during voting
-- TV mode with a newest-first two-row scrolling Gallery, challenge-by-challenge Voting, How to Play, QR join codes, keyboard navigation, full-photo previews, and a host-confirmed final scoreboard
+- TV mode with a newest-first two-row scrolling Gallery, challenge-by-challenge Voting, protected challenge-winner reveals, How to Play, QR join codes, keyboard navigation, full-photo previews, and a host-confirmed final scoreboard
 - Full-resolution HEIC/JPEG originals preserved alongside optimized game copies
 - Always-visible storage meter against the Supabase Free 1 GB quota
 - One-click originals export to a local ZIP (folder per challenge) with a pre-download tree preview on the Photo Export Runbook page
@@ -172,7 +172,8 @@ The Web Playback SDK is for eligible noncommercial integrations. Music playback 
 3. Start the informational timer on the display device. It does not lock app actions.
 4. During photo time, leave TV **Gallery** open as a newest-first two-row photo wall; it scrolls horizontally and labels every photo with its challenge.
 5. When photo time ends, open TV **Voting** and move through one challenge at a time. Guests select and confirm one, two, or three photos on their phones and may revisit a saved ballot.
-6. Continue through all challenges, then use **Reveal final scores** in the TV Voting footer to show the winners.
+6. After each round, use **Reveal challenge winner** and confirm the host prompt to show that challenge's winning photo or tied photos.
+7. Continue through all challenges, then use **Reveal final scores** in the TV Voting footer. The overall winner is the guest with the most votes received across every challenge.
 
 Use the left and right arrow keys in TV Voting to switch challenges. Interacting with Gallery pauses its automatic movement temporarily. Press **Exit TV mode** or Escape to leave TV mode.
 

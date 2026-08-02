@@ -3,6 +3,7 @@ import { QRCodeSVG } from 'qrcode.react'
 import type { Challenge, Submission } from '../types'
 import { getSubmissions } from '../lib/api'
 import { sortGallerySubmissions } from '../lib/gallery'
+import { getWinningPhotoIds } from '../lib/scoring'
 import { Timer } from './Timer'
 import { Tutorial } from './Tutorial'
 import { Leaderboard } from './Leaderboard'
@@ -30,6 +31,8 @@ export function DisplayView({ challenges, refreshToken, spotifyAuthorizationErro
   const [scoresRevealed, setScoresRevealed] = useState(false)
   const [scoresSettled, setScoresSettled] = useState(false)
   const [hidingScores, setHidingScores] = useState(false)
+  const [confirmingChallengeWinner, setConfirmingChallengeWinner] = useState(false)
+  const [challengeWinnerRevealed, setChallengeWinnerRevealed] = useState(false)
   const scoreCloseTimer = useRef<number | null>(null)
   const scoreHideStartTimer = useRef<number | null>(null)
   const scoreOpenTimer = useRef<number | null>(null)
@@ -105,18 +108,20 @@ export function DisplayView({ challenges, refreshToken, spotifyAuthorizationErro
     function onKey(event: KeyboardEvent) {
       if (event.key === 'Escape') {
         if (previewPhotoId) closePhotoPreview()
+        else if (confirmingChallengeWinner) setConfirmingChallengeWinner(false)
+        else if (challengeWinnerRevealed) setChallengeWinnerRevealed(false)
         else if (confirmingScores) setConfirmingScores(false)
         else if (scoresMounted) hideScores()
         else onExit()
         return
       }
       const delta = event.key === 'ArrowLeft' ? -1 : event.key === 'ArrowRight' ? 1 : 0
-      if (!delta || previewPhotoId || !challenges.length || page !== 'voting') return
+      if (!delta || previewPhotoId || confirmingChallengeWinner || challengeWinnerRevealed || !challenges.length || page !== 'voting') return
       setIndex((current) => (current + delta + challenges.length) % challenges.length)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [challenges.length, confirmingScores, onExit, page, previewPhotoId, scoresMounted])
+  }, [challengeWinnerRevealed, challenges.length, confirmingChallengeWinner, confirmingScores, onExit, page, previewPhotoId, scoresMounted])
 
   useEffect(() => {
     if (previewPhotoId) {
@@ -142,9 +147,17 @@ export function DisplayView({ challenges, refreshToken, spotifyAuthorizationErro
   const previewPhotoIndex = previewPhotoId ? displayedPhotos.findIndex((photo) => photo.id === previewPhotoId) : -1
   const previewChallenge = previewPhoto ? challengeById.get(previewPhoto.challenge_id) : undefined
   const voteTarget = Math.min(3, votingPhotos.length)
+  const challengeWinners = useMemo(() => {
+    const photoById = new Map(votingPhotos.map((photo) => [photo.id, photo]))
+    return getWinningPhotoIds(votingPhotos.map((photo) => ({ id: photo.id, votes: photo.voteCount ?? 0 })))
+      .map((photoId) => photoById.get(photoId))
+      .filter((photo): photo is Submission => Boolean(photo))
+  }, [votingPhotos])
 
   function move(delta: number) {
     if (!challenges.length) return
+    setConfirmingChallengeWinner(false)
+    setChallengeWinnerRevealed(false)
     setIndex((current) => (current + delta + challenges.length) % challenges.length)
   }
 
@@ -174,6 +187,8 @@ export function DisplayView({ challenges, refreshToken, spotifyAuthorizationErro
       setScoresSettled(false)
       setHidingScores(false)
     }
+    setConfirmingChallengeWinner(false)
+    setChallengeWinnerRevealed(false)
     setPage(nextPage)
   }
 
@@ -196,6 +211,8 @@ export function DisplayView({ challenges, refreshToken, spotifyAuthorizationErro
     if (scoreOpenTimer.current) window.clearTimeout(scoreOpenTimer.current)
     if (scoreSettleTimer.current) window.clearTimeout(scoreSettleTimer.current)
     setConfirmingScores(false)
+    setConfirmingChallengeWinner(false)
+    setChallengeWinnerRevealed(false)
     setHidingScores(false)
     setScoresMounted(true)
     setScoresSettled(false)
@@ -212,6 +229,12 @@ export function DisplayView({ challenges, refreshToken, spotifyAuthorizationErro
         scoreSettleTimer.current = null
       }, SCORE_DRAWER_TRANSITION_MS)
     }, SCORE_DRAWER_OPEN_DELAY_MS)
+  }
+
+  function revealChallengeWinner(event: React.FormEvent) {
+    event.preventDefault()
+    setConfirmingChallengeWinner(false)
+    setChallengeWinnerRevealed(true)
   }
 
   function hideScores() {
@@ -402,16 +425,26 @@ export function DisplayView({ challenges, refreshToken, spotifyAuthorizationErro
           <span>{prefersReducedMotion ? 'Reduced motion · manual scroll' : galleryPaused ? 'Carousel paused' : 'Newest first · moving right'}</span>
         </> : page === 'voting' ? <>
           <span>{votingPhotos.length} anonymous submissions</span>
-          <button
-            className="button button--dark display-score-toggle"
-            type="button"
-            aria-expanded={scoresRevealed}
-            aria-controls="final-scores"
-            disabled={hidingScores}
-            onClick={() => scoresRevealed ? hideScores() : setConfirmingScores(true)}
-          >
-            {hidingScores ? 'Hiding scores…' : scoresRevealed ? 'Hide scores' : 'Reveal final scores'}
-          </button>
+          <div className="display-result-actions">
+            <button
+              className="button display-score-toggle"
+              type="button"
+              aria-haspopup="dialog"
+              onClick={() => setConfirmingChallengeWinner(true)}
+            >
+              Reveal challenge winner
+            </button>
+            <button
+              className="button button--dark display-score-toggle"
+              type="button"
+              aria-expanded={scoresRevealed}
+              aria-controls="final-scores"
+              disabled={hidingScores}
+              onClick={() => scoresRevealed ? hideScores() : setConfirmingScores(true)}
+            >
+              {hidingScores ? 'Hiding scores…' : scoresRevealed ? 'Hide scores' : 'Reveal final scores'}
+            </button>
+          </div>
           <span>← → to change challenge</span>
         </> : <>
           <span>House Photo Hunt</span>
@@ -432,6 +465,37 @@ export function DisplayView({ challenges, refreshToken, spotifyAuthorizationErro
               <button className="button button--dark">Reveal scores</button>
             </div>
           </form>
+        </div>
+      )}
+
+      {confirmingChallengeWinner && (
+        <div className="name-dialog score-reveal-dialog" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setConfirmingChallengeWinner(false) }}>
+          <form role="dialog" aria-modal="true" aria-labelledby="challenge-winner-confirm-title" onSubmit={revealChallengeWinner}>
+            <span className="eyebrow">Host action · {challenge.title}</span>
+            <h2 id="challenge-winner-confirm-title">Reveal challenge winner?</h2>
+            <p className="dialog-warning">This shows the winning photographer and vote count to the room. Confirm that voting for this challenge is finished.</p>
+            <div>
+              <button className="button" type="button" autoFocus onClick={() => setConfirmingChallengeWinner(false)}>Cancel</button>
+              <button className="button button--dark">Reveal winner</button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {challengeWinnerRevealed && (
+        <div className="name-dialog challenge-winner-dialog" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setChallengeWinnerRevealed(false) }}>
+          <section role="dialog" aria-modal="true" aria-labelledby="challenge-winner-title">
+            <header>
+              <div><span className="eyebrow">Challenge {String(index + 1).padStart(2, '0')} winner{challengeWinners.length === 1 ? '' : 's'}</span><h2 id="challenge-winner-title">{challenge.title}</h2></div>
+              <button className="button" type="button" autoFocus onClick={() => setChallengeWinnerRevealed(false)}>Close</button>
+            </header>
+            {challengeWinners.length ? <div className="challenge-winner-grid">
+              {challengeWinners.map((winner) => <figure key={winner.id}>
+                <img src={winner.photoUrl} alt={`Winning submission by ${winner.ownerName ?? 'a guest'}`} />
+                <figcaption><strong>{winner.ownerName ?? 'Guest'}</strong><span>{winner.voteCount ?? 0} {winner.voteCount === 1 ? 'vote' : 'votes'}</span></figcaption>
+              </figure>)}
+            </div> : <div className="challenge-winner-empty"><strong>No winner yet.</strong><p>This challenge has not received any votes.</p></div>}
+          </section>
         </div>
       )}
     </div>
