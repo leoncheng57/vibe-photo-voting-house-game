@@ -20,10 +20,10 @@ export function Leaderboard({ refreshToken, highlightPodium = false }: { refresh
     <div>
       <header className="section-heading section-heading--leaderboard">
         <div>
-          <span className="eyebrow">03 / Eternal house glory</span>
+          <span className="eyebrow">Most votes wins / Eternal house glory</span>
           <h2>The<br />leaderboard.</h2>
         </div>
-        <p>Each challenge awards 3 points for first, 2 for second, and 1 for third. Tied photos share rank points.</p>
+        <p>Every vote received across every challenge counts toward the total. Tied totals share the same rank.</p>
       </header>
       {error && <div className="notice notice--error">{error}</div>}
       <ol className="leaderboard">
@@ -33,7 +33,7 @@ export function Leaderboard({ refreshToken, highlightPodium = false }: { refresh
             <span className="leaderboard__rank">{String(entry.rank).padStart(2, '0')}</span>
             <strong>{entry.display_name}</strong>
             <span>{entry.wins} {entry.wins === 1 ? 'win' : 'wins'}</span>
-            <b>{entry.points}<small> pts</small></b>
+            <b>{entry.votes}<small> {entry.votes === 1 ? 'vote' : 'votes'}</small></b>
           </li>
         })}
       </ol>

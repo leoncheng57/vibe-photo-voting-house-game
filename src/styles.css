@@ -286,7 +286,20 @@ img { display: block; max-width: 100%; }
 .display-view--scores-revealed .display-footer { right: 100px; left: 100px; }
 .display-view--scores-revealed .display-footer { padding-inline: 4rem; }
 .display-score-toggle { min-height: 34px; padding: .35rem .75rem; box-shadow: 3px 3px 0 var(--ink); font-size: .65rem; }
+.display-result-actions { display: flex; align-items: center; gap: .65rem; }
 .score-reveal-dialog form { box-shadow: 10px 10px 0 var(--pool); }
+.challenge-winner-dialog > section { width: min(1100px, 100%); max-height: calc(100vh - 2rem); overflow: auto; border: var(--line); background: var(--paper); padding: clamp(1rem, 3vw, 2rem); box-shadow: 10px 10px 0 var(--sky); }
+.challenge-winner-dialog header { display: flex; align-items: start; justify-content: space-between; gap: 1rem; margin-bottom: 1.5rem; border-bottom: var(--line); padding-bottom: 1rem; }
+.challenge-winner-dialog h2 { margin: .25rem 0 0; font-size: clamp(2.2rem, 6vw, 5.5rem); }
+.challenge-winner-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 1.25rem; }
+.challenge-winner-grid figure { overflow: hidden; margin: 0; border: var(--line); background: white; box-shadow: 5px 5px 0 var(--ink); }
+.challenge-winner-grid img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: contain; background: var(--ink); }
+.challenge-winner-grid figcaption { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem; text-transform: uppercase; }
+.challenge-winner-grid figcaption strong { font: 900 clamp(1.1rem, 2vw, 1.7rem)/1 Arial Black, Arial, sans-serif; }
+.challenge-winner-grid figcaption span { flex: 0 0 auto; font-size: .75rem; font-weight: 900; }
+.challenge-winner-empty { border: var(--line); background: var(--powder); padding: clamp(2rem, 8vw, 6rem); text-align: center; box-shadow: 6px 6px 0 var(--ink); }
+.challenge-winner-empty strong { font: 900 clamp(2.2rem, 7vw, 6rem)/.9 Arial Black, Arial, sans-serif; letter-spacing: -.06em; text-transform: uppercase; }
+.challenge-winner-empty p { margin: 1rem 0 0; font: 700 1.1rem Georgia, serif; }
 .spotify-player { position: fixed; bottom: 4.9rem; z-index: 24; display: grid; grid-template-rows: 36px minmax(0, 1fr); min-width: 300px; min-height: 132px; max-width: calc(100vw - 32px); max-height: calc(100vh - 130px); overflow: hidden; border: var(--line); color: var(--paper); background: var(--ink); box-shadow: 7px 7px 0 var(--sky); }
 .spotify-player--right { right: 2rem; }
 .spotify-player--left { left: 2rem; }
@@ -421,6 +434,8 @@ img { display: block; max-width: 100%; }
   .display-score-drawer { top: 18px; right: 50px; bottom: 58px; left: 50px; }
   .display-score-drawer .section-heading h2 { font-size: clamp(2.4rem, 9vw, 4rem); }
   .display-footer--voting { padding-inline: 2.5rem; }
+  .display-result-actions { gap: .35rem; }
+  .display-score-toggle { padding-inline: .45rem; font-size: .55rem; }
   .display-view--voting .display-footer { right: 18px; bottom: 18px; left: 18px; }
   .display-view--scores-revealed .display-footer { right: 50px; left: 50px; padding-inline: 1.5rem; }
   .display-gallery-intro h1 { font-size: clamp(2rem, 9vw, 3.6rem); }
@@ -432,6 +447,7 @@ img { display: block; max-width: 100%; }
   .display-footer { grid-template-columns: 1fr auto; gap: .5rem; padding: .65rem 1rem; font-size: .58rem; }
   .display-footer > *:nth-child(2) { justify-self: end; }
   .display-footer > *:nth-child(3) { display: none; }
+  .display-result-actions { justify-self: end; }
   .display-gallery-join { gap: 0; padding: .3rem; box-shadow: 3px 3px 0 var(--sky); }
   .display-gallery-join > div { display: none; }
   .display-gallery-join svg { width: 48px; height: 48px; }

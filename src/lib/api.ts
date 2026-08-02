@@ -311,9 +311,8 @@ export async function submitVotes(challengeId: number, selections: Array<{ id: s
 export async function getLeaderboard(): Promise<LeaderboardEntry[]> {
   const { data, error } = await client()
     .from('leaderboard')
-    .select('user_id, display_name, points, wins')
-    .order('points', { ascending: false })
-    .order('wins', { ascending: false })
+    .select('user_id, display_name, votes, wins')
+    .order('votes', { ascending: false })
     .order('display_name')
   if (error) throw error
   return data

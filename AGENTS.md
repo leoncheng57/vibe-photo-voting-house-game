@@ -12,7 +12,7 @@ House Party Photo Hunt is a mobile-first party photo challenge. The frontend is 
 - `src/lib/images.ts`: browser photo pipeline — original preservation/optimization plus the 2400 px game JPEG
 - `src/lib/photo-policy.ts`: pure size thresholds, encode ladders, export naming, and storage meter math (unit tested)
 - `src/lib/zip.ts`: dependency-free store-only ZIP writer for the originals export (unit tested)
-- `src/lib/scoring.ts`: client-side podium and leaderboard helpers
+- `src/lib/scoring.ts`: client-side vote ranking and challenge-winner helpers
 - `src/types.ts`: shared application types
 - `src/styles.css`: main application styles and responsive behavior
 - `src/developer-system.tsx` and `src/developer-system.css`: developer system reference page

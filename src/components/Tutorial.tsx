@@ -31,8 +31,8 @@ const steps = [
   {
     number: '05',
     title: 'Reveal the room',
-    copy: 'After every challenge is voted on, reveal the final scores from the TV Voting footer and celebrate the winners.',
-    note: 'First gets 3 points, second gets 2, and third gets 1. Ties share rank points.',
+    copy: 'Reveal each challenge winner from TV Voting, then reveal the final leaderboard after every challenge is complete.',
+    note: 'Every vote received counts. The guest with the most total votes wins, and tied totals share a rank.',
   },
 ]
 
@@ -81,7 +81,7 @@ export function Tutorial({ onBack, variant = 'guest' }: Props) {
           <li><b>6</b><span>photo challenges</span></li>
           <li><b>1</b><span>entry per person per challenge</span></li>
           <li><b>3 max</b><span>equal votes per voting round</span></li>
-          <li><b>3·2·1</b><span>podium points</span></li>
+          <li><b>Most</b><span>total votes wins</span></li>
         </ul>
       </section>
 
