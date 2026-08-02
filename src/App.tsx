@@ -8,6 +8,7 @@ import { Timer } from './components/Timer'
 import { Tutorial } from './components/Tutorial'
 import { VoteView } from './components/VoteView'
 import { createProfile, ensureAnonymousUser, getChallenges, getPartyStatus, getProfile, invalidatePhoto, joinParty, signOut, updateProfile } from './lib/api'
+import { errorMessage } from './lib/errors'
 import { isSupabaseConfigured, supabase } from './lib/supabase'
 import { useStorageUsage } from './lib/useStorageUsage'
 import { getViewFromSearch, getViewUrl } from './lib/view-navigation'
@@ -67,7 +68,7 @@ function PassphraseGate({ onJoined, onTutorial }: { onJoined: () => Promise<void
       await joinParty(passphrase.trim())
       await onJoined()
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : 'Could not unlock the party.')
+      setError(errorMessage(reason, 'Could not unlock the party.'))
       setBusy(false)
     }
   }
@@ -107,7 +108,7 @@ function JoinForm({ user, profile, onJoined, onTutorial }: { user: User; profile
     try {
       onJoined(profile ? await updateProfile(user.id, name) : await createProfile(user.id, name))
     } catch (reason) {
-      const message = reason instanceof Error ? reason.message : 'Could not join.'
+      const message = errorMessage(reason, 'Could not join.')
       setError(message.includes('profiles_display_name_unique') ? 'That name is already taken.' : message)
     } finally {
       setBusy(false)
@@ -249,7 +250,7 @@ export default function App() {
       setProfile(await updateProfile(currentUser.id, nextName))
       setEditingName(false)
     } catch (reason) {
-      const message = reason instanceof Error ? reason.message : 'Could not change your name.'
+      const message = errorMessage(reason, 'Could not change your name.')
       setNameError(message.includes('profiles_display_name_unique') ? 'That name is already taken.' : message)
     } finally {
       setSavingName(false)
@@ -270,7 +271,7 @@ export default function App() {
       await signOut()
       location.assign(appRoot)
     } catch (reason) {
-      setLeaveError(reason instanceof Error ? reason.message : 'Could not leave the party.')
+      setLeaveError(errorMessage(reason, 'Could not leave the party.'))
       setLeaving(false)
     }
   }

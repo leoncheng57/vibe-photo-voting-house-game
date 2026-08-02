@@ -59,6 +59,14 @@ export interface OriginalRecord {
   createdAt: string
 }
 
+export interface OriginalCleanupStatus {
+  versionId: string
+  originalPath: string
+  approved: boolean
+  objectExists: boolean
+  deletionRecorded: boolean
+}
+
 export interface LeaderboardEntry {
   user_id: string
   display_name: string

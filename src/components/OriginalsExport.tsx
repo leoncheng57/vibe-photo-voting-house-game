@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { downloadOriginal, getAllOriginals, getPartyStatus } from '../lib/api'
 import { errorMessage } from '../lib/errors'
-import { buildOriginalCleanupSql, originalVersionLabel, planOriginalArchive } from '../lib/original-export'
+import { buildOriginalCleanupSql, originalVersionLabel, planOriginalArchive, type OriginalExportSession } from '../lib/original-export'
 import { archiveStatusLabel, formatBytes } from '../lib/photo-policy'
 import { zipBlob, type ZipEntry } from '../lib/zip'
 import { isSupabaseConfigured } from '../lib/supabase'
@@ -18,13 +18,13 @@ interface Progress {
 
 const ZIP_NAME = 'house-photo-hunt-originals.zip'
 
-export function OriginalsExport() {
+export function OriginalsExport({ onExported, refreshToken = 0 }: { onExported?: (session: OriginalExportSession) => void; refreshToken?: number }) {
   const [status, setStatus] = useState<Status>(isSupabaseConfigured ? 'loading' : 'unconfigured')
   const [records, setRecords] = useState<OriginalRecord[] | null>(null)
   const [progress, setProgress] = useState<Progress | null>(null)
   const [message, setMessage] = useState('')
   const cancelRef = useRef(false)
-  const storageUsage = useStorageUsage(status === 'ready', 0)
+  const storageUsage = useStorageUsage(status === 'ready', refreshToken)
 
   useEffect(() => {
     if (!isSupabaseConfigured) return
@@ -42,7 +42,7 @@ export function OriginalsExport() {
       })
       .catch(() => { if (active) setStatus('not-member') })
     return () => { active = false }
-  }, [])
+  }, [refreshToken])
 
   const folders = useMemo(() => planOriginalArchive(records ?? []), [records])
   const totalFiles = folders.reduce((total, folder) => total + folder.files.length, 0)
@@ -108,9 +108,10 @@ export function OriginalsExport() {
       })
 
       const versionIds = folders.flatMap((folder) => folder.files.map((file) => file.record.versionId))
+      const cleanupSql = buildOriginalCleanupSql(versionIds)
       entries.push({
         name: 'cleanup.sql',
-        data: new TextEncoder().encode(buildOriginalCleanupSql(versionIds)),
+        data: new TextEncoder().encode(cleanupSql),
       })
 
       const archive = zipBlob(entries)
@@ -120,6 +121,7 @@ export function OriginalsExport() {
       anchor.download = ZIP_NAME
       anchor.click()
       URL.revokeObjectURL(url)
+      onExported?.({ versionIds, cleanupSql, totalFiles, totalBytes, archiveBytes: archive.size })
       setMessage(`ZIP with ${totalFiles} original versions (${formatBytes(archive.size)}) saved. Verify it opens and back it up before any cleanup.`)
     } catch (error) {
       setMessage(errorMessage(error, 'Export failed.'))

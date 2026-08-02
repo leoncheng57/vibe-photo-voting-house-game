@@ -167,7 +167,7 @@ Egress adds up too: every guest device downloads every game copy, and each origi
 
 ### Original Photo Export
 
-Any active party member can download every physically stored original version as one ZIP from **Developer → Photo Export Runbook** (`/developer/photo-export/`) on a desktop browser. The preview labels current, superseded, and recovery copies; `manifest.json` records each version ID, state, current status, upload time, provenance, and Storage path. Participant replacement and upload failures never clean up original bytes. After verifying and backing up the ZIP, only the host uses the runbook SQL and Storage dashboard to approve, detach, delete, and tombstone exported versions.
+Any active party member can download every physically stored original version as one ZIP from **Developer → Photo Export Runbook** (`/developer/photo-export/`) on a desktop browser. The preview labels current, superseded, and recovery copies; `manifest.json` records each version ID, state, current status, upload time, provenance, and Storage path. Participant replacement and upload failures never clean up original bytes. After download, a gated checklist shows the exact generated cleanup SQL, verifies host approval, deletes only those approved Storage paths through RLS, records tombstones, and refreshes the storage meter. Newer uploads are outside the export's version IDs and cannot be deleted by that cleanup.
 
 Submissions made before the originals feature only have game copies. `scripts/backfill-legacy-originals.mjs` (run locally with the service-role key; see the script header) copies those JPEGs into `photo-originals` with `original_status = 'legacy'` so they are included in exports.
 
