@@ -9,7 +9,7 @@ import { Leaderboard } from './Leaderboard'
 
 const SCORE_DRAWER_TRANSITION_MS = 320
 const SCORE_DRAWER_OPEN_DELAY_MS = 20
-const GALLERY_SCROLL_PIXELS_PER_SECOND = 16
+const GALLERY_SCROLL_PIXELS_PER_SECOND = 40
 const GALLERY_SCROLL_EDGE_PAUSE_MS = 1800
 const GALLERY_SCROLL_INTERACTION_PAUSE_MS = 5000
 type DisplayPage = 'gallery' | 'voting' | 'tutorial'
@@ -266,7 +266,21 @@ export function DisplayView({ challenges, refreshToken, onExit }: { challenges: 
             <div><span className="eyebrow">Newest first · live from the house</span><h1>Every shot. One gallery.</h1></div>
             <div className="display-gallery-motion">
               <p>{galleryPhotos.length} photos across {challenges.length} challenges. Two rows move continuously to the right.</p>
-              <button className="button button--dark" type="button" aria-pressed={galleryPaused} disabled={prefersReducedMotion} onClick={toggleGalleryMotion}>{prefersReducedMotion ? 'Motion disabled' : galleryPaused ? 'Play carousel' : 'Pause carousel'}</button>
+              <button
+                className="button button--dark display-gallery-motion__toggle"
+                type="button"
+                aria-label={prefersReducedMotion ? 'Carousel motion disabled' : galleryPaused ? 'Play carousel' : 'Pause carousel'}
+                title={prefersReducedMotion ? 'Carousel motion disabled' : galleryPaused ? 'Play carousel' : 'Pause carousel'}
+                aria-pressed={galleryPaused}
+                disabled={prefersReducedMotion}
+                onClick={toggleGalleryMotion}
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  {galleryPaused
+                    ? <path d="M8 5v14l11-7z" />
+                    : <><path d="M6 5h4v14H6z" /><path d="M14 5h4v14h-4z" /></>}
+                </svg>
+              </button>
             </div>
           </header>
           {error && <div className="notice notice--error">{error}</div>}
