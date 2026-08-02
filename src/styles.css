@@ -239,29 +239,41 @@ img { display: block; max-width: 100%; }
 .display-voting-callout > span { font-size: .68rem; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
 .display-voting-callout h1 { margin: .25rem 0; font: 900 clamp(2.2rem, 4vw, 4rem)/.9 Arial Black, Arial, sans-serif; letter-spacing: -.06em; text-transform: uppercase; }
 .display-voting-callout p { margin: .4rem 0 0; font: 700 clamp(.95rem, 1.4vw, 1.2rem)/1.4 Georgia, serif; }
-.display-tutorial-page { display: grid; grid-template-columns: clamp(180px, 14vw, 260px) minmax(0, 1fr) clamp(180px, 14vw, 260px); min-height: calc(100vh - 160px); align-items: center; gap: clamp(2.5rem, 4vw, 5rem); }
-.display-tutorial-page > .tv-tutorial { grid-column: 2; grid-row: 1; width: min(100%, 1200px); justify-self: center; }
-.display-tutorial-summary { grid-column: 1; grid-row: 1; align-self: center; border: var(--line); background: var(--paper); padding: 1.2rem; box-shadow: 7px 7px 0 var(--ink); }
-.display-tutorial-summary dl { margin: 1rem 0 0; border-top: 2px solid var(--ink); }
-.display-tutorial-summary dl > div { display: grid; grid-template-columns: 72px 1fr; align-items: center; min-height: 72px; border-bottom: 2px solid var(--ink); }
-.display-tutorial-summary dt { font: italic 900 1.8rem/1 Georgia, serif; }
-.display-tutorial-summary dd { margin: 0; font-size: .7rem; font-weight: 900; text-transform: uppercase; }
+.display-tutorial-page { display: grid; grid-template-columns: clamp(210px, 18vw, 300px) minmax(420px, 1fr) clamp(180px, 14vw, 240px); min-height: calc(100vh - 160px); align-items: center; gap: clamp(1rem, 2vw, 2.5rem); padding: 1.5rem 0; }
+.display-tutorial-page > .tv-tutorial { grid-column: 1; grid-row: 1; align-self: center; overflow: hidden; border: var(--line); background: var(--paper); box-shadow: 7px 7px 0 var(--ink); text-align: left; }
 .display-tutorial-join { grid-column: 3; grid-row: 1; display: grid; justify-items: center; border: var(--line); color: var(--paper); background: var(--ink); padding: 1.2rem; text-align: center; box-shadow: 7px 7px 0 var(--ink); }
 .display-tutorial-join svg { width: min(220px, 100%); height: auto; margin: 1rem 0; }
 .display-tutorial-join strong { font: 900 1.5rem/1 Arial Black, Arial, sans-serif; text-transform: uppercase; }
 .display-tutorial-join p { margin: .5rem 0 0; font: 700 .85rem Georgia, serif; }
-.tv-tutorial { padding: clamp(1.5rem, 4vh, 3rem) 0 1rem; text-align: center; }
-.tv-tutorial > header h1 { margin: .3rem 0; font: 900 clamp(3.5rem, 7vw, 7rem)/.85 Arial Black, Arial, sans-serif; letter-spacing: -.07em; text-transform: uppercase; }
-.tv-tutorial > header p { margin: .6rem auto 1.5rem; font: 700 clamp(1rem, 1.5vw, 1.3rem)/1.4 Georgia, serif; }
-.tv-tutorial > div { display: grid; grid-template-columns: 1fr; border-top: var(--line); border-left: var(--line); text-align: left; }
-.tv-tutorial article { display: grid; grid-template-columns: 64px minmax(170px, .65fr) 1fr; min-height: 132px; align-items: center; gap: 1rem; border-right: var(--line); border-bottom: var(--line); background: white; padding: 1.2rem; }
+.tv-tutorial > header { padding: clamp(1rem, 2vw, 1.5rem); }
+.tv-tutorial > header h1 { margin: .35rem 0; font: 900 clamp(2.4rem, 3.4vw, 4rem)/.82 Arial Black, Arial, sans-serif; letter-spacing: -.07em; text-transform: uppercase; }
+.tv-tutorial > header p { margin: .7rem 0 0; font: 700 clamp(.84rem, 1vw, 1rem)/1.4 Georgia, serif; }
+.tv-tutorial > div { display: grid; grid-template-columns: 1fr; border-top: var(--line); text-align: left; }
+.tv-tutorial article { display: grid; grid-template-columns: 38px 1fr; align-items: start; gap: .4rem .7rem; border-bottom: var(--line); padding: 1rem; }
+.tv-tutorial article:last-child { border-bottom: 0; }
 .tv-tutorial article:nth-child(1) { background: var(--sky); }
 .tv-tutorial article:nth-child(2) { background: var(--pool); }
 .tv-tutorial article:nth-child(3) { background: var(--powder); }
-.tv-tutorial article b { grid-column: 1; font: italic 900 2.5rem/1 Georgia, serif; }
-.tv-tutorial article h2 { grid-column: 2; margin: 0; font: 900 clamp(1.25rem, 2vw, 2rem)/1 Arial Black, Arial, sans-serif; text-transform: uppercase; }
-.tv-tutorial article p { margin: 0; font: 700 clamp(.85rem, 1vw, 1rem)/1.4 Georgia, serif; }
+.tv-tutorial article b { grid-column: 1; font: italic 900 1.45rem/1 Georgia, serif; }
+.tv-tutorial article h2 { grid-column: 2; margin: 0; font: 900 clamp(.9rem, 1.25vw, 1.2rem)/1 Arial Black, Arial, sans-serif; text-transform: uppercase; }
+.tv-tutorial article p { grid-column: 2; margin: 0; font: 700 clamp(.72rem, .85vw, .84rem)/1.35 Georgia, serif; }
 .tv-tutorial > strong { display: block; margin-top: 1.3rem; font-size: .78rem; text-transform: uppercase; }
+.challenge-illustrations { grid-column: 2; grid-row: 1; display: grid; width: min(100%, 820px); grid-template-columns: repeat(2, minmax(0, 1fr)); align-content: center; justify-self: center; gap: clamp(.65rem, 1.2vw, 1rem); }
+.challenge-illustration { min-width: 0; overflow: hidden; margin: 0; border: var(--line); background: var(--illustration-bg); box-shadow: 5px 5px 0 var(--ink); }
+.challenge-illustration--1 { --illustration-bg: var(--sky); --illustration-accent: #f4df73; --illustration-light: var(--ice); }
+.challenge-illustration--2 { --illustration-bg: var(--pool); --illustration-accent: #f4b8aa; --illustration-light: var(--ice); }
+.challenge-illustration--3 { --illustration-bg: var(--powder); --illustration-accent: #cbb7e8; --illustration-light: var(--ice); }
+.challenge-illustration--4 { --illustration-bg: var(--sky); --illustration-accent: #f4df73; --illustration-light: var(--ice); }
+.challenge-illustration--5 { --illustration-bg: var(--pool); --illustration-accent: #ef9f91; --illustration-light: var(--ice); }
+.challenge-illustration--6 { --illustration-bg: var(--powder); --illustration-accent: #cbb7e8; --illustration-light: var(--ice); }
+.challenge-illustration > div { height: clamp(120px, 16vh, 170px); padding: clamp(.25rem, .6vw, .5rem); }
+.challenge-illustration svg { display: block; width: 100%; height: 100%; color: var(--ink); fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.challenge-illustration .illustration-fill--paper { fill: var(--paper); }
+.challenge-illustration .illustration-fill--sky { fill: var(--illustration-accent); }
+.challenge-illustration .illustration-fill--light { fill: var(--illustration-light); }
+.challenge-illustration figcaption { display: grid; min-height: 44px; grid-template-columns: 34px 1fr; align-items: center; gap: .5rem; border-top: var(--line); background: var(--paper); padding: .45rem .65rem; text-transform: uppercase; }
+.challenge-illustration figcaption span { font: italic 900 1rem/1 Georgia, serif; }
+.challenge-illustration figcaption strong { font: 900 clamp(.65rem, .8vw, .82rem)/1.05 Arial Black, Arial, sans-serif; }
 .display-score-drawer { position: fixed; top: 30px; right: 100px; bottom: 70px; left: 100px; z-index: 19; overflow: auto; border: var(--line); background: var(--paper); padding: clamp(1.5rem, 4vh, 3rem) clamp(1rem, 4vw, 4rem) 2rem; transform: translateY(calc(100% + 70px)); transition: transform 320ms cubic-bezier(.22, 1, .36, 1); will-change: transform; }
 .display-score-drawer--open { transform: translateY(0); }
 .display-score-drawer--settled { transform: translateY(0); transition: none; }
@@ -393,13 +405,15 @@ img { display: block; max-width: 100%; }
   .display-gallery-intro { align-items: start; flex-direction: column; gap: .5rem; }
   .display-gallery-motion { width: 100%; align-items: center; justify-content: space-between; }
   .display-tutorial-page { grid-template-columns: 1fr; gap: 2rem; }
-  .display-tutorial-page > .tv-tutorial { grid-column: 1; grid-row: 1; }
-  .display-tutorial-summary { grid-column: 1; grid-row: 2; width: min(420px, 100%); justify-self: center; }
+  .display-tutorial-page > .tv-tutorial { grid-column: 1; grid-row: 1; width: min(620px, 100%); justify-self: center; }
+  .challenge-illustrations { grid-column: 1; grid-row: 2; }
   .display-tutorial-join { grid-column: 1; grid-row: 3; width: min(420px, 100%); justify-self: center; }
-  .tv-tutorial > div { grid-template-columns: 1fr; }
+  .challenge-illustration > div { height: auto; }
+  .challenge-illustration svg { height: auto; }
 }
 
 @media (max-width: 650px) {
+  .challenge-illustrations { grid-template-columns: 1fr; }
   .display-view--voting::after { border-width: 18px; }
   .display-view--scores-revealed::after { border-width: 18px 50px; }
   .display-view--voting { padding: calc(18px + 1rem) calc(18px + 1.5rem) calc(18px + 6rem); }

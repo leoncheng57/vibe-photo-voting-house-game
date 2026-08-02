@@ -7,6 +7,7 @@ import { Timer } from './Timer'
 import { Tutorial } from './Tutorial'
 import { Leaderboard } from './Leaderboard'
 import { SpotifyPlayer } from './SpotifyPlayer'
+import { ChallengeIllustrations } from './ChallengeIllustrations'
 
 const SCORE_DRAWER_TRANSITION_MS = 320
 const SCORE_DRAWER_OPEN_DELAY_MS = 20
@@ -357,15 +358,8 @@ export function DisplayView({ challenges, refreshToken, spotifyAuthorizationErro
       </>}
 
       {page === 'tutorial' && <div className="display-tutorial-page">
-        <aside className="display-tutorial-summary" aria-label="Game at a glance">
-          <span className="eyebrow">Game at a glance</span>
-          <dl>
-            <div><dt>6</dt><dd>photo challenges</dd></div>
-            <div><dt>1</dt><dd>photo for each</dd></div>
-            <div><dt>3 max</dt><dd>votes per round</dd></div>
-          </dl>
-        </aside>
         <Tutorial variant="tv" />
+        <ChallengeIllustrations challenges={challenges} />
         <aside className="display-tutorial-join" aria-label="Join the party">
           <span className="eyebrow">Join on your phone</span>
           <QRCodeSVG value={joinUrl} size={220} bgColor="transparent" fgColor="#f5f8f7" />
