@@ -70,7 +70,7 @@ export interface OriginalCleanupStatus {
 export interface LeaderboardEntry {
   user_id: string
   display_name: string
-  points: number
+  votes: number
   wins: number
 }
 

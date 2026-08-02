@@ -2,16 +2,15 @@ export interface ScoredPhoto {
   id: string
   votes: number
   rank: number
-  points: number
 }
 
-export function rankLeaderboardEntries<T extends { points: number; wins: number }>(entries: T[]): Array<T & { rank: number }> {
-  let previous: T | undefined
+export function rankLeaderboardEntries<T extends { votes: number }>(entries: T[]): Array<T & { rank: number }> {
+  let previousVotes: number | undefined
   let rank = 0
 
   return entries.map((entry, index) => {
-    if (!previous || entry.points !== previous.points || entry.wins !== previous.wins) rank = index + 1
-    previous = entry
+    if (entry.votes !== previousVotes) rank = index + 1
+    previousVotes = entry.votes
     return { ...entry, rank }
   })
 }
@@ -28,7 +27,12 @@ export function scorePhotos(photos: Array<{ id: string; votes: number }>): Score
     return {
       ...photo,
       rank,
-      points: photo.votes > 0 && rank <= 3 ? 4 - rank : 0,
     }
   })
+}
+
+export function getWinningPhotoIds(photos: Array<{ id: string; votes: number }>): string[] {
+  return scorePhotos(photos)
+    .filter((photo) => photo.rank === 1 && photo.votes > 0)
+    .map((photo) => photo.id)
 }

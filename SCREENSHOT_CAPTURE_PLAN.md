@@ -23,7 +23,7 @@ Before saving any screenshot:
 
 - Replace every rendered photo with generated artwork or a repository-owned fixture.
 - Replace visible profile names with `Demo Guest`.
-- Replace leaderboard names, wins, and scores with synthetic presentation data.
+- Replace leaderboard names, wins, and vote totals with synthetic presentation data.
 - Do not reveal voting results, which can expose photographer names.
 - Do not show the Supabase dashboard, object paths, UUIDs, environment values, browser storage, or developer tools.
 - Do not click upload, vote confirmation, profile save, or any other control that writes data.
@@ -165,7 +165,7 @@ cmux browser --surface <surface> screenshot --out "$(pwd)/docs/images/tv-mode-de
 1. Use a desktop-width browser surface, open TV Voting, and confirm **Reveal final scores**.
 2. Wait for `.leaderboard` to load.
 3. Replace `.player-chip strong` with `Demo Guest`.
-4. Replace every leaderboard name, rank, win count, and point total with synthetic presentation data. Remove extra rows if needed.
+4. Replace every leaderboard name, rank, win count, and vote total with synthetic presentation data. Remove extra rows if needed.
 5. Capture immediately so the leaderboard's periodic refresh does not restore live data:
 
 ```bash
