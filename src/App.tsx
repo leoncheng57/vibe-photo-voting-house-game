@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { ChallengeList } from './components/ChallengeList'
 import { DisplayView } from './components/DisplayView'
@@ -10,6 +10,7 @@ import { VoteView } from './components/VoteView'
 import { createProfile, ensureAnonymousUser, getChallenges, getPartyStatus, getProfile, invalidatePhoto, joinParty, signOut, updateProfile } from './lib/api'
 import { errorMessage } from './lib/errors'
 import { isSupabaseConfigured, supabase } from './lib/supabase'
+import { completeSpotifyAuthorization, hasSpotifyAuthorizationCallback } from './lib/spotify'
 import { useStorageUsage } from './lib/useStorageUsage'
 import { getViewFromSearch, getViewUrl } from './lib/view-navigation'
 import type { Challenge, PartyStatus, Profile, View } from './types'
@@ -157,6 +158,9 @@ export default function App() {
   const [confirmingLeave, setConfirmingLeave] = useState(false)
   const [leaveError, setLeaveError] = useState('')
   const [leaving, setLeaving] = useState(false)
+  const [spotifyCallbackPending, setSpotifyCallbackPending] = useState(hasSpotifyAuthorizationCallback)
+  const [spotifyAuthorizationError, setSpotifyAuthorizationError] = useState('')
+  const spotifyCallbackStarted = useRef(false)
   const storageUsage = useStorageUsage(Boolean(profile), submissionToken)
 
   function navigateToView(nextView: View) {
@@ -167,6 +171,17 @@ export default function App() {
   }
 
   useEffect(() => {
+    if (!spotifyCallbackPending || spotifyCallbackStarted.current) return
+    spotifyCallbackStarted.current = true
+    completeSpotifyAuthorization().then((result) => {
+      setSpotifyAuthorizationError(result.error)
+      setSpotifyCallbackPending(false)
+      setView(getViewFromSearch(location.search))
+    })
+  }, [spotifyCallbackPending])
+
+  useEffect(() => {
+    if (spotifyCallbackPending) return
     function syncViewFromUrl() {
       const nextView = getViewFromSearch(location.search)
       const canonicalUrl = getViewUrl(location.pathname, location.search, location.hash, nextView)
@@ -178,7 +193,7 @@ export default function App() {
     syncViewFromUrl()
     window.addEventListener('popstate', syncViewFromUrl)
     return () => window.removeEventListener('popstate', syncViewFromUrl)
-  }, [])
+  }, [spotifyCallbackPending])
 
   useEffect(() => {
     if (!isSupabaseConfigured) return
@@ -277,7 +292,7 @@ export default function App() {
   }
 
   if (view === 'display') {
-    return <DisplayView challenges={challenges} refreshToken={resultsToken} onExit={() => navigateToView('challenges')} />
+    return <DisplayView challenges={challenges} refreshToken={resultsToken} spotifyAuthorizationError={spotifyAuthorizationError} onExit={() => navigateToView('challenges')} />
   }
 
   return (

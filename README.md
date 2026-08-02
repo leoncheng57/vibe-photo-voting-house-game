@@ -4,7 +4,7 @@
   <img src="docs/images/app-icon.png" width="128" alt="House Party Photo Hunt icon: a navy camera on a light blue rounded square">
 </p>
 
-A mobile-first housewarming photo challenge with passphrase-gated entry, anonymous guest profiles, direct photo uploads, up-to-three-vote rounds, TV presentation mode, and a live 3-2-1 leaderboard.
+A mobile-first housewarming photo challenge with passphrase-gated entry, anonymous guest profiles, direct photo uploads, up-to-three-vote rounds, TV presentation mode, optional Spotify playback, and a live 3-2-1 leaderboard.
 
 The frontend is React, TypeScript, and Vite on GitHub Pages. Supabase provides anonymous authentication, PostgreSQL, private photo storage, and realtime updates. No application server or Vercel deployment is required.
 
@@ -46,6 +46,7 @@ The frontend is React, TypeScript, and Vite on GitHub Pages. Supabase provides a
 - Up to three equal votes for distinct photos; self-voting allowed
 - TV-only 3-2-1 podium scoring with competition ranking for ties
 - Informational, device-local timer configured from TV mode
+- Optional Spotify Premium playback in TV mode through a resizable Spotify Connect player
 - Built-in tutorial walkthrough for first-time guests
 - Developer references for the color palette, architecture, database design, security and operations, repository files, and GitHub project progress, plus run-of-show, host password, and photo export runbooks under `/developer/`
 - Anonymous photographer names during voting
@@ -81,11 +82,12 @@ select set_party_passphrase('your-long-passphrase');
 ```
 
 5. Open **Project Settings > API** and copy the project URL and publishable key.
-6. Copy `.env.example` to `.env` and fill in those two public values:
+6. Copy `.env.example` to `.env` and fill in the Supabase public values:
 
 ```dotenv
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_your_key
+VITE_SPOTIFY_CLIENT_ID=your_optional_spotify_client_id
 ```
 
 The publishable key is designed for browser use. Never add a Supabase secret key or service-role key to this repository or the frontend environment.
@@ -122,6 +124,8 @@ npm install
 npm run dev
 ```
 
+Spotify rejects `localhost` redirect URIs. To test Spotify locally, run `npm run dev -- --host 127.0.0.1` and open <http://127.0.0.1:5173/play/?display>.
+
 Validation commands:
 
 ```bash
@@ -136,12 +140,30 @@ See [`SCREENSHOT_CAPTURE_PLAN.md`](SCREENSHOT_CAPTURE_PLAN.md) for the privacy-s
 
 1. In the GitHub repository, open **Settings > Secrets and variables > Actions**.
 2. Add repository secrets named `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`.
-3. Open **Settings > Pages** and select **GitHub Actions** as the source.
-4. Push to `main`, or manually run the **Deploy to GitHub Pages** workflow.
+3. If Spotify playback is enabled, add a repository variable named `VITE_SPOTIFY_CLIENT_ID`. The Client ID is public; never add the Spotify Client Secret.
+4. Open **Settings > Pages** and select **GitHub Actions** as the source.
+5. Push to `main`, or manually run the **Deploy to GitHub Pages** workflow.
 
 The app deploys to:
 
 <https://leoncheng.dev/vibe-photo-voting-house-game/>
+
+## Spotify TV Playback
+
+Spotify playback is optional and appears only in TV mode. It uses Spotify Authorization Code with PKCE and the Web Playback SDK entirely in the browser. The Spotify Client Secret is not used. Access and refresh tokens stay in that browser's local storage and never enter Supabase, GitHub, application URLs, or logs. Disconnecting Spotify clears those tokens. Spotify refresh tokens currently expire after 180 days, after which the host must reconnect.
+
+Create an app in the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard), enable **Web API** and **Web Playback SDK**, and register these exact redirect URIs:
+
+```text
+http://127.0.0.1:5173/play/
+https://leoncheng.dev/vibe-photo-voting-house-game/play/
+```
+
+The Spotify app owner and playback account need an eligible Spotify Premium subscription. Development Mode apps support a limited authorized-user allowlist; add a non-owner playback account under **User Management** before testing it. The player requests `streaming`, `user-read-email`, and `user-read-private` for Web Playback SDK access, plus `user-read-playback-state` and `user-modify-playback-state` for Spotify Connect transfer and control.
+
+In TV mode, select **Connect Spotify**, approve access, and then select **Play on TV**. The explicit second action satisfies browser autoplay rules and transfers the account's current playback to a Spotify Connect device named **House Photo Hunt TV**. If no playback context exists, start a song in the official Spotify app and try again. Once active, the official app on another device can select songs, manage the queue, and control the TV browser.
+
+The Web Playback SDK is for eligible noncommercial integrations. Music playback remains independent of photo gallery movement and transitions; do not synchronize Spotify content to the slideshow.
 
 ## Party Flow
 
