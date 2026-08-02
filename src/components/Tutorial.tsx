@@ -31,7 +31,7 @@ const steps = [
   {
     number: '05',
     title: 'Reveal the room',
-    copy: 'Reveal the results on TV, celebrate the photographers, then advance to the next challenge.',
+    copy: 'After every challenge is voted on, reveal the final scores from the TV Voting footer and celebrate the winners.',
     note: 'First gets 3 points, second gets 2, and third gets 1. Ties share rank points.',
   },
 ]
@@ -87,7 +87,7 @@ export function Tutorial({ onBack, variant = 'guest' }: Props) {
 
       <section className="tutorial-tv-tip">
         <span>Big-screen tip</span>
-        <p>Open <b>TV mode</b> to rotate challenges every 30 seconds. Use the left and right arrow keys to switch early, and press <b>Reveal results</b> after everyone confirms their ballot.</p>
+        <p>TV <b>Gallery</b> scrolls through every submission in two newest-first rows. Switch to <b>Voting</b> and use the left and right arrow keys when the room is ready to vote challenge by challenge.</p>
       </section>
     </div>
   )

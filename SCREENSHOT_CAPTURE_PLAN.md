@@ -152,8 +152,8 @@ cmux browser --surface <surface> screenshot --out "$(pwd)/docs/images/voting-mob
 
 1. Use a desktop-width browser surface.
 2. Open TV mode and wait for `.display-view`.
-3. Replace all `.photo-grid--display img` sources with generated artwork.
-4. Keep the Gallery tab active and results hidden so photographer names do not render.
+3. Replace all `.photo-grid--gallery img` sources with generated artwork.
+4. Keep the Gallery tab active with both challenge-captioned rows visible; Gallery never renders photographer names or vote totals.
 5. Capture:
 
 ```bash
