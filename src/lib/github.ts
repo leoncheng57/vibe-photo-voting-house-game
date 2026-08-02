@@ -38,6 +38,7 @@ export interface GitHubProgressData {
 export interface RepositoryFilesData {
   readme: string
   agents: string | null
+  partyPhases: string | null
   screenshotPlan: string | null
   fetchedAt: Date
 }
@@ -75,15 +76,17 @@ export async function getGitHubProgress(signal: AbortSignal): Promise<GitHubProg
 }
 
 export async function getRepositoryFiles(signal: AbortSignal): Promise<RepositoryFilesData> {
-  const [readme, agents, screenshotPlan] = await Promise.all([
+  const [readme, agents, partyPhases, screenshotPlan] = await Promise.all([
     fetchDocument('README.md', signal),
     fetchDocument('AGENTS.md', signal, true),
+    fetchDocument('PARTY_PHASES.md', signal, true),
     fetchDocument('SCREENSHOT_CAPTURE_PLAN.md', signal, true),
   ])
 
   return {
     readme: readme ?? '',
     agents,
+    partyPhases,
     screenshotPlan,
     fetchedAt: new Date(),
   }
