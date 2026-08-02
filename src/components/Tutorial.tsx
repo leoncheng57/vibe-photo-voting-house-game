@@ -38,7 +38,7 @@ const steps = [
 
 const tvSteps = [
   ['01', 'Shoot every challenge', 'Work through all six prompts. Take a new photo or choose one from your camera roll for each.'],
-  ['02', 'Submit your set', 'Send one anonymous entry for every challenge.'],
+  ['02', 'Uploaded anonymously', 'Send one anonymous entry for every challenge.'],
   ['03', 'Vote together', 'Choose up to three favorites for each challenge, then reveal the room.'],
 ]
 
