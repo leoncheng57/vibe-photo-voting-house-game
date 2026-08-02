@@ -84,7 +84,7 @@ export function ChallengeIllustrations({ challenges }: { challenges: Challenge[]
     <section className="challenge-illustrations" aria-labelledby="challenge-illustrations-title">
       <h2 className="visually-hidden" id="challenge-illustrations-title">The six photo challenges</h2>
       {challenges.map((challenge, index) => (
-        <figure key={challenge.id} className={`challenge-illustration challenge-illustration--${(index % 3) + 1}`}>
+        <figure key={challenge.id} className={`challenge-illustration challenge-illustration--${index + 1}`}>
           <div role="img" aria-label={`${challenge.title}: ${challenge.prompt}`}>
             <IllustrationArt slug={challenge.slug} />
           </div>
