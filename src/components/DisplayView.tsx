@@ -221,7 +221,7 @@ export function DisplayView({ challenges, refreshToken, onExit }: { challenges: 
 
   return (
     <div className={`display-view ${page === 'voting' ? 'display-view--voting' : ''} ${scoresMounted ? 'display-view--scores-revealed' : ''}`}>
-      <header className="display-header">
+      <header className={`display-header ${page === 'gallery' ? 'display-header--gallery' : ''}`}>
         <div className="display-brand-controls">
           <div className="brand brand--display"><b>HOUSE</b><span>PHOTO HUNT</span></div>
           <button className="display-exit-button" type="button" onClick={onExit}>Exit TV mode</button>
@@ -232,6 +232,12 @@ export function DisplayView({ challenges, refreshToken, onExit }: { challenges: 
           <button type="button" aria-current={page === 'voting' ? 'page' : undefined} onClick={() => selectPage('voting')}>Voting</button>
         </nav>
         <Timer compact editable />
+        {page === 'gallery' && (
+          <aside className="display-gallery-join" aria-label="Scan to join the party">
+            <div><span>Late to the party?</span><strong>Scan to play</strong></div>
+            <QRCodeSVG value={joinUrl} size={64} bgColor="transparent" fgColor="#f5f8f7" />
+          </aside>
+        )}
       </header>
 
       {(page === 'gallery' || page === 'voting') && <>
