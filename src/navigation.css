@@ -1,12 +1,14 @@
-.brand { display: inline-flex; align-items: stretch; height: 50px; border: 2px solid var(--ink); transform: rotate(-1deg); }
-.brand b { display: grid; place-items: center; padding: 0 .55rem; background: var(--pool); font: 900 1.2rem/1 Arial Black, Arial, sans-serif; }
-.brand span { display: grid; place-items: center; padding: 0 .55rem; border-left: 2px solid var(--ink); font-size: .63rem; font-weight: 900; letter-spacing: .08em; }
-.brand--button { padding: 0; color: inherit; background: var(--paper); text-decoration: none; cursor: pointer; }
+.brand { display: inline-grid; min-width: 112px; height: 50px; align-content: center; justify-items: start; border: 2px solid var(--ink); background: var(--pool); padding: .38rem .65rem; transform: rotate(-1deg); }
+.brand b { font: 900 1.2rem/.9 Arial Black, Arial, sans-serif; }
+.brand span { margin-top: .2rem; font-size: .52rem; font-weight: 900; letter-spacing: .16em; line-height: 1; }
+.brand--button { color: inherit; text-decoration: none; cursor: pointer; }
 .site-header { position: sticky; top: 0; z-index: 30; display: grid; grid-template-columns: 210px 1fr 180px; align-items: center; min-height: 78px; padding: .7rem clamp(1rem, 3vw, 3rem); border-bottom: var(--line); background: rgba(244,240,232,.96); backdrop-filter: blur(10px); }
 .site-header nav { display: flex; justify-content: center; gap: .2rem; }
 .site-header nav :is(button, a) { display: grid; place-items: center; border: 0; border-bottom: 3px solid transparent; color: inherit; background: transparent; padding: .7rem 1rem; font-size: .75rem; font-weight: 900; text-decoration: none; text-transform: uppercase; cursor: pointer; }
 .site-header nav :is(button, a).active:not(.developer-link) { border-color: var(--sky); }
 .site-header nav .nav-with-icon, .mobile-nav .nav-with-icon { display: flex; align-items: center; justify-content: center; gap: .38rem; }
+.home-icon { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.site-header nav .home-link { width: 44px; padding: .55rem; }
 .tv-icon { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .site-header nav .developer-link, .mobile-nav .developer-link { display: flex; align-items: center; justify-content: center; gap: .38rem; color: white; background: var(--ink); }
 .site-header nav .tv-mode-link, .mobile-nav .tv-mode-link { color: white; background: var(--ink); }
@@ -39,6 +41,7 @@
   .site-header nav { display: none; }
   .brand { height: 42px; }
   .brand b { font-size: 1rem; }
+  .brand span { font-size: .46rem; }
   .player-chip, .developer-back { font-size: .8rem; }
   .developer-back span { display: none; }
   .mobile-nav-shell { position: fixed; right: 0; bottom: 0; left: 0; z-index: 30; display: block; padding-bottom: env(safe-area-inset-bottom); border-top: var(--line); background: var(--paper); }
@@ -51,6 +54,7 @@
   .mobile-nav::-webkit-scrollbar-track { background: rgba(16,35,61,.07); }
   .mobile-nav::-webkit-scrollbar-thumb { border-radius: 999px; background: rgba(16,35,61,.32); }
   .mobile-nav :is(button, a) { display: grid; place-items: center; min-width: 88px; min-height: 58px; flex: 1 0 auto; border: 0; border-right: 1px solid var(--ink); color: inherit; background: transparent; font-size: .62rem; font-weight: 900; text-decoration: none; text-transform: uppercase; }
+  .mobile-nav .home-link { min-width: 64px; }
   .mobile-nav :is(button, a):focus-visible { position: relative; z-index: 3; outline-offset: -5px; box-shadow: inset 0 0 0 5px var(--ink); }
   .mobile-nav :is(button, a).active:not(.developer-link) { background: var(--sky); }
   .mobile-nav .tv-mode-link.active { color: var(--ink); }

@@ -10,6 +10,7 @@ export default defineConfig({
       input: {
         main: resolve(__dirname, 'index.html'),
         home: resolve(__dirname, 'home/index.html'),
+        play: resolve(__dirname, 'play/index.html'),
         system: resolve(__dirname, 'developer/system/index.html'),
         database: resolve(__dirname, 'developer/db-design/index.html'),
         security: resolve(__dirname, 'developer/security-ops/index.html'),

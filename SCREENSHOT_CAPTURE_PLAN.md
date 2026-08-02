@@ -44,7 +44,7 @@ For views that require submissions, configure the local app against a disposable
 Open the guest home route in a dedicated browser surface:
 
 ```bash
-cmux browser open "http://127.0.0.1:5173/home/" --focus false
+cmux browser open "http://127.0.0.1:5173/play/" --focus false
 ```
 
 The command returns a dynamic surface reference such as `surface:19`. Use that value for subsequent commands and confirm the loaded page:
@@ -79,7 +79,7 @@ For TV mode, use a browser surface in a dedicated cmux window so the browser rec
 ```bash
 cmux new-window
 cmux --id-format both tree --all
-cmux new-surface --type browser --pane <pane-uuid> --window <window-uuid> --url "http://127.0.0.1:5173/home/" --focus true
+cmux new-surface --type browser --pane <pane-uuid> --window <window-uuid> --url "http://127.0.0.1:5173/play/" --focus true
 ```
 
 Target sizes are approximate. Verify that mobile media queries are active and that the TV layout remains on one screen.
