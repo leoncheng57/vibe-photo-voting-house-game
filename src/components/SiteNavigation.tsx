@@ -10,6 +10,7 @@ const securityUrl = `${appRoot}developer/security-ops/`
 const runbookUrl = `${appRoot}developer/host-runbook/`
 const photoExportUrl = `${appRoot}developer/photo-export/`
 const progressUrl = `${appRoot}developer/github-progress/`
+const repositoryFilesUrl = `${appRoot}developer/repository-files/`
 const paletteUrl = `${appRoot}developer/palette/`
 const developerUrl = progressUrl
 
@@ -145,12 +146,13 @@ export function MobileNavigation(props: NavigationProps) {
   )
 }
 
-type DeveloperPage = 'system' | 'database' | 'security' | 'runbook' | 'export' | 'progress' | 'palette'
+type DeveloperPage = 'system' | 'database' | 'security' | 'runbook' | 'export' | 'progress' | 'files' | 'palette'
 
 export function DeveloperTabs({ active }: { active: DeveloperPage }) {
   return (
     <nav className="developer-tabs" aria-label="Developer pages">
       <a aria-current={active === 'progress' ? 'page' : undefined} className={active === 'progress' ? 'active' : ''} href={progressUrl}>GitHub project progress</a>
+      <a aria-current={active === 'files' ? 'page' : undefined} className={active === 'files' ? 'active' : ''} href={repositoryFilesUrl}>Repository Files</a>
       <a aria-current={active === 'palette' ? 'page' : undefined} className={active === 'palette' ? 'active' : ''} href={paletteUrl}>Palette</a>
       <a aria-current={active === 'system' ? 'page' : undefined} className={active === 'system' ? 'active' : ''} href={systemUrl}>System reference</a>
       <a aria-current={active === 'database' ? 'page' : undefined} className={active === 'database' ? 'active' : ''} href={databaseUrl}>DB design</a>

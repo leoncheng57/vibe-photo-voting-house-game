@@ -19,6 +19,7 @@ button { color: inherit; font: inherit; }
 code, pre { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
 .progress-page { width: min(1280px, calc(100% - 48px)); margin: 0 auto; padding: 56px 0 120px; }
 .progress-hero { display: grid; grid-template-columns: 1fr 300px; gap: 64px; align-items: end; padding-bottom: 42px; border-bottom: var(--line); }
+.progress-hero > div { min-width: 0; }
 .progress-hero > div:first-child > code { color: #425b79; font-size: 13px; }
 .progress-kicker { display: block; margin-top: 36px; font-size: .72rem; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
 .progress-hero h1 { max-width: 800px; margin: .45rem 0 1rem; font: 900 clamp(3.5rem, 8vw, 7.2rem)/.82 Arial Black, Arial, sans-serif; letter-spacing: -.075em; text-transform: uppercase; }
@@ -103,7 +104,7 @@ code, pre { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospac
   .progress-page { width: calc(100% - 28px); padding: 32px 0 90px; }
   .progress-hero { grid-template-columns: 1fr; gap: 28px; }
   .progress-kicker { margin-top: 26px; }
-  .progress-hero h1 { font-size: clamp(3.3rem, 17vw, 5.5rem); }
+  .progress-hero h1 { font-size: clamp(2.8rem, 14vw, 5.5rem); }
   .progress-sync { width: 100%; }
   .progress-stats article { min-height: 110px; }
   .progress-stats strong { font-size: 2.5rem; }

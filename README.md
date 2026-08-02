@@ -47,7 +47,7 @@ The frontend is React, TypeScript, and Vite on GitHub Pages. Supabase provides a
 - TV-only 3-2-1 podium scoring with competition ranking for ties
 - Informational, device-local timer configured from TV mode
 - Built-in tutorial walkthrough for first-time guests
-- Developer references for the color palette, architecture, database design, security and operations, host runbooks, and GitHub project progress under `/developer/`
+- Developer references for the color palette, architecture, database design, security and operations, repository files, host runbooks, and GitHub project progress under `/developer/`
 - Anonymous photographer names during voting
 - TV mode with Gallery, Voting, and How to Play pages, QR join code, automatic 30-second gallery paging, keyboard navigation, result reveal, and a host-confirmed final scoreboard
 - Full-resolution HEIC/JPEG originals preserved alongside optimized game copies
