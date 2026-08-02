@@ -6,6 +6,7 @@ import { sortGallerySubmissions } from '../lib/gallery'
 import { Timer } from './Timer'
 import { Tutorial } from './Tutorial'
 import { Leaderboard } from './Leaderboard'
+import { SpotifyPlayer } from './SpotifyPlayer'
 
 const SCORE_DRAWER_TRANSITION_MS = 320
 const SCORE_DRAWER_OPEN_DELAY_MS = 20
@@ -14,7 +15,7 @@ const GALLERY_SCROLL_EDGE_PAUSE_MS = 1800
 const GALLERY_SCROLL_INTERACTION_PAUSE_MS = 5000
 type DisplayPage = 'gallery' | 'voting' | 'tutorial'
 
-export function DisplayView({ challenges, refreshToken, onExit }: { challenges: Challenge[]; refreshToken: number; onExit: () => void }) {
+export function DisplayView({ challenges, refreshToken, spotifyAuthorizationError, onExit }: { challenges: Challenge[]; refreshToken: number; spotifyAuthorizationError?: string; onExit: () => void }) {
   const [index, setIndex] = useState(0)
   const [galleryPhotos, setGalleryPhotos] = useState<Submission[]>([])
   const [votingPhotos, setVotingPhotos] = useState<Submission[]>([])
@@ -423,6 +424,8 @@ export function DisplayView({ challenges, refreshToken, onExit }: { challenges: 
           <span>Use the tabs to return to the gallery</span>
         </>}
       </footer>
+
+      <SpotifyPlayer authorizationError={spotifyAuthorizationError} />
 
       {confirmingScores && (
         <div className="name-dialog score-reveal-dialog" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setConfirmingScores(false) }}>
