@@ -20,13 +20,6 @@ a:focus-visible { outline: 3px solid white; outline-offset: 2px; box-shadow: 0 0
 .landing-brand { display: flex; width: 210px; flex-direction: column; justify-content: center; border-right: var(--line); padding: .8rem 1.2rem; text-decoration: none; }
 .landing-brand b { font: 900 1.5rem/1 Arial Black, Arial, sans-serif; letter-spacing: -.05em; }
 .landing-brand span { color: #47617e; font-size: .62rem; font-weight: 900; letter-spacing: .19em; }
-.landing-nav nav { display: flex; align-items: stretch; }
-.landing-nav nav a { display: grid; place-items: center; border-left: 2px solid var(--ink); padding: 0 1.3rem; font-size: .68rem; font-weight: 900; letter-spacing: .07em; text-decoration: none; text-transform: uppercase; }
-.landing-nav nav a:hover { background: var(--pool); }
-.landing-nav .landing-nav__home { width: 64px; padding: 0; background: var(--pool); }
-.landing-nav__home .home-icon { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-.landing-nav .landing-nav__play { color: white; background: var(--ink); }
-.landing-nav .landing-nav__play:hover { color: var(--ink); background: var(--sky); }
 .landing-hero { display: grid; min-height: calc(100vh - 78px); grid-template-columns: minmax(0, 1.15fr) minmax(380px, .85fr); }
 .landing-hero__copy { display: flex; flex-direction: column; justify-content: center; padding: clamp(2.2rem, 6vw, 7rem); }
 .landing-kicker { font-size: .7rem; font-weight: 900; letter-spacing: .14em; text-transform: uppercase; }
@@ -68,9 +61,6 @@ a:focus-visible { outline: 3px solid white; outline-offset: 2px; box-shadow: 0 0
   .landing-nav { min-height: 66px; }
   .landing-brand { width: 150px; padding-inline: .8rem; }
   .landing-brand b { font-size: 1.1rem; }
-  .landing-nav nav a { display: none; }
-  .landing-nav nav :is(.landing-nav__home, .landing-nav__play) { display: grid; }
-  .landing-nav nav .landing-nav__play { padding-inline: .9rem; }
   .landing-hero { min-height: auto; grid-template-columns: 1fr; }
   .landing-hero__copy { padding: 3.2rem 1rem 3.8rem; }
   .landing-hero h1 { font-size: clamp(3.6rem, 18vw, 6rem); }

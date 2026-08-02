@@ -1,6 +1,5 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { HomeIcon } from './components/HomeIcon'
 import './landing.css'
 
 const appRoot = import.meta.env.BASE_URL
@@ -11,12 +10,6 @@ export function LandingPage() {
     <div className="landing-page">
       <header className="landing-nav">
         <a className="landing-brand" href={appRoot}><b>HOUSE</b><span>PHOTO HUNT</span></a>
-        <nav aria-label="Landing navigation">
-          <a className="landing-nav__home" href={appRoot} aria-label="Home" aria-current="page"><HomeIcon /></a>
-          <a href={`${playUrl}?tutorial`}>How to play</a>
-          <a href={`${appRoot}developer/github-progress/`}>Developer</a>
-          <a className="landing-nav__play" href={playUrl}>Join the party</a>
-        </nav>
       </header>
 
       <main>
@@ -27,7 +20,7 @@ export function LandingPage() {
             <p>Six photo challenges. One shared room. Three votes each. Turn every guest into a photographer and the biggest screen in the house into the reveal.</p>
             <div className="landing-actions">
               <a className="landing-button landing-button--primary" href={playUrl}>Play now <span>→</span></a>
-              <a className="landing-button" href={`${playUrl}?tutorial`}>See how it works</a>
+              <a className="landing-button" href={`${playUrl}?tutorial`}>How to play</a>
             </div>
             <a className="landing-developer-link" href={`${appRoot}developer/github-progress/`}>Explore the developer workspace →</a>
           </div>
