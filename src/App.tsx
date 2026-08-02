@@ -13,9 +13,7 @@ import { useStorageUsage } from './lib/useStorageUsage'
 import type { Challenge, PartyStatus, Profile, View } from './types'
 
 const appRoot = import.meta.env.BASE_URL
-const homeUrl = `${appRoot}home/`
 const paletteUrl = `${appRoot}developer/palette/`
-const isHomeEntry = location.pathname.startsWith(homeUrl)
 
 function SetupRequired({ onTutorial }: { onTutorial: () => void }) {
   return (
@@ -230,9 +228,7 @@ export default function App() {
     return <PassphraseGate onJoined={() => enterParty(currentUser)} onTutorial={() => setView('tutorial')} />
   }
   if (user && !profile && view === 'tutorial') return <main className="public-tutorial"><Tutorial onBack={() => setView('challenges')} /></main>
-  if (user && profile && !isHomeEntry && view === 'tutorial') return <main className="public-tutorial"><Tutorial onBack={() => setView('challenges')} /></main>
-  if (user && profile && !isHomeEntry) return <JoinForm user={user} profile={profile} onJoined={(nextProfile) => { setProfile(nextProfile); location.assign(homeUrl) }} onTutorial={() => setView('tutorial')} />
-  if (user && !profile) return <JoinForm user={user} onJoined={(nextProfile) => { setProfile(nextProfile); if (!isHomeEntry) location.assign(homeUrl) }} onTutorial={() => setView('tutorial')} />
+  if (user && !profile) return <JoinForm user={user} onJoined={setProfile} onTutorial={() => setView('tutorial')} />
   if (!user || !profile) return null
   const currentUser = user
   const currentProfile = profile

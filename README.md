@@ -51,6 +51,8 @@ The frontend is React, TypeScript, and Vite on GitHub Pages. Supabase provides a
 - One-click originals export to a local ZIP (folder per challenge) with a pre-download tree preview on the Photo Export Runbook page
 - Responsive layout for phones, laptops, and large televisions
 
+The public landing page is served at `/`. Guests play at `/play/`; legacy `/home/` links redirect to the matching game view.
+
 ## Supabase Setup
 
 1. Create a project on [Supabase](https://supabase.com/).
@@ -137,7 +139,7 @@ The app deploys to:
 
 ## Party Flow
 
-1. Put the app URL or TV mode QR code where guests can find it, and share the party passphrase out of band.
+1. Put the `/play/` URL or TV mode QR code where guests can find it, and share the party passphrase out of band.
 2. Each guest enters the passphrase, then a unique display name, and takes one photo for every challenge. The TV device enters the passphrase once too.
 3. Start the informational timer on the display device. It does not lock app actions.
 4. When photo time ends, show the challenges in TV mode, which advances every 30 seconds.

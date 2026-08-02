@@ -30,7 +30,7 @@ export function DisplayView({ challenges, refreshToken, onExit }: { challenges: 
   const scoreOpenTimer = useRef<number | null>(null)
   const scoreSettleTimer = useRef<number | null>(null)
   const challenge = challenges[index]
-  const joinUrl = useMemo(() => `${window.location.origin}${import.meta.env.BASE_URL}`, [])
+  const joinUrl = useMemo(() => `${window.location.origin}${import.meta.env.BASE_URL}play/`, [])
 
   useEffect(() => {
     if (!challenge) return
@@ -177,7 +177,10 @@ export function DisplayView({ challenges, refreshToken, onExit }: { challenges: 
   return (
     <div className={`display-view ${page === 'voting' ? 'display-view--voting' : ''} ${scoresMounted ? 'display-view--scores-revealed' : ''}`}>
       <header className="display-header">
-        <button className="brand brand--display brand--button" onClick={onExit}><b>HOUSE</b><span>EXIT TV MODE</span></button>
+        <div className="display-brand-controls">
+          <div className="brand brand--display"><b>HOUSE</b><span>PHOTO HUNT</span></div>
+          <button className="display-exit-button" type="button" onClick={onExit}>Exit TV mode</button>
+        </div>
         <nav className="display-tabs" aria-label="TV mode views">
           <button type="button" aria-current={page === 'tutorial' ? 'page' : undefined} onClick={() => selectPage('tutorial')}>How to play</button>
           <button type="button" aria-current={page === 'gallery' ? 'page' : undefined} onClick={() => selectPage('gallery')}>Gallery</button>
