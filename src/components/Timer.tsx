@@ -63,11 +63,12 @@ export function Timer({ compact = false, editable = false }: { compact?: boolean
   useEffect(() => {
     if (!canPlaySound || !shouldAlert || Number(localStorage.getItem(ALERT_ARMED_KEY)) !== endsAt) return
 
+    const context = audioContext.current
+    if (!context) return
+
     localStorage.removeItem(ALERT_ARMED_KEY)
     window.dispatchEvent(new Event(TIMER_EVENT))
 
-    const context = audioContext.current
-    if (!context) return
     void context.resume().then(() => {
       const oscillator = context.createOscillator()
       const gain = context.createGain()
