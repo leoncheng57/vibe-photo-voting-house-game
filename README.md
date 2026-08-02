@@ -1,5 +1,9 @@
 # House Party Photo Hunt
 
+<p align="center">
+  <img src="docs/images/app-icon.png" width="128" alt="House Party Photo Hunt icon: a navy camera on a light blue rounded square">
+</p>
+
 A mobile-first housewarming photo challenge with passphrase-gated entry, anonymous guest profiles, direct photo uploads, up-to-three-vote rounds, TV presentation mode, and a live 3-2-1 leaderboard.
 
 The frontend is React, TypeScript, and Vite on GitHub Pages. Supabase provides anonymous authentication, PostgreSQL, private photo storage, and realtime updates. No application server or Vercel deployment is required.
