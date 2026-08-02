@@ -37,7 +37,9 @@ declare namespace Spotify {
     connect(): Promise<boolean>
     disconnect(): void
     getCurrentState(): Promise<WebPlaybackState | null>
+    getVolume(): Promise<number>
     removeListener(event: string): boolean
+    setVolume(volume: number): Promise<void>
     togglePlay(): Promise<void>
   }
 }

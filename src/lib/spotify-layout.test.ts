@@ -12,9 +12,10 @@ describe('Spotify player layout', () => {
   })
 
   it('restores a valid persisted corner and size', () => {
-    expect(parseSpotifyPlayerLayout('{"corner":"left","width":440,"height":210}')).toEqual({
+    expect(parseSpotifyPlayerLayout('{"corner":"left","width":440,"height":210,"minimized":true}')).toEqual({
       corner: 'left',
       height: 210,
+      minimized: true,
       width: 440,
     })
   })
@@ -23,11 +24,13 @@ describe('Spotify player layout', () => {
     expect(normalizeSpotifyPlayerLayout({ corner: 'right', width: 999, height: 999 }, 480, 360)).toEqual({
       corner: 'right',
       height: 230,
+      minimized: false,
       width: 448,
     })
     expect(normalizeSpotifyPlayerLayout({ corner: 'unknown' as 'left', width: 10, height: 10 }, 1920, 1080)).toEqual({
       corner: 'right',
       height: 132,
+      minimized: false,
       width: 300,
     })
   })

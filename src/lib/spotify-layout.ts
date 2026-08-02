@@ -3,12 +3,14 @@ export type SpotifyPlayerCorner = 'left' | 'right'
 export interface SpotifyPlayerLayout {
   corner: SpotifyPlayerCorner
   height: number
+  minimized: boolean
   width: number
 }
 
 export const defaultSpotifyPlayerLayout: SpotifyPlayerLayout = {
   corner: 'right',
   height: 156,
+  minimized: false,
   width: 390,
 }
 
@@ -33,6 +35,7 @@ export function normalizeSpotifyPlayerLayout(
   return {
     corner: layout.corner === 'left' ? 'left' : 'right',
     height: clamp(Number(layout.height) || defaultSpotifyPlayerLayout.height, MIN_HEIGHT, maximumHeight),
+    minimized: layout.minimized === true,
     width: clamp(Number(layout.width) || defaultSpotifyPlayerLayout.width, MIN_WIDTH, maximumWidth),
   }
 }

@@ -66,6 +66,7 @@ export function SpotifyPlayer({ authorizationError = '' }: { authorizationError?
   const [status, setStatus] = useState('Connect Spotify to play music through this TV.')
   const [playback, setPlayback] = useState<Spotify.WebPlaybackState | null>(null)
   const [progress, setProgress] = useState(0)
+  const [volume, setVolume] = useState(70)
   const [layout, setLayout] = useState<SpotifyPlayerLayout>(() => parseSpotifyPlayerLayout(localStorage.getItem(LAYOUT_STORAGE_KEY)))
   const player = useRef<Spotify.Player | null>(null)
   const deviceId = useRef('')
@@ -99,6 +100,9 @@ export function SpotifyPlayer({ authorizationError = '' }: { authorizationError?
         deviceId.current = device_id
         setReady(true)
         setStatus('Ready. Move your current Spotify playback to this TV.')
+        currentPlayer?.getVolume().then((value) => {
+          if (!cancelled && mounted.current) setVolume(Math.round(value * 100))
+        }).catch(() => undefined)
       })
       currentPlayer.addListener('not_ready', () => {
         if (cancelled || !mounted.current) return
@@ -259,6 +263,17 @@ export function SpotifyPlayer({ authorizationError = '' }: { authorizationError?
     }
   }
 
+  function changeVolume(event: React.ChangeEvent<HTMLInputElement>) {
+    const nextVolume = Number(event.target.value)
+    const currentPlayer = player.current
+    setVolume(nextVolume)
+    currentPlayer?.setVolume(nextVolume / 100).catch((reason) => {
+      if (player.current === currentPlayer) {
+        setError(reason instanceof Error ? reason.message : 'Could not change Spotify volume.')
+      }
+    })
+  }
+
   function disconnectSpotify() {
     operationId.current += 1
     player.current?.disconnect()
@@ -282,14 +297,26 @@ export function SpotifyPlayer({ authorizationError = '' }: { authorizationError?
 
   return (
     <aside
-      className={`spotify-player spotify-player--${layout.corner} ${active ? 'spotify-player--active' : ''}`}
-      style={{ width: layout.width, height: layout.height }}
+      className={`spotify-player spotify-player--${layout.corner} ${active ? 'spotify-player--active' : ''} ${layout.minimized ? 'spotify-player--minimized' : ''}`}
+      style={{ width: layout.width, height: layout.minimized ? undefined : layout.height }}
       aria-label="Spotify player"
     >
+      {layout.minimized ? (
+        <button
+          className="spotify-player__minimized"
+          type="button"
+          title={track?.name ?? 'Restore Spotify player'}
+          aria-label={`Restore Spotify player${track?.name ? `: ${track.name}` : ''}`}
+          onClick={() => saveLayout({ ...layout, minimized: false })}
+        >
+          <span>{track?.name ?? (connected ? 'Spotify ready' : 'Connect Spotify')}</span>
+        </button>
+      ) : <>
       <button className="spotify-player__resize" type="button" aria-label="Resize Spotify player" onPointerDown={startResize} />
       <header className="spotify-player__header">
         <strong><span aria-hidden="true" /> Spotify</strong>
         <div>
+          <button type="button" onClick={() => saveLayout({ ...layout, minimized: true })}>Minimize</button>
           <button type="button" onClick={() => saveLayout({ ...layout, corner: layout.corner === 'right' ? 'left' : 'right' })} aria-label={`Move Spotify player to bottom ${layout.corner === 'right' ? 'left' : 'right'}`}>Move {layout.corner === 'right' ? 'left' : 'right'}</button>
           {connected && <button type="button" onClick={disconnectSpotify}>Disconnect</button>}
         </div>
@@ -309,7 +336,14 @@ export function SpotifyPlayer({ authorizationError = '' }: { authorizationError?
             <div className="spotify-player__progress" aria-label={`${formatTime(progress)} of ${formatTime(playback.duration)}`}><span style={{ width: `${progressPercent}%` }} /></div>
             <small>{formatTime(progress)} / {formatTime(playback.duration)}</small>
           </div>
-          <button className="spotify-player__play" type="button" aria-label={playback.paused ? 'Play Spotify' : 'Pause Spotify'} onClick={togglePlayback}><PlayIcon paused={playback.paused} /></button>
+          <div className="spotify-player__playback-controls">
+            <label className="spotify-player__volume">
+              <span aria-hidden="true">Vol</span>
+              <span className="visually-hidden">Spotify volume</span>
+              <input type="range" min="0" max="100" value={volume} onChange={changeVolume} />
+            </label>
+            <button className="spotify-player__play" type="button" aria-label={playback.paused ? 'Play Spotify' : 'Pause Spotify'} onClick={togglePlayback}><PlayIcon paused={playback.paused} /></button>
+          </div>
         </div>
       ) : (
         <div className="spotify-player__connect">
@@ -318,6 +352,7 @@ export function SpotifyPlayer({ authorizationError = '' }: { authorizationError?
         </div>
       )}
       {connected && track && error && <p className="spotify-player__toast">{error}</p>}
+      </>}
     </aside>
   )
 }
