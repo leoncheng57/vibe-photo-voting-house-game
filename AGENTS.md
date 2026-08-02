@@ -7,7 +7,7 @@ House Party Photo Hunt is a mobile-first party photo challenge. The frontend is 
 ## Repository Map
 
 - `src/App.tsx`: authentication, passphrase gate, profile setup, navigation, and realtime subscriptions
-- `src/components/`: guest, voting, leaderboard, tutorial, timer, palette, and TV views
+- `src/components/`: guest, voting, leaderboard, tutorial, timer, developer palette, and TV views
 - `src/lib/api.ts`: browser-side Supabase queries, dual-bucket uploads, membership RPCs, authenticated photo downloads, storage-usage RPC, and vote RPC calls
 - `src/lib/images.ts`: browser photo pipeline — original preservation/optimization plus the 2400 px game JPEG
 - `src/lib/photo-policy.ts`: pure size thresholds, encode ladders, export naming, and storage meter math (unit tested)
@@ -20,7 +20,7 @@ House Party Photo Hunt is a mobile-first party photo challenge. The frontend is 
 - `SCREENSHOT_CAPTURE_PLAN.md`: privacy-safe automated documentation screenshot workflow
 - `supabase/migrations/`: database schema, policies, views, functions, and data migrations
 - `scripts/backfill-legacy-originals.mjs`: one-time service-role backfill adopting pre-archive game copies as `legacy` originals
-- `index.html`, `home/index.html`, and the pages under `developer/` (system, db-design, security-ops, host-runbook, photo-export, github-progress, repository-files): Vite entry points; the Developer nav link lands on GitHub project progress
+- `index.html`, `home/index.html`, and the pages under `developer/` (palette, system, db-design, security-ops, host-runbook, photo-export, github-progress, repository-files): Vite entry points; the Developer nav link lands on GitHub project progress
 - `.github/workflows/deploy.yml`: GitHub Pages deployment
 
 ## Commands

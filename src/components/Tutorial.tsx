@@ -1,5 +1,6 @@
 interface Props {
   onBack?: () => void
+  variant?: 'guest' | 'tv'
 }
 
 const steps = [
@@ -12,7 +13,7 @@ const steps = [
   {
     number: '02',
     title: 'Hunt for shots',
-    copy: 'Browse all six challenges and join any you like. Take a new picture or choose one from your camera roll.',
+    copy: 'Work through all six challenges. Take a new picture or choose one from your camera roll for every prompt.',
     note: 'One photo per challenge. Replace it any time before it receives a vote.',
   },
   {
@@ -24,7 +25,7 @@ const steps = [
   {
     number: '04',
     title: 'Choose up to three',
-    copy: 'Choose every available photo until there are three, then select your three favorites. Every choice is worth one vote.',
+    copy: 'Submit one, two, or three favorites. Every choice is worth one vote, and you can change your ballot later.',
     note: 'Voting for your own masterpiece is completely allowed.',
   },
   {
@@ -35,7 +36,20 @@ const steps = [
   },
 ]
 
-export function Tutorial({ onBack }: Props) {
+const tvSteps = [
+  ['01', 'Shoot every challenge', 'Work through all six prompts. Take a new photo or choose one from your camera roll for each.'],
+  ['02', 'Submit your set', 'Send one anonymous entry for every challenge.'],
+  ['03', 'Vote together', 'Choose up to three favorites for each challenge, then reveal the room.'],
+]
+
+export function Tutorial({ onBack, variant = 'guest' }: Props) {
+  if (variant === 'tv') return (
+    <section className="tv-tutorial" aria-labelledby="tv-tutorial-title">
+      <header><span className="eyebrow">The one-minute briefing</span><h1 id="tv-tutorial-title">How to play</h1><p>Phones take the photos. The TV brings everyone together.</p></header>
+      <div>{tvSteps.map(([number, title, copy]) => <article key={number}><b>{number}</b><h2>{title}</h2><p>{copy}</p></article>)}</div>
+    </section>
+  )
+
   return (
     <div className="tutorial-page">
       {onBack && <button className="tutorial-back" onClick={onBack}>← Back to the party</button>}
@@ -73,7 +87,7 @@ export function Tutorial({ onBack }: Props) {
 
       <section className="tutorial-tv-tip">
         <span>Big-screen tip</span>
-        <p>Open <b>TV mode</b>, use the left and right arrow keys to switch challenges, and press <b>Reveal results</b> after everyone confirms their ballot.</p>
+        <p>Open <b>TV mode</b> to rotate challenges every 30 seconds. Use the left and right arrow keys to switch early, and press <b>Reveal results</b> after everyone confirms their ballot.</p>
       </section>
     </div>
   )

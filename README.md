@@ -1,6 +1,6 @@
 # House Party Photo Hunt
 
-A mobile-first housewarming photo challenge with passphrase-gated entry, anonymous guest profiles, direct photo uploads, three-vote rounds, TV presentation mode, and a live 3-2-1 leaderboard.
+A mobile-first housewarming photo challenge with passphrase-gated entry, anonymous guest profiles, direct photo uploads, up-to-three-vote rounds, TV presentation mode, and a live 3-2-1 leaderboard.
 
 The frontend is React, TypeScript, and Vite on GitHub Pages. Supabase provides anonymous authentication, PostgreSQL, private photo storage, and realtime updates. No application server or Vercel deployment is required.
 
@@ -27,6 +27,8 @@ The frontend is React, TypeScript, and Vite on GitHub Pages. Supabase provides a
 
 ![Desktop developer system reference showing architecture documentation and navigation](docs/images/developer-system-desktop.png)
 
+![Desktop developer palette showing the House Photo Hunt color system](docs/images/developer-palette-desktop.png)
+
 ### GitHub project priorities
 
 ![Desktop GitHub project progress dashboard with issues grouped by high, medium, and low priority](docs/images/github-priority-groups.png)
@@ -38,12 +40,12 @@ The frontend is React, TypeScript, and Vite on GitHub Pages. Supabase provides a
 - One replaceable photo per guest per challenge
 - In-browser photo resizing before upload
 - Up to three equal votes for distinct photos; self-voting allowed
-- 3-2-1 podium scoring with competition ranking for ties
-- Informational, device-local configurable timer
+- TV-only 3-2-1 podium scoring with competition ranking for ties
+- Informational, device-local timer configured from TV mode
 - Built-in tutorial walkthrough for first-time guests
-- Developer references for architecture, database design, security and operations, repository files, the host password runbook, and GitHub project progress under `/developer/`
+- Developer references for the color palette, architecture, database design, security and operations, repository files, host runbooks, and GitHub project progress under `/developer/`
 - Anonymous photographer names during voting
-- TV mode with QR join code, keyboard navigation, and result reveal
+- TV mode with Gallery, Voting, and How to Play pages, QR join code, automatic 30-second gallery paging, keyboard navigation, result reveal, and a host-confirmed final scoreboard
 - Full-resolution HEIC/JPEG originals preserved alongside optimized game copies
 - Always-visible storage meter against the Supabase Free 1 GB quota
 - One-click originals export to a local ZIP (folder per challenge) with a pre-download tree preview on the Photo Export Runbook page
@@ -61,7 +63,9 @@ The frontend is React, TypeScript, and Vite on GitHub Pages. Supabase provides a
      - `supabase/migrations/003_flexible_vote_count.sql`
      - `supabase/migrations/004_party_membership.sql`
      - `supabase/migrations/005_relax_passphrase_length.sql`
-     - `supabase/migrations/006_photo_originals.sql`
+      - `supabase/migrations/006_photo_originals.sql`
+      - `supabase/migrations/007_original_status.sql`
+      - `supabase/migrations/008_allow_partial_ballots.sql`
 4. Set the party passphrase in the SQL Editor. Nobody can join until this runs:
 
 ```sql
@@ -78,7 +82,15 @@ VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_your_key
 
 The publishable key is designed for browser use. Never add a Supabase secret key or service-role key to this repository or the frontend environment.
 
-Anonymous sessions belong to one browser. A guest who clears site data or changes devices will need to re-enter the passphrase and pick a new display name. Supabase limits anonymous sign-ups by IP; if the party will exceed 30 guests on one network, review the Auth rate limit before the event.
+Supabase limits anonymous sign-ups by IP; if the party will exceed 30 guests on one network, review the Auth rate limit before the event.
+
+## Guest Identity And Display Names
+
+Each guest identity belongs to one browser profile. Returning in the same browser keeps the same identity, submissions, and votes. Changing the display name updates that existing profile; it does not create a new guest or disconnect any game data.
+
+Display names are unique after trimming spaces and ignoring letter case. For example, `Leon`, ` leon `, and `LEON` are treated as the same name. If another guest already uses that name, the app shows `That name is already taken.`
+
+A separate guest needs a different browser or browser profile. Another tab or window in the same browser shares the existing identity. Clearing site data, logging out and leaving the party, changing devices, or using another browser creates a new anonymous identity that must re-enter the passphrase and choose an available name; the previous identity's submissions and votes remain in the game.
 
 ## Party Access
 
@@ -126,14 +138,14 @@ The app deploys to:
 ## Party Flow
 
 1. Put the app URL or TV mode QR code where guests can find it, and share the party passphrase out of band.
-2. Each guest enters the passphrase, then a unique display name, and joins any challenges they want. The TV device enters the passphrase once too.
+2. Each guest enters the passphrase, then a unique display name, and takes one photo for every challenge. The TV device enters the passphrase once too.
 3. Start the informational timer on the display device. It does not lock app actions.
-4. When photo time ends, show one challenge at a time in TV mode.
-5. Guests select and confirm three photos for that challenge on their phones.
+4. When photo time ends, show the challenges in TV mode, which advances every 30 seconds.
+5. Guests select and confirm one, two, or three photos for that challenge on their phones. They may revisit and replace a saved ballot.
 6. Reveal that challenge's vote totals and photographers on the TV.
-7. Continue through all challenges, then open **Scores** for the final leaderboard.
+7. Continue through all challenges, then use **Reveal final scores** in the TV Voting footer to show the winners.
 
-Use the left and right arrow keys in TV mode to switch challenges. Press the logo or Escape to leave TV mode.
+Use the left and right arrow keys in TV mode to switch challenges early and restart the 30-second countdown. Press the logo or Escape to leave TV mode.
 
 ## Capacity
 

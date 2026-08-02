@@ -9,6 +9,7 @@
   --pool: #b7e6f7;
   --powder: #d5f0fa;
   --ice: #eaf8fc;
+  --alert: #ffd6d6;
   --line: 3px solid var(--ink);
 }
 
@@ -31,7 +32,7 @@ code, pre { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospac
 .progress-sync :is(button, a):last-child { border-bottom: 0; background: var(--paper); }
 .progress-sync button:disabled { cursor: wait; opacity: .65; }
 .progress-sync :is(button, a):focus-visible, .progress-tabs button:focus-visible, .progress-lists a:focus-visible { outline: 3px solid white; outline-offset: 2px; box-shadow: 0 0 0 6px var(--ink); }
-.progress-error { display: flex; flex-wrap: wrap; gap: .6rem 1rem; margin-top: 24px; border: 2px solid var(--ink); background: #ffd6d6; padding: .9rem 1rem; font-size: .85rem; }
+.progress-error { display: flex; flex-wrap: wrap; gap: .6rem 1rem; margin-top: 24px; border: 2px solid var(--ink); background: var(--alert); padding: .9rem 1rem; font-size: .85rem; }
 .progress-stats { display: grid; grid-template-columns: repeat(2, 1fr); margin-top: 40px; border: var(--line); background: var(--paper); box-shadow: 8px 8px 0 var(--pool); }
 .progress-stats article { display: flex; min-width: 0; min-height: 130px; flex-direction: column; justify-content: space-between; padding: 1.2rem; border-right: 2px solid var(--ink); }
 .progress-stats article:last-child { border-right: 0; }
@@ -93,13 +94,13 @@ code, pre { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospac
 .progress-markdown th, .progress-markdown td { border: 1px solid #8297ab; padding: .55rem .7rem; }
 .progress-markdown th { background: var(--powder); }
 .progress-markdown img { max-width: 100%; }
-.missing-document { border: var(--line); border-top: 0; background: var(--powder); padding: clamp(1.5rem, 4vw, 3rem); box-shadow: 8px 8px 0 var(--ink); }
+.missing-document { border: var(--line); border-top: 0; background: var(--alert); padding: clamp(1.5rem, 4vw, 3rem); box-shadow: 8px 8px 0 var(--ink); }
 .missing-document > code { font-size: .75rem; }
 .missing-document h2 { margin: 1.2rem 0 .6rem; font: 900 clamp(2.3rem, 6vw, 4.8rem)/.9 Arial Black, Arial, sans-serif; letter-spacing: -.06em; text-transform: uppercase; }
 .missing-document p { max-width: 700px; margin-bottom: 0; font: 700 1rem/1.5 Georgia, serif; }
 
 @media (max-width: 800px) {
-  body { padding-bottom: 58px; }
+  body { padding-bottom: calc(65px + env(safe-area-inset-bottom)); }
   .progress-page { width: calc(100% - 28px); padding: 32px 0 90px; }
   .progress-hero { grid-template-columns: 1fr; gap: 28px; }
   .progress-kicker { margin-top: 26px; }
