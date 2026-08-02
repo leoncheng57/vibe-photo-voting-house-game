@@ -87,6 +87,10 @@ img { display: block; max-width: 100%; }
 .timer--editable .timer__controls input { width: 60px; min-height: 34px; margin: 0; padding: .3rem; }
 .timer--editable .timer__controls label { display: flex; align-items: center; gap: .35rem; }
 .timer--editable .button { min-height: 34px; padding: .35rem .55rem; box-shadow: 2px 2px 0 var(--ink); font-size: .65rem; }
+.timer--complete { background: var(--alert); animation: timer-complete-pulse 1.4s ease-in-out infinite; }
+@keyframes timer-complete-pulse {
+  50% { background: var(--paper); box-shadow: 0 0 0 8px var(--ink); }
+}
 
 .section-heading { display: grid; grid-template-columns: 2fr 1fr; align-items: end; gap: 2rem; margin-bottom: clamp(2rem, 5vw, 5rem); }
 .section-heading h2 { margin: .5rem 0 0; font: 900 clamp(3.6rem, 10vw, 9rem)/.78 Arial Black, sans-serif; letter-spacing: -.08em; text-transform: uppercase; }
@@ -368,4 +372,5 @@ img { display: block; max-width: 100%; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
   .display-score-drawer { transition: none; }
+  .timer--complete { animation: none; background: var(--alert); box-shadow: 0 0 0 8px var(--ink); }
 }
