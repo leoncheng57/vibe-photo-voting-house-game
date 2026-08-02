@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { HomeIcon } from './HomeIcon'
 import type { View } from '../types'
 
 const appRoot = import.meta.env.BASE_URL
-const homeUrl = `${appRoot}home/`
+const playUrl = `${appRoot}play/`
 const systemUrl = `${appRoot}developer/system/`
 const databaseUrl = `${appRoot}developer/db-design/`
 const securityUrl = `${appRoot}developer/security-ops/`
@@ -13,10 +14,10 @@ const paletteUrl = `${appRoot}developer/palette/`
 const developerUrl = progressUrl
 
 const navigationItems: Array<{ id: View; label: string; href: string; icon?: 'tv' }> = [
-  { id: 'challenges', label: 'Home', href: homeUrl },
-  { id: 'tutorial', label: 'How to play', href: `${homeUrl}?tutorial` },
-  { id: 'vote', label: 'Vote', href: `${homeUrl}?vote` },
-  { id: 'display', label: 'TV mode', href: `${homeUrl}?display`, icon: 'tv' },
+  { id: 'challenges', label: 'Play', href: playUrl },
+  { id: 'tutorial', label: 'How to play', href: `${playUrl}?tutorial` },
+  { id: 'vote', label: 'Vote', href: `${playUrl}?vote` },
+  { id: 'display', label: 'TV mode', href: `${playUrl}?display`, icon: 'tv' },
 ]
 
 type NavigationProps = {
@@ -43,6 +44,7 @@ function TvIcon() {
 function NavigationLinks({ active, onSelect }: NavigationProps) {
   return (
     <>
+      <a className="home-link" href={appRoot} aria-label="Home"><HomeIcon /></a>
       {navigationItems.map((item) => onSelect ? (
         <button key={item.id} className={`${active === item.id ? 'active' : ''} ${item.icon ? 'nav-with-icon' : ''} ${item.id === 'display' ? 'tv-mode-link' : ''}`} aria-current={active === item.id ? 'page' : undefined} onClick={() => onSelect(item.id)}>{item.icon === 'tv' && <TvIcon />}{item.label}</button>
       ) : (
@@ -66,7 +68,7 @@ export function SiteHeader({ active, onSelect, playerName, onEditProfile }: Site
       {playerName && onEditProfile ? (
         <button className="player-chip" onClick={onEditProfile}><span>Playing as · change</span><strong>{playerName}</strong></button>
       ) : (
-        <a className="developer-back" href={homeUrl}><span>Developer tools</span><strong>Back to game →</strong></a>
+        <a className="developer-back" href={playUrl}><span>Developer tools</span><strong>Back to game →</strong></a>
       )}
     </header>
   )
