@@ -150,6 +150,8 @@ The app deploys to:
 
 Use the left and right arrow keys in TV mode to switch challenges early and restart the 30-second countdown. Press the logo or Escape to leave TV mode.
 
+See [`PARTY_PHASES.md`](PARTY_PHASES.md) for the host and guest run of show, phase transitions, storage checks, and hotfix protocol.
+
 ## Capacity
 
 Supabase Free currently includes 1 GB file storage and 5 GB egress per project (shared across all Storage buckets). Every submission stores two copies:

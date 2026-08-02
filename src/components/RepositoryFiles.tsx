@@ -3,7 +3,7 @@ import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { getRepositoryFiles, repositoryUrl, type RepositoryFilesData } from '../lib/github'
 
-type DocumentName = 'readme' | 'agents' | 'screenshot-plan'
+type DocumentName = 'readme' | 'agents' | 'party-phases' | 'screenshot-plan'
 
 function formatDate(value: string | Date) {
   return new Intl.DateTimeFormat('en', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value))
@@ -61,6 +61,7 @@ export function RepositoryFiles() {
         {data && <nav className="progress-tabs" aria-label="Repository files">
           <button type="button" className={documentName === 'readme' ? 'active' : ''} onClick={() => setDocumentName('readme')}>README.md</button>
           <button type="button" className={documentName === 'agents' ? 'active' : ''} onClick={() => setDocumentName('agents')}>AGENTS.md</button>
+          <button type="button" className={documentName === 'party-phases' ? 'active' : ''} onClick={() => setDocumentName('party-phases')}>Party Phases</button>
           <button type="button" className={documentName === 'screenshot-plan' ? 'active' : ''} onClick={() => setDocumentName('screenshot-plan')}>Screenshot Capture Plan</button>
         </nav>}
 
@@ -71,6 +72,11 @@ export function RepositoryFiles() {
           <article className="progress-markdown"><Markdown remarkPlugins={[remarkGfm]}>{data.agents}</Markdown></article>
         ) : (
           <section className="missing-document"><code>AGENTS.md</code><h2>Document not found</h2><p>This file is not present on the repository’s <code>main</code> branch. This page will display it automatically if it is added later.</p></section>
+        ))}
+        {data && documentName === 'party-phases' && (data.partyPhases ? (
+          <article className="progress-markdown"><Markdown remarkPlugins={[remarkGfm]}>{data.partyPhases}</Markdown></article>
+        ) : (
+          <section className="missing-document"><code>PARTY_PHASES.md</code><h2>Document not found</h2><p>This file is not present on the repository’s <code>main</code> branch. This page will display it automatically if it is added later.</p></section>
         ))}
         {data && documentName === 'screenshot-plan' && (data.screenshotPlan ? (
           <article className="progress-markdown"><Markdown remarkPlugins={[remarkGfm]}>{data.screenshotPlan}</Markdown></article>
