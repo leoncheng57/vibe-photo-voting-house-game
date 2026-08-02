@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { DeveloperShell } from './components/SiteNavigation'
 import { Palette } from './components/Palette'
 import { PhotoExportRunbook } from './components/PhotoExportRunbook'
+import { RunOfShowRunbook } from './components/RunOfShowRunbook'
 import { DatabaseDesign, HostPasswordRunbook, SecurityOps, SystemDiagram } from './components/SystemDiagram'
 import './navigation.css'
 import './developer-system.css'
@@ -15,14 +16,16 @@ const page = location.pathname.includes('/palette')
       ? 'security'
       : location.pathname.includes('/host-runbook')
         ? 'runbook'
-        : location.pathname.includes('/photo-export')
-          ? 'export'
-          : 'system'
+        : location.pathname.includes('/run-of-show')
+          ? 'runOfShow'
+          : location.pathname.includes('/photo-export')
+            ? 'export'
+            : 'system'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <DeveloperShell active={page}>
-      {page === 'palette' ? <Palette /> : page === 'database' ? <DatabaseDesign /> : page === 'security' ? <SecurityOps /> : page === 'runbook' ? <HostPasswordRunbook /> : page === 'export' ? <PhotoExportRunbook /> : <SystemDiagram />}
+      {page === 'palette' ? <Palette /> : page === 'database' ? <DatabaseDesign /> : page === 'security' ? <SecurityOps /> : page === 'runbook' ? <HostPasswordRunbook /> : page === 'runOfShow' ? <RunOfShowRunbook /> : page === 'export' ? <PhotoExportRunbook /> : <SystemDiagram />}
     </DeveloperShell>
   </StrictMode>,
 )

@@ -8,6 +8,7 @@ const systemUrl = `${appRoot}developer/system/`
 const databaseUrl = `${appRoot}developer/db-design/`
 const securityUrl = `${appRoot}developer/security-ops/`
 const runbookUrl = `${appRoot}developer/host-runbook/`
+const runOfShowUrl = `${appRoot}developer/run-of-show/`
 const photoExportUrl = `${appRoot}developer/photo-export/`
 const progressUrl = `${appRoot}developer/github-progress/`
 const repositoryFilesUrl = `${appRoot}developer/repository-files/`
@@ -146,19 +147,25 @@ export function MobileNavigation(props: NavigationProps) {
   )
 }
 
-type DeveloperPage = 'system' | 'database' | 'security' | 'runbook' | 'export' | 'progress' | 'files' | 'palette'
+type DeveloperPage = 'system' | 'database' | 'security' | 'runbook' | 'runOfShow' | 'export' | 'progress' | 'files' | 'palette'
 
 export function DeveloperTabs({ active }: { active: DeveloperPage }) {
   return (
     <nav className="developer-tabs" aria-label="Developer pages">
-      <a aria-current={active === 'progress' ? 'page' : undefined} className={active === 'progress' ? 'active' : ''} href={progressUrl}>GitHub project progress</a>
-      <a aria-current={active === 'files' ? 'page' : undefined} className={active === 'files' ? 'active' : ''} href={repositoryFilesUrl}>Repository Files</a>
-      <a aria-current={active === 'palette' ? 'page' : undefined} className={active === 'palette' ? 'active' : ''} href={paletteUrl}>Palette</a>
-      <a aria-current={active === 'system' ? 'page' : undefined} className={active === 'system' ? 'active' : ''} href={systemUrl}>System reference</a>
-      <a aria-current={active === 'database' ? 'page' : undefined} className={active === 'database' ? 'active' : ''} href={databaseUrl}>DB design</a>
-      <a aria-current={active === 'security' ? 'page' : undefined} className={active === 'security' ? 'active' : ''} href={securityUrl}>Security and Ops</a>
-      <a aria-current={active === 'runbook' ? 'page' : undefined} className={active === 'runbook' ? 'active' : ''} href={runbookUrl}>Host Password Runbook</a>
-      <a aria-current={active === 'export' ? 'page' : undefined} className={active === 'export' ? 'active' : ''} href={photoExportUrl}>Photo Export Runbook</a>
+      <div className="developer-tabs__row">
+        <a aria-current={active === 'progress' ? 'page' : undefined} className={active === 'progress' ? 'active' : ''} href={progressUrl}>GitHub project progress</a>
+        <a aria-current={active === 'files' ? 'page' : undefined} className={active === 'files' ? 'active' : ''} href={repositoryFilesUrl}>Repository Files</a>
+        <a aria-current={active === 'palette' ? 'page' : undefined} className={active === 'palette' ? 'active' : ''} href={paletteUrl}>Palette</a>
+        <a aria-current={active === 'system' ? 'page' : undefined} className={active === 'system' ? 'active' : ''} href={systemUrl}>System reference</a>
+        <a aria-current={active === 'database' ? 'page' : undefined} className={active === 'database' ? 'active' : ''} href={databaseUrl}>DB design</a>
+        <a aria-current={active === 'security' ? 'page' : undefined} className={active === 'security' ? 'active' : ''} href={securityUrl}>Security and Ops</a>
+      </div>
+      <div className="developer-tabs__row developer-tabs__row--runbooks">
+        <span className="developer-tabs__label">Runbooks:</span>
+        <a aria-current={active === 'runOfShow' ? 'page' : undefined} className={active === 'runOfShow' ? 'active' : ''} href={runOfShowUrl}>Run of Show</a>
+        <a aria-current={active === 'runbook' ? 'page' : undefined} className={active === 'runbook' ? 'active' : ''} href={runbookUrl}>Host Password</a>
+        <a aria-current={active === 'export' ? 'page' : undefined} className={active === 'export' ? 'active' : ''} href={photoExportUrl}>Photo Export</a>
+      </div>
     </nav>
   )
 }
