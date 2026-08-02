@@ -43,7 +43,7 @@ The frontend is React, TypeScript, and Vite on GitHub Pages. Supabase provides a
 - Six included housewarming photo challenges
 - One replaceable photo per guest per challenge
 - In-browser photo resizing before upload
-- Up to three equal votes for distinct photos; self-voting allowed
+- Zero to three equal votes for distinct photos; saved ballots can be cleared and self-voting is allowed
 - TV-only leaderboard ranked by total votes received, with competition ranking for ties
 - Informational, device-local timer configured from TV mode
 - Optional Spotify Premium playback in TV mode through a resizable Spotify Connect player
@@ -171,9 +171,9 @@ The Web Playback SDK is for eligible noncommercial integrations. Music playback 
 2. Each guest enters the passphrase, then a unique display name, and takes one photo for every challenge. The TV device enters the passphrase once too.
 3. Start the informational timer on the display device. It does not lock app actions.
 4. During photo time, leave TV **Gallery** open as a newest-first two-row photo wall; it scrolls horizontally and labels every photo with its challenge.
-5. When photo time ends, open TV **Voting** and move through one challenge at a time. Guests select and confirm one, two, or three photos on their phones and may revisit a saved ballot.
-6. After each round, use **Reveal challenge winner** and confirm the host prompt to show that challenge's winning photo or tied photos.
-7. Continue through all challenges, then use **Reveal final scores** in the TV Voting footer. The overall winner is the guest with the most votes received across every challenge.
+5. When photo time ends, open TV **Voting** and move through one challenge at a time. Guests select up to three photos on their phones, may revisit a saved ballot, and can confirm zero votes to clear every prior choice.
+6. After each round, hold **Reveal challenge winner** until the progress fill completes to show that challenge's winning photo or tied photos.
+7. Continue through all challenges, then use the robot button in the TV Voting footer and confirm the host prompt to reveal final scores. The overall winner is the guest with the most votes received across every challenge.
 
 Use the left and right arrow keys in TV Voting to switch challenges. Interacting with Gallery pauses its automatic movement temporarily. Press **Exit TV mode** or Escape to leave TV mode.
 

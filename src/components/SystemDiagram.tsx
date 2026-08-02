@@ -89,7 +89,7 @@ const requestFlows = [
   ['Party admission', 'rpc(\'join_party\')', 'party_settings → memberships', 'SECURITY DEFINER bcrypt check; a wrong passphrase never creates a membership.'],
   ['Photo submission', 'reserve_original_version() + Storage + activate_original_version()', 'original_versions → photo-originals + photos → submissions', 'Append-only original metadata is reserved before upload; activation switches only the current submission pointer.'],
   ['Photo read', 'storage.download()', 'photos bucket → local blob URL', 'Authenticated, membership-gated download; no reusable signed URLs are issued.'],
-  ['Ballot write', 'rpc(\'submit_votes\')', 'submissions → votes', 'Choices bind to immutable game paths and lock against concurrent photo activation before atomically replacing the ballot.'],
+  ['Ballot write', 'rpc(\'submit_votes\')', 'submissions → votes', 'Choices bind to immutable game paths and lock against concurrent photo activation before atomically replacing or clearing the ballot.'],
   ['Result query', 'challenge_results + leaderboard', 'votes → ranked views', 'Membership-gated views rank each challenge and aggregate every vote received into the overall leaderboard.'],
 ]
 

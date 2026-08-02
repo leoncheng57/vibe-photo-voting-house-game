@@ -121,7 +121,7 @@ export function RunOfShowRunbook() {
             <code>ballots on phones</code>
             <ul>
               <li>Open Vote on their phones.</li>
-              <li>Vote on the challenge currently shown by the host with one, two, or three choices.</li>
+              <li>Vote on the challenge currently shown by the host with up to three choices. Deselect every photo and confirm zero votes to clear a saved ballot.</li>
               <li>Submit a ballot, then revisit earlier challenges to change saved votes if desired.</li>
               <li>Keep the TV for shared instructions and reveals rather than entering votes there.</li>
             </ul>
@@ -133,8 +133,8 @@ export function RunOfShowRunbook() {
               <li>Move through challenges one at a time using the TV Voting view.</li>
               <li>Announce the challenge and allow roughly one minute for ballots.</li>
               <li>Reveal each challenge only after the room confirms voting is complete.</li>
-              <li>Results never appear on guest phones. After each round, use <b>Reveal challenge winner</b> and confirm the host-only dialog to show the winning photo or tied photos.</li>
-              <li>When all rounds end, use <b>Reveal final scores</b> and confirm the host-only dialog. The guest with the most total votes received wins; tied totals share a rank.</li>
+              <li>Results never appear on guest phones. After each round, press and hold <b>Reveal challenge winner</b> until its progress fill completes to show the winning photo or tied photos.</li>
+              <li>When all rounds end, select the robot button and confirm the host-only final-score dialog. The guest with the most total votes received wins; tied totals share a rank.</li>
               <li>Award prizes only after the final result refresh.</li>
             </ul>
           </article>

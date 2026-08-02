@@ -162,7 +162,7 @@ cmux browser --surface <surface> screenshot --out "$(pwd)/docs/images/tv-mode-de
 
 ### Leaderboard
 
-1. Use a desktop-width browser surface, open TV Voting, and confirm **Reveal final scores**.
+1. Use a desktop-width browser surface, open TV Voting, select the robot button, and confirm **Reveal final scores**.
 2. Wait for `.leaderboard` to load.
 3. Replace `.player-chip strong` with `Demo Guest`.
 4. Replace every leaderboard name, rank, win count, and vote total with synthetic presentation data. Remove extra rows if needed.
