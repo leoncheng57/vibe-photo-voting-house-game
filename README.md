@@ -52,6 +52,7 @@ The frontend is React, TypeScript, and Vite on GitHub Pages. Supabase provides a
 - Responsive layout for phones, laptops, and large televisions
 
 The public landing page is served at `/`. Guests play at `/play/`; legacy `/home/` links redirect to the matching game view.
+Primary views are deep-linkable at `/play/`, `/play/?tutorial`, `/play/?vote`, and `/play/?display`; in-app navigation keeps the address bar and browser Back/Forward history synchronized.
 
 ## Supabase Setup
 

@@ -10,6 +10,7 @@ import { VoteView } from './components/VoteView'
 import { createProfile, ensureAnonymousUser, getChallenges, getPartyStatus, getProfile, invalidatePhoto, joinParty, signOut, updateProfile } from './lib/api'
 import { isSupabaseConfigured, supabase } from './lib/supabase'
 import { useStorageUsage } from './lib/useStorageUsage'
+import { getViewFromSearch, getViewUrl } from './lib/view-navigation'
 import type { Challenge, PartyStatus, Profile, View } from './types'
 
 const appRoot = import.meta.env.BASE_URL
@@ -143,13 +144,7 @@ export default function App() {
   const [partyStatus, setPartyStatus] = useState<PartyStatus | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [challenges, setChallenges] = useState<Challenge[]>([])
-  const [view, setView] = useState<View>(() => {
-    const params = new URLSearchParams(location.search)
-    if (params.has('display')) return 'display'
-    if (params.has('tutorial')) return 'tutorial'
-    if (params.has('vote')) return 'vote'
-    return 'challenges'
-  })
+  const [view, setView] = useState<View>(() => getViewFromSearch(location.search))
   const [loading, setLoading] = useState(isSupabaseConfigured)
   const [error, setError] = useState('')
   const [submissionToken, setSubmissionToken] = useState(0)
@@ -162,6 +157,27 @@ export default function App() {
   const [leaveError, setLeaveError] = useState('')
   const [leaving, setLeaving] = useState(false)
   const storageUsage = useStorageUsage(Boolean(profile), submissionToken)
+
+  function navigateToView(nextView: View) {
+    const nextUrl = getViewUrl(location.pathname, location.search, location.hash, nextView)
+    const currentUrl = `${location.pathname}${location.search}${location.hash}`
+    if (nextUrl !== currentUrl) history.pushState(history.state, '', nextUrl)
+    setView(nextView)
+  }
+
+  useEffect(() => {
+    function syncViewFromUrl() {
+      const nextView = getViewFromSearch(location.search)
+      const canonicalUrl = getViewUrl(location.pathname, location.search, location.hash, nextView)
+      const currentUrl = `${location.pathname}${location.search}${location.hash}`
+      if (canonicalUrl !== currentUrl) history.replaceState(history.state, '', canonicalUrl)
+      setView(nextView)
+    }
+
+    syncViewFromUrl()
+    window.addEventListener('popstate', syncViewFromUrl)
+    return () => window.removeEventListener('popstate', syncViewFromUrl)
+  }, [])
 
   useEffect(() => {
     if (!isSupabaseConfigured) return
@@ -208,18 +224,18 @@ export default function App() {
     setChallenges(availableChallenges)
   }
 
-  if (!isSupabaseConfigured && view === 'tutorial') return <main className="public-tutorial"><Tutorial onBack={() => setView('challenges')} /></main>
-  if (!isSupabaseConfigured) return <SetupRequired onTutorial={() => setView('tutorial')} />
+  if (!isSupabaseConfigured && view === 'tutorial') return <main className="public-tutorial"><Tutorial onBack={() => navigateToView('challenges')} /></main>
+  if (!isSupabaseConfigured) return <SetupRequired onTutorial={() => navigateToView('tutorial')} />
   if (loading) return <div className="loading-screen"><div className="brand"><b>HOUSE</b><span>PHOTO HUNT</span></div><span>Opening the door…</span></div>
   if (error) return <main className="error-page"><h1>Couldn’t open the party.</h1><p>{error}</p><button className="button" onClick={() => location.reload()}>Try again</button></main>
   if (user && partyStatus && !partyStatus.is_open) return <PartyClosed />
-  if (user && partyStatus && !partyStatus.is_member && view === 'tutorial') return <main className="public-tutorial"><Tutorial onBack={() => setView('challenges')} /></main>
+  if (user && partyStatus && !partyStatus.is_member && view === 'tutorial') return <main className="public-tutorial"><Tutorial onBack={() => navigateToView('challenges')} /></main>
   if (user && partyStatus && !partyStatus.is_member) {
     const currentUser = user
-    return <PassphraseGate onJoined={() => enterParty(currentUser)} onTutorial={() => setView('tutorial')} />
+    return <PassphraseGate onJoined={() => enterParty(currentUser)} onTutorial={() => navigateToView('tutorial')} />
   }
-  if (user && !profile && view === 'tutorial') return <main className="public-tutorial"><Tutorial onBack={() => setView('challenges')} /></main>
-  if (user && !profile) return <JoinForm user={user} onJoined={setProfile} onTutorial={() => setView('tutorial')} />
+  if (user && !profile && view === 'tutorial') return <main className="public-tutorial"><Tutorial onBack={() => navigateToView('challenges')} /></main>
+  if (user && !profile) return <JoinForm user={user} onJoined={setProfile} onTutorial={() => navigateToView('tutorial')} />
   if (!user || !profile) return null
   const currentUser = user
   const currentProfile = profile
@@ -260,12 +276,12 @@ export default function App() {
   }
 
   if (view === 'display') {
-    return <DisplayView challenges={challenges} refreshToken={resultsToken} onExit={() => setView('challenges')} />
+    return <DisplayView challenges={challenges} refreshToken={resultsToken} onExit={() => navigateToView('challenges')} />
   }
 
   return (
     <div className="app-shell">
-      <SiteHeader active={view} onSelect={setView} playerName={profile.display_name} onEditProfile={openNameEditor} />
+      <SiteHeader active={view} onSelect={navigateToView} playerName={profile.display_name} onEditProfile={openNameEditor} />
       <div className="storage-strip">
         <StorageMeter summary={storageUsage.summary} failed={storageUsage.failed} variant="bar" />
       </div>
@@ -280,7 +296,7 @@ export default function App() {
         {view === 'vote' && <VoteView challenges={challenges} userId={user.id} refreshToken={submissionToken} onChanged={() => setResultsToken((value) => value + 1)} />}
       </main>
 
-      <MobileNavigation active={view} onSelect={setView} />
+      <MobileNavigation active={view} onSelect={navigateToView} />
 
       {editingName && (
         <div className="name-dialog" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setEditingName(false) }}>
