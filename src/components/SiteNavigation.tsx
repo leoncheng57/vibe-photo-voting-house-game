@@ -1,22 +1,24 @@
+import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { HomeIcon } from './HomeIcon'
 import type { View } from '../types'
 
 const appRoot = import.meta.env.BASE_URL
-const homeUrl = `${appRoot}home/`
+const playUrl = `${appRoot}play/`
 const systemUrl = `${appRoot}developer/system/`
 const databaseUrl = `${appRoot}developer/db-design/`
 const securityUrl = `${appRoot}developer/security-ops/`
 const runbookUrl = `${appRoot}developer/host-runbook/`
 const photoExportUrl = `${appRoot}developer/photo-export/`
 const progressUrl = `${appRoot}developer/github-progress/`
+const repositoryFilesUrl = `${appRoot}developer/repository-files/`
+const paletteUrl = `${appRoot}developer/palette/`
 const developerUrl = progressUrl
 
 const navigationItems: Array<{ id: View; label: string; href: string; icon?: 'tv' }> = [
-  { id: 'challenges', label: 'Home', href: homeUrl },
-  { id: 'tutorial', label: 'How to play', href: `${homeUrl}?tutorial` },
-  { id: 'palette', label: 'Palette', href: `${homeUrl}?palette` },
-  { id: 'vote', label: 'Vote', href: `${homeUrl}?vote` },
-  { id: 'leaderboard', label: 'Scores', href: `${homeUrl}?leaderboard` },
-  { id: 'display', label: 'TV mode', href: `${homeUrl}?display`, icon: 'tv' },
+  { id: 'challenges', label: 'Play', href: playUrl },
+  { id: 'tutorial', label: 'How to play', href: `${playUrl}?tutorial` },
+  { id: 'vote', label: 'Vote', href: `${playUrl}?vote` },
+  { id: 'display', label: 'TV mode', href: `${playUrl}?display`, icon: 'tv' },
 ]
 
 type NavigationProps = {
@@ -43,12 +45,13 @@ function TvIcon() {
 function NavigationLinks({ active, onSelect }: NavigationProps) {
   return (
     <>
+      <a className="home-link" href={appRoot} aria-label="Home"><HomeIcon /></a>
       {navigationItems.map((item) => onSelect ? (
-        <button key={item.id} className={`${active === item.id ? 'active' : ''} ${item.icon ? 'nav-with-icon' : ''} ${item.id === 'display' ? 'tv-mode-link' : ''}`} onClick={() => onSelect(item.id)}>{item.icon === 'tv' && <TvIcon />}{item.label}</button>
+        <button key={item.id} className={`${active === item.id ? 'active' : ''} ${item.icon ? 'nav-with-icon' : ''} ${item.id === 'display' ? 'tv-mode-link' : ''}`} aria-current={active === item.id ? 'page' : undefined} onClick={() => onSelect(item.id)}>{item.icon === 'tv' && <TvIcon />}{item.label}</button>
       ) : (
-        <a key={item.id} className={`${active === item.id ? 'active' : ''} ${item.icon ? 'nav-with-icon' : ''} ${item.id === 'display' ? 'tv-mode-link' : ''}`} href={item.href}>{item.icon === 'tv' && <TvIcon />}{item.label}</a>
+        <a key={item.id} className={`${active === item.id ? 'active' : ''} ${item.icon ? 'nav-with-icon' : ''} ${item.id === 'display' ? 'tv-mode-link' : ''}`} href={item.href} aria-current={active === item.id ? 'page' : undefined}>{item.icon === 'tv' && <TvIcon />}{item.label}</a>
       ))}
-      <a className={`developer-link ${active === 'developer' ? 'active' : ''}`} href={developerUrl}><RobotIcon />Developer</a>
+      <a className={`developer-link ${active === 'developer' ? 'active' : ''}`} href={developerUrl} aria-current={active === 'developer' ? 'page' : undefined}><RobotIcon />Developer</a>
     </>
   )
 }
@@ -66,25 +69,96 @@ export function SiteHeader({ active, onSelect, playerName, onEditProfile }: Site
       {playerName && onEditProfile ? (
         <button className="player-chip" onClick={onEditProfile}><span>Playing as · change</span><strong>{playerName}</strong></button>
       ) : (
-        <a className="developer-back" href={homeUrl}><span>Developer tools</span><strong>Back to game →</strong></a>
+        <a className="developer-back" href={playUrl}><span>Developer tools</span><strong>Back to game →</strong></a>
       )}
     </header>
   )
 }
 
 export function MobileNavigation(props: NavigationProps) {
-  return <nav className="mobile-nav" aria-label="Mobile navigation"><NavigationLinks {...props} /></nav>
+  const navRef = useRef<HTMLElement>(null)
+  const [scrollEdges, setScrollEdges] = useState({ left: false, right: false })
+
+  useEffect(() => {
+    const nav = navRef.current
+    if (!nav) return
+    let revealFrame = 0
+
+    const updateScrollEdges = () => {
+      const maxScrollLeft = nav.scrollWidth - nav.clientWidth
+      setScrollEdges({
+        left: nav.scrollLeft > 1,
+        right: nav.scrollLeft < maxScrollLeft - 1,
+      })
+    }
+    const revealActive = () => {
+      cancelAnimationFrame(revealFrame)
+      revealFrame = requestAnimationFrame(() => {
+        nav.querySelector<HTMLElement>('[aria-current="page"]')?.scrollIntoView({
+          behavior: 'auto',
+          block: 'nearest',
+          inline: 'center',
+        })
+      })
+    }
+
+    updateScrollEdges()
+    nav.addEventListener('scroll', updateScrollEdges, { passive: true })
+    const resizeObserver = new ResizeObserver(() => {
+      updateScrollEdges()
+      revealActive()
+    })
+    resizeObserver.observe(nav)
+    window.addEventListener('resize', revealActive)
+
+    return () => {
+      cancelAnimationFrame(revealFrame)
+      nav.removeEventListener('scroll', updateScrollEdges)
+      resizeObserver.disconnect()
+      window.removeEventListener('resize', revealActive)
+    }
+  }, [])
+
+  useEffect(() => {
+    navRef.current?.querySelector<HTMLElement>('[aria-current="page"]')?.scrollIntoView({
+      behavior: 'auto',
+      block: 'nearest',
+      inline: 'center',
+    })
+  }, [props.active])
+
+  const edgeClasses = [
+    scrollEdges.left && 'mobile-nav-shell--left',
+    scrollEdges.right && 'mobile-nav-shell--right',
+  ].filter(Boolean).join(' ')
+
+  return (
+    <div className={`mobile-nav-shell ${edgeClasses}`}>
+      <nav
+        ref={navRef}
+        className="mobile-nav"
+        aria-label="Mobile navigation"
+        onFocusCapture={(event) => event.target.scrollIntoView({ behavior: 'auto', block: 'nearest', inline: 'nearest' })}
+      >
+        <NavigationLinks {...props} />
+      </nav>
+    </div>
+  )
 }
 
-export function DeveloperTabs({ active }: { active: 'system' | 'database' | 'security' | 'runbook' | 'export' | 'progress' }) {
+type DeveloperPage = 'system' | 'database' | 'security' | 'runbook' | 'export' | 'progress' | 'files' | 'palette'
+
+export function DeveloperTabs({ active }: { active: DeveloperPage }) {
   return (
     <nav className="developer-tabs" aria-label="Developer pages">
-      <a className={active === 'progress' ? 'active' : ''} href={progressUrl}>GitHub project progress</a>
-      <a className={active === 'system' ? 'active' : ''} href={systemUrl}>System reference</a>
-      <a className={active === 'database' ? 'active' : ''} href={databaseUrl}>DB design</a>
-      <a className={active === 'security' ? 'active' : ''} href={securityUrl}>Security and Ops</a>
-      <a className={active === 'runbook' ? 'active' : ''} href={runbookUrl}>Host Password Runbook</a>
-      <a className={active === 'export' ? 'active' : ''} href={photoExportUrl}>Photo Export Runbook</a>
+      <a aria-current={active === 'progress' ? 'page' : undefined} className={active === 'progress' ? 'active' : ''} href={progressUrl}>GitHub project progress</a>
+      <a aria-current={active === 'files' ? 'page' : undefined} className={active === 'files' ? 'active' : ''} href={repositoryFilesUrl}>Repository Files</a>
+      <a aria-current={active === 'palette' ? 'page' : undefined} className={active === 'palette' ? 'active' : ''} href={paletteUrl}>Palette</a>
+      <a aria-current={active === 'system' ? 'page' : undefined} className={active === 'system' ? 'active' : ''} href={systemUrl}>System reference</a>
+      <a aria-current={active === 'database' ? 'page' : undefined} className={active === 'database' ? 'active' : ''} href={databaseUrl}>DB design</a>
+      <a aria-current={active === 'security' ? 'page' : undefined} className={active === 'security' ? 'active' : ''} href={securityUrl}>Security and Ops</a>
+      <a aria-current={active === 'runbook' ? 'page' : undefined} className={active === 'runbook' ? 'active' : ''} href={runbookUrl}>Host Password Runbook</a>
+      <a aria-current={active === 'export' ? 'page' : undefined} className={active === 'export' ? 'active' : ''} href={photoExportUrl}>Photo Export Runbook</a>
     </nav>
   )
 }
@@ -98,5 +172,19 @@ export function DeveloperBanner() {
       </span>
       <code>architecture · data · security · delivery</code>
     </aside>
+  )
+}
+
+export function DeveloperShell({ active, children }: { active: DeveloperPage; children: ReactNode }) {
+  return (
+    <>
+      <SiteHeader active="developer" />
+      <div className="developer-workspace">
+        <DeveloperBanner />
+        <DeveloperTabs active={active} />
+        {children}
+      </div>
+      <MobileNavigation active="developer" />
+    </>
   )
 }

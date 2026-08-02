@@ -7,7 +7,7 @@ House Party Photo Hunt is a mobile-first party photo challenge. The frontend is 
 ## Repository Map
 
 - `src/App.tsx`: authentication, passphrase gate, profile setup, navigation, and realtime subscriptions
-- `src/components/`: guest, voting, leaderboard, tutorial, timer, palette, and TV views
+- `src/components/`: guest, voting, leaderboard, tutorial, timer, developer palette, and TV views
 - `src/lib/api.ts`: browser-side Supabase queries, dual-bucket uploads, membership RPCs, authenticated photo downloads, storage-usage RPC, and vote RPC calls
 - `src/lib/images.ts`: browser photo pipeline — original preservation/optimization plus the 2400 px game JPEG
 - `src/lib/photo-policy.ts`: pure size thresholds, encode ladders, export naming, and storage meter math (unit tested)
@@ -16,10 +16,12 @@ House Party Photo Hunt is a mobile-first party photo challenge. The frontend is 
 - `src/types.ts`: shared application types
 - `src/styles.css`: main application styles and responsive behavior
 - `src/developer-system.tsx` and `src/developer-system.css`: developer system reference page
+- `src/developer-progress.tsx` and `src/developer-repository-files.tsx`: live GitHub progress and repository documentation pages
 - `SCREENSHOT_CAPTURE_PLAN.md`: privacy-safe automated documentation screenshot workflow
+- `docs/images/app-icon.svg`: hand-authored project icon and source of truth; `docs/images/app-icon.png` is the rendered copy used in the README. Unlike the rest of `docs/images/`, these are not captured screenshots — regenerate the PNG from the SVG with `rsvg-convert -w 256 -h 256 docs/images/app-icon.svg -o docs/images/app-icon.png`
 - `supabase/migrations/`: database schema, policies, views, functions, and data migrations
 - `scripts/backfill-legacy-originals.mjs`: one-time service-role backfill adopting pre-archive game copies as `legacy` originals
-- `index.html`, `home/index.html`, and the pages under `developer/` (system, db-design, security-ops, host-runbook, photo-export, github-progress): Vite entry points; the Developer nav link lands on GitHub project progress
+- `index.html` is the public landing entry, `play/index.html` is the game, `home/index.html` redirects legacy links, and the pages under `developer/` (palette, system, db-design, security-ops, host-runbook, photo-export, github-progress, repository-files) are developer references; the Developer nav link lands on GitHub project progress
 - `.github/workflows/deploy.yml`: GitHub Pages deployment
 
 ## Commands

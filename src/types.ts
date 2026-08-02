@@ -66,4 +66,4 @@ export interface LeaderboardEntry {
   wins: number
 }
 
-export type View = 'challenges' | 'tutorial' | 'palette' | 'vote' | 'leaderboard' | 'display'
+export type View = 'challenges' | 'tutorial' | 'vote' | 'display'
