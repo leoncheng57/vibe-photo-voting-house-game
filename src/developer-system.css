@@ -109,8 +109,9 @@ code, pre { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospac
 .dev-facts article:last-child { border-right: 0; }
 .dev-facts h3, .dev-grid h3 { margin: 0 0 10px; color: var(--ink); font-size: 13px; font-weight: 750; }
 .dev-facts code { display: block; overflow-wrap: anywhere; margin-bottom: 12px; color: #087da8; font-size: 12px; }
-.dev-facts p, .dev-grid li { color: #425b79; font-size: 13px; line-height: 1.55; }
+.dev-facts p, .dev-facts li, .dev-grid li { color: #425b79; font-size: 13px; line-height: 1.55; }
 .dev-facts p { margin: 0; }
+.dev-facts ul { display: grid; gap: 6px; margin: 0; padding-left: 18px; }
 .dev-table-wrap { overflow-x: auto; border: 2px solid var(--ink); background: var(--paper); }
 .dev-table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
 .dev-table th, .dev-table td { padding: 12px 14px; border-right: 1px solid #9bb1c6; border-bottom: 1px solid #9bb1c6; vertical-align: top; line-height: 1.5; }

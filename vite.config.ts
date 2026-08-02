@@ -15,6 +15,7 @@ export default defineConfig({
         database: resolve(__dirname, 'developer/db-design/index.html'),
         security: resolve(__dirname, 'developer/security-ops/index.html'),
         runbook: resolve(__dirname, 'developer/host-runbook/index.html'),
+        runOfShow: resolve(__dirname, 'developer/run-of-show/index.html'),
         photoExport: resolve(__dirname, 'developer/photo-export/index.html'),
         progress: resolve(__dirname, 'developer/github-progress/index.html'),
         repositoryFiles: resolve(__dirname, 'developer/repository-files/index.html'),

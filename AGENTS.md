@@ -21,7 +21,7 @@ House Party Photo Hunt is a mobile-first party photo challenge. The frontend is 
 - `docs/images/app-icon.svg`: hand-authored project icon and source of truth; `docs/images/app-icon.png` is the rendered copy used in the README. Unlike the rest of `docs/images/`, these are not captured screenshots — regenerate the PNG from the SVG with `rsvg-convert -w 256 -h 256 docs/images/app-icon.svg -o docs/images/app-icon.png`
 - `supabase/migrations/`: database schema, policies, views, functions, and data migrations
 - `scripts/backfill-legacy-originals.mjs`: one-time service-role backfill adopting pre-archive game copies as `legacy` originals
-- `index.html` is the public landing entry, `play/index.html` is the game, `home/index.html` redirects legacy links, and the pages under `developer/` (palette, system, db-design, security-ops, host-runbook, photo-export, github-progress, repository-files) are developer references; the Developer nav link lands on GitHub project progress
+- `index.html` is the public landing entry, `play/index.html` is the game, `home/index.html` redirects legacy links, and the pages under `developer/` (palette, system, db-design, security-ops, run-of-show, host-runbook, photo-export, github-progress, repository-files) are developer references; the Developer nav link lands on GitHub project progress
 - `.github/workflows/deploy.yml`: GitHub Pages deployment
 
 ## Commands
