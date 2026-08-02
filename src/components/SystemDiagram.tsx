@@ -171,7 +171,7 @@ const uploadLifecycleSteps = [
   {
     title: 'Reserve',
     entry: "rpc('reserve_original_version')",
-    detail: 'Membership, profile, and vote-free replacement checks pass, then a pending ledger row fixes both immutable paths before any bytes move.',
+    detail: 'Membership and profile checks pass, then a pending ledger row fixes both immutable paths before any bytes move.',
   },
   {
     title: 'Store original',
@@ -347,7 +347,7 @@ export function DatabaseDesign() {
             <footer className="lifecycle-guarantees">
               <span>append-only: replacement never deletes version A&apos;s bytes or metadata</span>
               <span>ballots bind to the exact game path the voter saw</span>
-              <span>a voted photo can no longer be replaced</span>
+              <span>activation clears votes before switching a voted submission to version B</span>
             </footer>
           </figure>
 
@@ -387,10 +387,10 @@ export function SecurityOps() {
         <div className="dev-grid">
           <article><h3>Authentication</h3><ul><li>Anonymous Auth issues an authenticated-role JWT.</li><li>Identity persists in browser storage.</li><li>Clearing storage creates a new user identity that must re-enter the passphrase.</li></ul></article>
           <article><h3>Party membership</h3><ul><li><code>join_party()</code> compares the passphrase to a bcrypt hash inside Postgres.</li><li>A wrong passphrase never creates a membership.</li><li>Every table, view, RPC, and Storage policy requires an active membership while <code>is_open</code> is true.</li></ul></article>
-          <article><h3>Database RLS</h3><ul><li>All party tables require an active membership.</li><li>Profiles may only be inserted for <code>auth.uid()</code>.</li><li>Submission mutation requires ownership and zero existing votes.</li><li>Direct vote writes are denied; ballots use the RPC.</li></ul></article>
+          <article><h3>Database RLS</h3><ul><li>All party tables require an active membership.</li><li>Profiles may only be inserted for <code>auth.uid()</code>.</li><li>Submission photo pointers change only through the owned activation RPC.</li><li>Direct vote writes are denied; ballots use the RPC.</li></ul></article>
           <article><h3>Storage RLS</h3><ul><li>Both buckets are private.</li><li>Original uploads require an owned pending reservation with an exact path.</li><li>Original deletion is limited to exact versions approved by host SQL.</li><li>Reads and checklist cleanup require active party membership.</li></ul></article>
           <article><h3>Image delivery</h3><ul><li>Images are fetched with authenticated <code>storage.download()</code> calls.</li><li>The browser renders device-local blob URLs; no reusable signed URLs are issued.</li><li>Members can still save or photograph what their own screen displays.</li></ul></article>
-          <article><h3>Privileged logic</h3><ul><li><code>submit_votes</code> derives voter ID from JWT and requires membership.</li><li>Original reservation and activation RPCs validate ownership, membership, object presence, and replacement eligibility.</li><li>Cleanup SQL and service-role keys never enter the client build.</li></ul></article>
+          <article><h3>Privileged logic</h3><ul><li><code>submit_votes</code> derives voter ID from JWT and requires membership.</li><li>Original reservation and activation RPCs validate ownership, membership, and object presence; activation clears existing votes inside the replacement transaction.</li><li>Cleanup SQL and service-role keys never enter the client build.</li></ul></article>
         </div>
         <p className="dev-crosslink">Passphrase and party lifecycle commands live on the <a href={runbookPageUrl}>Host Password Runbook →</a></p>
       </section>

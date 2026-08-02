@@ -14,7 +14,7 @@ const steps = [
     number: '02',
     title: 'Hunt for shots',
     copy: 'Work through all six challenges. Take a new picture or choose one from your camera roll for every prompt.',
-    note: 'One photo per challenge. Replace it any time before it receives a vote.',
+    note: 'One photo per challenge. A voted photo can be replaced after a warning, but replacement clears all of its votes.',
   },
   {
     number: '03',
