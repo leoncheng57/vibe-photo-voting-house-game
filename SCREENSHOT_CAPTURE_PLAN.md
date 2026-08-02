@@ -44,7 +44,7 @@ For views that require submissions, configure the local app against a disposable
 Open the guest home route in a dedicated browser surface:
 
 ```bash
-cmux browser open "http://127.0.0.1:5173/home/" --focus false
+cmux browser open "http://127.0.0.1:5173/play/" --focus false
 ```
 
 The command returns a dynamic surface reference such as `surface:19`. Use that value for subsequent commands and confirm the loaded page:
@@ -79,7 +79,7 @@ For TV mode, use a browser surface in a dedicated cmux window so the browser rec
 ```bash
 cmux new-window
 cmux --id-format both tree --all
-cmux new-surface --type browser --pane <pane-uuid> --window <window-uuid> --url "http://127.0.0.1:5173/home/" --focus true
+cmux new-surface --type browser --pane <pane-uuid> --window <window-uuid> --url "http://127.0.0.1:5173/play/" --focus true
 ```
 
 Target sizes are approximate. Verify that mobile media queries are active and that the TV layout remains on one screen.
@@ -153,7 +153,7 @@ cmux browser --surface <surface> screenshot --out "$(pwd)/docs/images/voting-mob
 1. Use a desktop-width browser surface.
 2. Open TV mode and wait for `.display-view`.
 3. Replace all `.photo-grid--display img` sources with generated artwork.
-4. Keep results hidden so photographer names do not render.
+4. Keep the Gallery tab active and results hidden so photographer names do not render.
 5. Capture:
 
 ```bash
@@ -162,7 +162,7 @@ cmux browser --surface <surface> screenshot --out "$(pwd)/docs/images/tv-mode-de
 
 ### Leaderboard
 
-1. Use a desktop-width browser surface and open Scores.
+1. Use a desktop-width browser surface, open TV Voting, and confirm **Reveal final scores**.
 2. Wait for `.leaderboard` to load.
 3. Replace `.player-chip strong` with `Demo Guest`.
 4. Replace every leaderboard name, rank, win count, and point total with synthetic presentation data. Remove extra rows if needed.
@@ -193,6 +193,17 @@ cmux browser --surface <surface> screenshot --out "$(pwd)/docs/images/developer-
 
 ```bash
 cmux browser --surface <surface> screenshot --out "$(pwd)/docs/images/github-priority-groups.png" --json
+```
+
+### Developer Palette
+
+1. Navigate to `http://127.0.0.1:5173/developer/palette/`.
+2. Wait for the page to load and scroll to the top.
+3. Confirm the developer shell, active Palette tab, hero, and first swatches are visible at a desktop width of at least 1200 px.
+4. Capture:
+
+```bash
+cmux browser --surface <surface> screenshot --out "$(pwd)/docs/images/developer-palette-desktop.png" --json
 ```
 
 ## Playwright Fallback

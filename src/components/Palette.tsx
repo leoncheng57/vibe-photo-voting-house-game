@@ -5,12 +5,12 @@ const colors = [
   { name: 'Powder Blue', value: '#D5F0FA', className: 'palette-swatch--powder', use: 'Soft panels, notices' },
   { name: 'Morning Ice', value: '#EAF8FC', className: 'palette-swatch--ice', use: 'Quiet backgrounds' },
   { name: 'Cloud', value: '#F5F8F7', className: 'palette-swatch--cloud', use: 'Main canvas' },
+  { name: 'Alert Red', value: '#FFD6D6', className: 'palette-swatch--alert', use: 'Errors, missing content, destructive actions' },
 ]
 
-export function Palette({ onBack }: { onBack?: () => void }) {
+export function Palette() {
   return (
     <div className="palette-page">
-      {onBack && <button className="tutorial-back" onClick={onBack}>← Back to setup</button>}
       <header className="palette-hero">
         <span className="eyebrow">House Photo Hunt / visual system</span>
         <h1>Cool colors.<br /><i>Bright night.</i></h1>

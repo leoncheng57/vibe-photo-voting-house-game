@@ -89,7 +89,7 @@ const requestFlows = [
   ['Party admission', 'rpc(\'join_party\')', 'party_settings → memberships', 'SECURITY DEFINER bcrypt check; a wrong passphrase never creates a membership.'],
   ['Photo submission', 'preparePhoto() + storage.upload()', 'photo-originals + photos → submissions', 'Untouched HEIC/JPEG original (≤6 MB, optimized above) plus a 2400 px game JPEG; metadata upsert follows both object writes.'],
   ['Photo read', 'storage.download()', 'photos bucket → local blob URL', 'Authenticated, membership-gated download; no reusable signed URLs are issued.'],
-  ['Ballot write', 'rpc(\'submit_votes\')', 'submissions → votes', 'SECURITY DEFINER function requires membership plus min(3, available submissions) distinct IDs and writes atomically.'],
+  ['Ballot write', 'rpc(\'submit_votes\')', 'submissions → votes', 'SECURITY DEFINER function requires membership plus 1–3 valid distinct submission IDs and replaces the ballot atomically.'],
   ['Result query', 'challenge_results + leaderboard', 'votes → ranked views', 'Membership-gated views; Postgres rank() implements competition ranking with 3/2/1 podium points.'],
 ]
 
@@ -123,7 +123,7 @@ export function SystemDiagram() {
           <section className="architecture-layer architecture-layer--clients">
             <header><span>01</span><div><b>Client layer</b><small>Browsers at the party</small></div></header>
             <div className="architecture-client-grid">
-              <article><i className="architecture-device architecture-device--phone" aria-hidden="true" /><div><h3>Guest devices</h3><p>Mobile browsers capture photos, submit ballots, and view scores.</p></div></article>
+              <article><i className="architecture-device architecture-device--phone" aria-hidden="true" /><div><h3>Guest devices</h3><p>Mobile browsers capture photos and submit ballots.</p></div></article>
               <article><i className="architecture-device architecture-device--tv" aria-hidden="true" /><div><h3>Presentation display</h3><p>TV browser runs the shared timer, QR entry point, and result reveal.</p></div></article>
             </div>
           </section>
@@ -133,7 +133,8 @@ export function SystemDiagram() {
           <section className="architecture-layer architecture-layer--app">
             <header><span>02</span><div><b>Application layer</b><small>GitHub Pages</small></div><em>STATIC</em></header>
             <div className="architecture-app-grid">
-              <article><code>/home/</code><h3>React game client</h3><p>Camera, challenges, voting, scores, and TV mode.</p></article>
+              <article><code>/</code><h3>Public landing page</h3><p>Party overview and direct calls to join the game.</p></article>
+              <article><code>/play/</code><h3>React game client</h3><p>Camera, challenges, voting, and TV mode.</p></article>
               <article><code>/developer/*</code><h3>Developer workspace</h3><p>Architecture, database, security, operations, and project progress.</p></article>
             </div>
           </section>
