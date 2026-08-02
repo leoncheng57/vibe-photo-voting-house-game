@@ -167,12 +167,68 @@ export function SystemDiagram() {
   )
 }
 
+const uploadLifecycleSteps = [
+  {
+    title: 'Reserve',
+    entry: "rpc('reserve_original_version')",
+    detail: 'Membership, profile, and vote-free replacement checks pass, then a pending ledger row fixes both immutable paths before any bytes move.',
+  },
+  {
+    title: 'Store original',
+    entry: 'photo-originals/{challenge_id}/{user_id}/{version}.{ext}',
+    detail: 'Archive bytes upload with upsert disabled; Storage policy accepts only an owned pending reservation with this exact path.',
+  },
+  {
+    title: 'Store game copy',
+    entry: 'photos/{user_id}/{challenge_id}/{version}.jpg',
+    detail: 'The 2400 px game JPEG lands beside earlier versions on its own immutable path; nothing is overwritten.',
+  },
+  {
+    title: 'Activate',
+    entry: "rpc('activate_original_version')",
+    detail: 'Both objects and byte sizes are verified, the submission row is locked, the current pointers switch, and the version becomes ready.',
+  },
+]
+
+const exportLifecycleSteps = [
+  {
+    title: 'Export the ZIP',
+    entry: 'manifest.json + cleanup.sql',
+    detail: 'Every physically stored version downloads — current, superseded, and recovery copies — and the ZIP records its exact version IDs.',
+  },
+  {
+    title: 'Verify and back up',
+    entry: 'desktop browser · assembled locally',
+    detail: 'Cleanup is irreversible; continue only from an archive that opens, matches the preview, and is backed up off this device.',
+  },
+  {
+    title: 'Approve and detach',
+    entry: 'cleanup.sql in the SQL editor',
+    detail: 'Only the exported version IDs are approved; current submissions drop their original_* pointers while storage_path stays live for the game.',
+  },
+  {
+    title: 'Delete exported objects',
+    entry: 'Storage → photo-originals',
+    detail: 'Delete only the paths listed in that ZIP\u2019s manifest — never empty the bucket, because newer uploads may exist.',
+  },
+  {
+    title: 'Tombstone',
+    entry: 'deleted_at = now()',
+    detail: 'Approved rows whose object is really gone leave future exports but keep their audit metadata.',
+  },
+  {
+    title: 'Optional: derived game copies',
+    entry: 'game_deleted_at',
+    detail: 'Superseded game JPEGs are not in the ZIP; the runbook lists their exact unreferenced paths for host deletion from photos, recorded separately.',
+  },
+]
+
 export function DatabaseDesign() {
   return (
     <main className="developer-system">
       <ReferenceHeader path="/developer/db-design" title="DB Design" description="Public PostgreSQL tables and their Supabase Auth and Storage dependencies." />
 
-      <nav className="dev-index" aria-label="Database design sections"><a href="#schema">01 Relational data model</a></nav>
+      <nav className="dev-index" aria-label="Database design sections"><a href="#schema">01 Relational data model</a><a href="#lifecycle">02 Photo version lifecycle</a></nav>
       <section className="dev-section" id="schema">
         <header><span>01</span><div><h2>Relational Data Model</h2><p>Keys, constraints, relationships, and private photo object storage.</p></div></header>
         <div className="erd-scroll" tabIndex={0} aria-label="Scrollable entity relationship diagram">
@@ -238,6 +294,81 @@ export function DatabaseDesign() {
               <span><i className="erd-required" /> Non-nullable</span>
               <span><i className="erd-line-sample" /> Relationship</span>
             </div>
+          </figure>
+        </div>
+      </section>
+
+      <section className="dev-section" id="lifecycle">
+        <header><span>02</span><div><h2>Photo Version Lifecycle</h2><p>How an image moves through reservation, immutable storage, replacement, export, and host-only cleanup.</p></div></header>
+        <div className="lifecycle-figures">
+          <figure className="lifecycle" aria-label="New upload pipeline from reservation to activation">
+            <figcaption><b>A · New upload</b><span>One selected capture becomes an archived original plus a game JPEG; the database points at both only after activation.</span></figcaption>
+            <div className="lifecycle-steps">
+              {uploadLifecycleSteps.map((step, index) => (
+                <article className="lifecycle-step" key={step.title}>
+                  <span aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
+                  <h3>{step.title}</h3>
+                  <code>{step.entry}</code>
+                  <p>{step.detail}</p>
+                </article>
+              ))}
+            </div>
+            <footer className="lifecycle-guarantees">
+              <span>a failure after step 02 leaves the original as an exportable recovery copy</span>
+              <span>participants have no Storage update or delete policy in either bucket</span>
+            </footer>
+          </figure>
+
+          <figure className="lifecycle" aria-label="Replacement keeps every version; submissions points at the current one">
+            <figcaption><b>B · Replacement</b><span>A replacement runs the same pipeline with a new version ID; activation only moves the current pointer.</span></figcaption>
+            <div className="lifecycle-replace">
+              <article className="lifecycle-card">
+                <header><small>public</small><h3>original_versions</h3></header>
+                <ul className="lifecycle-versions">
+                  <li>
+                    <div><code>version A</code><span>ready · both objects retained</span></div>
+                    <em className="lifecycle-badge">superseded</em>
+                  </li>
+                  <li className="lifecycle-versions__current">
+                    <div><code>version B</code><span>ready · activated last</span></div>
+                    <em className="lifecycle-badge lifecycle-badge--current">current</em>
+                  </li>
+                </ul>
+              </article>
+              <div className="lifecycle-pointer" aria-hidden="true"><span>points at the current version only</span></div>
+              <article className="lifecycle-card">
+                <header><small>public</small><h3>submissions</h3></header>
+                <dl className="lifecycle-fields">
+                  <div><dt>storage_path</dt><dd><code>photos/…/version-B.jpg</code></dd></div>
+                  <div><dt>original_path</dt><dd><code>photo-originals/…/version-B.heic</code></dd></div>
+                </dl>
+              </article>
+            </div>
+            <footer className="lifecycle-guarantees">
+              <span>append-only: replacement never deletes version A&apos;s bytes or metadata</span>
+              <span>ballots bind to the exact game path the voter saw</span>
+              <span>a voted photo can no longer be replaced</span>
+            </footer>
+          </figure>
+
+          <figure className="lifecycle" aria-label="Originals export and host-only cleanup ladder">
+            <figcaption><b>C · Export + host cleanup</b><span>Any member exports; only the host approves, deletes, and tombstones — scoped to one verified ZIP.</span></figcaption>
+            <ol className="lifecycle-ladder">
+              {exportLifecycleSteps.map((step, index) => (
+                <li key={step.title}>
+                  <span aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
+                  <div>
+                    <h3>{step.title}</h3>
+                    <code>{step.entry}</code>
+                    <p>{step.detail}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+            <footer className="lifecycle-guarantees">
+              <span>cleanup.sql touches only the version IDs inside that exact ZIP</span>
+              <span>uploads made after the export are never detached or deleted by it</span>
+            </footer>
           </figure>
         </div>
       </section>
