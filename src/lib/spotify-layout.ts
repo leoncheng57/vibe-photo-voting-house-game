@@ -14,9 +14,10 @@ export const defaultSpotifyPlayerLayout: SpotifyPlayerLayout = {
   width: 390,
 }
 
-const MIN_WIDTH = 300
+const MIN_WIDTH = 240
 const MAX_WIDTH = 560
 const MIN_HEIGHT = 132
+const NARROW_MIN_HEIGHT = 164
 const MAX_HEIGHT = 280
 
 function clamp(value: number, minimum: number, maximum: number): number {
@@ -31,12 +32,14 @@ export function normalizeSpotifyPlayerLayout(
   const availableWidth = viewportWidth ?? (typeof window === 'undefined' ? 1920 : window.innerWidth)
   const availableHeight = viewportHeight ?? (typeof window === 'undefined' ? 1080 : window.innerHeight)
   const maximumWidth = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, availableWidth - 32))
-  const maximumHeight = Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, availableHeight - 130))
+  const width = clamp(Number(layout.width) || defaultSpotifyPlayerLayout.width, MIN_WIDTH, maximumWidth)
+  const minimumHeight = width < 280 ? NARROW_MIN_HEIGHT : MIN_HEIGHT
+  const maximumHeight = Math.max(minimumHeight, Math.min(MAX_HEIGHT, availableHeight - 130))
   return {
     corner: layout.corner === 'left' ? 'left' : 'right',
-    height: clamp(Number(layout.height) || defaultSpotifyPlayerLayout.height, MIN_HEIGHT, maximumHeight),
+    height: clamp(Number(layout.height) || defaultSpotifyPlayerLayout.height, minimumHeight, maximumHeight),
     minimized: layout.minimized === true,
-    width: clamp(Number(layout.width) || defaultSpotifyPlayerLayout.width, MIN_WIDTH, maximumWidth),
+    width,
   }
 }
 

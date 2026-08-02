@@ -52,6 +52,14 @@ function PlayIcon({ paused }: { paused: boolean }) {
   </svg>
 }
 
+function SkipIcon({ direction }: { direction: 'previous' | 'next' }) {
+  return <svg viewBox="0 0 24 24" aria-hidden="true">
+    {direction === 'previous'
+      ? <><path d="M6 5h2v14H6z" /><path d="m18 5-9 7 9 7z" /></>
+      : <><path d="M16 5h2v14h-2z" /><path d="m6 5 9 7-9 7z" /></>}
+  </svg>
+}
+
 function formatTime(milliseconds: number): string {
   const totalSeconds = Math.max(0, Math.floor(milliseconds / 1000))
   return `${Math.floor(totalSeconds / 60)}:${String(totalSeconds % 60).padStart(2, '0')}`
@@ -263,6 +271,21 @@ export function SpotifyPlayer({ authorizationError = '' }: { authorizationError?
     }
   }
 
+  async function skipPlayback(direction: 'previous' | 'next') {
+    const currentPlayer = player.current
+    if (!currentPlayer) return
+    const currentOperation = operationId.current + 1
+    operationId.current = currentOperation
+    setError('')
+    try {
+      await (direction === 'previous' ? currentPlayer.previousTrack() : currentPlayer.nextTrack())
+    } catch (reason) {
+      if (currentOperation === operationId.current) {
+        setError(reason instanceof Error ? reason.message : `Could not play the ${direction} Spotify track.`)
+      }
+    }
+  }
+
   function changeVolume(event: React.ChangeEvent<HTMLInputElement>) {
     const nextVolume = Number(event.target.value)
     const currentPlayer = player.current
@@ -314,7 +337,6 @@ export function SpotifyPlayer({ authorizationError = '' }: { authorizationError?
       ) : <>
       <button className="spotify-player__resize" type="button" aria-label="Resize Spotify player" onPointerDown={startResize} />
       <header className="spotify-player__header">
-        <strong><span aria-hidden="true" /> Spotify</strong>
         <div>
           <button type="button" onClick={() => saveLayout({ ...layout, minimized: true })}>Minimize</button>
           <button type="button" onClick={() => saveLayout({ ...layout, corner: layout.corner === 'right' ? 'left' : 'right' })} aria-label={`Move Spotify player to bottom ${layout.corner === 'right' ? 'left' : 'right'}`}>Move {layout.corner === 'right' ? 'left' : 'right'}</button>
@@ -337,12 +359,16 @@ export function SpotifyPlayer({ authorizationError = '' }: { authorizationError?
             <small>{formatTime(progress)} / {formatTime(playback.duration)}</small>
           </div>
           <div className="spotify-player__playback-controls">
+            <div className="spotify-player__transport">
+              <button className="spotify-player__skip" type="button" aria-label="Previous Spotify track" onClick={() => skipPlayback('previous')}><SkipIcon direction="previous" /></button>
+              <button className="spotify-player__play" type="button" aria-label={playback.paused ? 'Play Spotify' : 'Pause Spotify'} onClick={togglePlayback}><PlayIcon paused={playback.paused} /></button>
+              <button className="spotify-player__skip" type="button" aria-label="Next Spotify track" onClick={() => skipPlayback('next')}><SkipIcon direction="next" /></button>
+            </div>
             <label className="spotify-player__volume">
               <span aria-hidden="true">Vol</span>
               <span className="visually-hidden">Spotify volume</span>
               <input type="range" min="0" max="100" value={volume} onChange={changeVolume} />
             </label>
-            <button className="spotify-player__play" type="button" aria-label={playback.paused ? 'Play Spotify' : 'Pause Spotify'} onClick={togglePlayback}><PlayIcon paused={playback.paused} /></button>
           </div>
         </div>
       ) : (
@@ -351,7 +377,7 @@ export function SpotifyPlayer({ authorizationError = '' }: { authorizationError?
           <button className="spotify-player__primary" type="button" disabled={!ready || busy} onClick={playOnTv}>{busy ? 'Connecting TV...' : ready ? 'Play on TV' : 'Starting player...'}</button>
         </div>
       )}
-      {connected && track && error && <p className="spotify-player__toast">{error}</p>}
+      {connected && track && error && <p className="spotify-player__toast" role="alert">{error}</p>}
       </>}
     </aside>
   )
