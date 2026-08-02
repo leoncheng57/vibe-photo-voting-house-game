@@ -12,6 +12,7 @@ import { ChallengeIllustrations } from './ChallengeIllustrations'
 
 const SCORE_DRAWER_TRANSITION_MS = 320
 const SCORE_DRAWER_OPEN_DELAY_MS = 20
+const CHALLENGE_REVEAL_HOLD_MS = 900
 const GALLERY_SCROLL_PIXELS_PER_SECOND = 40
 const GALLERY_SCROLL_EDGE_PAUSE_MS = 1800
 const GALLERY_SCROLL_INTERACTION_PAUSE_MS = 5000
@@ -31,12 +32,13 @@ export function DisplayView({ challenges, refreshToken, spotifyAuthorizationErro
   const [scoresRevealed, setScoresRevealed] = useState(false)
   const [scoresSettled, setScoresSettled] = useState(false)
   const [hidingScores, setHidingScores] = useState(false)
-  const [confirmingChallengeWinner, setConfirmingChallengeWinner] = useState(false)
+  const [challengeRevealHolding, setChallengeRevealHolding] = useState(false)
   const [challengeWinnerRevealed, setChallengeWinnerRevealed] = useState(false)
   const scoreCloseTimer = useRef<number | null>(null)
   const scoreHideStartTimer = useRef<number | null>(null)
   const scoreOpenTimer = useRef<number | null>(null)
   const scoreSettleTimer = useRef<number | null>(null)
+  const challengeRevealTimer = useRef<number | null>(null)
   const previewTrigger = useRef<HTMLButtonElement | null>(null)
   const previewClose = useRef<HTMLButtonElement | null>(null)
   const restorePreviewFocus = useRef(false)
@@ -108,7 +110,7 @@ export function DisplayView({ challenges, refreshToken, spotifyAuthorizationErro
     function onKey(event: KeyboardEvent) {
       if (event.key === 'Escape') {
         if (previewPhotoId) closePhotoPreview()
-        else if (confirmingChallengeWinner) setConfirmingChallengeWinner(false)
+        else if (challengeRevealHolding) cancelChallengeRevealHold()
         else if (challengeWinnerRevealed) setChallengeWinnerRevealed(false)
         else if (confirmingScores) setConfirmingScores(false)
         else if (scoresMounted) hideScores()
@@ -116,12 +118,12 @@ export function DisplayView({ challenges, refreshToken, spotifyAuthorizationErro
         return
       }
       const delta = event.key === 'ArrowLeft' ? -1 : event.key === 'ArrowRight' ? 1 : 0
-      if (!delta || previewPhotoId || confirmingChallengeWinner || challengeWinnerRevealed || !challenges.length || page !== 'voting') return
+      if (!delta || previewPhotoId || challengeRevealHolding || challengeWinnerRevealed || !challenges.length || page !== 'voting') return
       setIndex((current) => (current + delta + challenges.length) % challenges.length)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [challengeWinnerRevealed, challenges.length, confirmingChallengeWinner, confirmingScores, onExit, page, previewPhotoId, scoresMounted])
+  }, [challengeRevealHolding, challengeWinnerRevealed, challenges.length, confirmingScores, onExit, page, previewPhotoId, scoresMounted])
 
   useEffect(() => {
     if (previewPhotoId) {
@@ -140,6 +142,7 @@ export function DisplayView({ challenges, refreshToken, spotifyAuthorizationErro
     if (scoreHideStartTimer.current) window.clearTimeout(scoreHideStartTimer.current)
     if (scoreOpenTimer.current) window.clearTimeout(scoreOpenTimer.current)
     if (scoreSettleTimer.current) window.clearTimeout(scoreSettleTimer.current)
+    if (challengeRevealTimer.current) window.clearTimeout(challengeRevealTimer.current)
   }, [])
 
   const displayedPhotos = page === 'gallery' ? galleryPhotos : votingPhotos
@@ -156,7 +159,7 @@ export function DisplayView({ challenges, refreshToken, spotifyAuthorizationErro
 
   function move(delta: number) {
     if (!challenges.length) return
-    setConfirmingChallengeWinner(false)
+    cancelChallengeRevealHold()
     setChallengeWinnerRevealed(false)
     setIndex((current) => (current + delta + challenges.length) % challenges.length)
   }
@@ -187,7 +190,7 @@ export function DisplayView({ challenges, refreshToken, spotifyAuthorizationErro
       setScoresSettled(false)
       setHidingScores(false)
     }
-    setConfirmingChallengeWinner(false)
+    cancelChallengeRevealHold()
     setChallengeWinnerRevealed(false)
     setPage(nextPage)
   }
@@ -211,7 +214,7 @@ export function DisplayView({ challenges, refreshToken, spotifyAuthorizationErro
     if (scoreOpenTimer.current) window.clearTimeout(scoreOpenTimer.current)
     if (scoreSettleTimer.current) window.clearTimeout(scoreSettleTimer.current)
     setConfirmingScores(false)
-    setConfirmingChallengeWinner(false)
+    cancelChallengeRevealHold()
     setChallengeWinnerRevealed(false)
     setHidingScores(false)
     setScoresMounted(true)
@@ -231,10 +234,20 @@ export function DisplayView({ challenges, refreshToken, spotifyAuthorizationErro
     }, SCORE_DRAWER_OPEN_DELAY_MS)
   }
 
-  function revealChallengeWinner(event: React.FormEvent) {
-    event.preventDefault()
-    setConfirmingChallengeWinner(false)
-    setChallengeWinnerRevealed(true)
+  function startChallengeRevealHold() {
+    if (challengeRevealTimer.current) return
+    setChallengeRevealHolding(true)
+    challengeRevealTimer.current = window.setTimeout(() => {
+      challengeRevealTimer.current = null
+      setChallengeRevealHolding(false)
+      setChallengeWinnerRevealed(true)
+    }, CHALLENGE_REVEAL_HOLD_MS)
+  }
+
+  function cancelChallengeRevealHold() {
+    if (challengeRevealTimer.current) window.clearTimeout(challengeRevealTimer.current)
+    challengeRevealTimer.current = null
+    setChallengeRevealHolding(false)
   }
 
   function hideScores() {
@@ -427,22 +440,47 @@ export function DisplayView({ challenges, refreshToken, spotifyAuthorizationErro
           <span>{votingPhotos.length} anonymous submissions</span>
           <div className="display-result-actions">
             <button
-              className="button display-score-toggle"
+              className={`button display-score-toggle display-challenge-reveal${challengeRevealHolding ? ' display-challenge-reveal--holding' : ''}`}
               type="button"
               aria-haspopup="dialog"
-              onClick={() => setConfirmingChallengeWinner(true)}
+              aria-label="Hold to reveal challenge winner"
+              onPointerDown={(event) => { if (event.button === 0) startChallengeRevealHold() }}
+              onPointerUp={cancelChallengeRevealHold}
+              onPointerCancel={cancelChallengeRevealHold}
+              onPointerLeave={cancelChallengeRevealHold}
+              onContextMenu={(event) => event.preventDefault()}
+              onKeyDown={(event) => {
+                if ((event.key === ' ' || event.key === 'Enter') && !event.repeat) {
+                  event.preventDefault()
+                  startChallengeRevealHold()
+                }
+              }}
+              onKeyUp={(event) => {
+                if (event.key === ' ' || event.key === 'Enter') {
+                  event.preventDefault()
+                  cancelChallengeRevealHold()
+                }
+              }}
+              onBlur={cancelChallengeRevealHold}
             >
-              Reveal challenge winner
+              <span>Hold to reveal winner</span>
             </button>
             <button
-              className="button button--dark display-score-toggle"
+              className="button button--dark display-final-score-toggle"
               type="button"
               aria-expanded={scoresRevealed}
               aria-controls="final-scores"
+              aria-label={scoresRevealed ? 'Hide final scores' : 'Reveal final scores'}
+              title={scoresRevealed ? 'Hide final scores' : 'Reveal final scores'}
               disabled={hidingScores}
               onClick={() => scoresRevealed ? hideScores() : setConfirmingScores(true)}
             >
-              {hidingScores ? 'Hiding scores…' : scoresRevealed ? 'Hide scores' : 'Reveal final scores'}
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 3v3M9.5 3h5M6 8h12v11H6zM3.5 11v5M20.5 11v5" />
+                <circle cx="9.5" cy="12" r="1" />
+                <circle cx="14.5" cy="12" r="1" />
+                <path d="M9 16h6" />
+              </svg>
             </button>
           </div>
           <span>← → to change challenge</span>
@@ -463,20 +501,6 @@ export function DisplayView({ challenges, refreshToken, spotifyAuthorizationErro
             <div>
               <button className="button" type="button" autoFocus onClick={() => setConfirmingScores(false)}>Cancel</button>
               <button className="button button--dark">Reveal scores</button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      {confirmingChallengeWinner && (
-        <div className="name-dialog score-reveal-dialog" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setConfirmingChallengeWinner(false) }}>
-          <form role="dialog" aria-modal="true" aria-labelledby="challenge-winner-confirm-title" onSubmit={revealChallengeWinner}>
-            <span className="eyebrow">Host action · {challenge.title}</span>
-            <h2 id="challenge-winner-confirm-title">Reveal challenge winner?</h2>
-            <p className="dialog-warning">This shows the winning photographer and vote count to the room. Confirm that voting for this challenge is finished.</p>
-            <div>
-              <button className="button" type="button" autoFocus onClick={() => setConfirmingChallengeWinner(false)}>Cancel</button>
-              <button className="button button--dark">Reveal winner</button>
             </div>
           </form>
         </div>

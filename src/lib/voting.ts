@@ -4,5 +4,5 @@ export function getVoteLimit(submissionCount: number) {
 
 export function canSubmitVotes(selectedCount: number, submissionCount: number) {
   const limit = getVoteLimit(submissionCount)
-  return selectedCount >= 1 && selectedCount <= limit
+  return submissionCount > 0 && selectedCount >= 0 && selectedCount <= limit
 }

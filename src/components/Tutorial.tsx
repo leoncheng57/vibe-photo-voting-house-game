@@ -25,8 +25,8 @@ const steps = [
   {
     number: '04',
     title: 'Choose up to three',
-    copy: 'Submit one, two, or three favorites. Every choice is worth one vote, and you can change your ballot later.',
-    note: 'Voting for your own masterpiece is completely allowed.',
+    copy: 'Submit up to three favorites. Every choice is worth one vote, and you can change your ballot or clear every vote later.',
+    note: 'Voting for your own masterpiece is completely allowed. Confirm zero votes to clear a saved ballot.',
   },
   {
     number: '05',

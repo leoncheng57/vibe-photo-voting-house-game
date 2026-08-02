@@ -27,7 +27,7 @@ export function VoteView({ challenges, userId, refreshToken, onChanged }: Props)
         if (!current) return
         setSubmissions(photos)
         setSelected(votes)
-        setSaved(canSubmitVotes(votes.length, photos.length))
+        setSaved(votes.length > 0)
       })
       .catch((error: Error) => { if (current) setMessage(error.message) })
     return () => { current = false }
@@ -51,7 +51,9 @@ export function VoteView({ challenges, userId, refreshToken, onChanged }: Props)
         return { id, storagePath: submission.storage_path }
       }))
       setSaved(true)
-      setMessage(`${selected.length === 1 ? 'Vote' : 'Votes'} locked in. You can still change them later.`)
+      setMessage(selected.length
+        ? `${selected.length === 1 ? 'Vote' : 'Votes'} locked in. You can still change them later.`
+        : 'Votes cleared. You can choose favorites again later.')
       onChanged()
     } catch (error) {
       setMessage(errorMessage(error, 'Could not save votes.'))
@@ -70,7 +72,7 @@ export function VoteView({ challenges, userId, refreshToken, onChanged }: Props)
           <span className="eyebrow">02 / Choose your favorites</span>
           <h2>Up to three.<br />Make them count.</h2>
         </div>
-        <p>Submit one, two, or three favorites. Every choice is worth one vote, and your own photo is fair game.</p>
+        <p>Submit up to three favorites. Every choice is worth one vote, your own photo is fair game, and confirming zero votes clears your ballot.</p>
       </header>
 
       <div className="challenge-tabs" aria-label="Choose a challenge">
@@ -92,7 +94,7 @@ export function VoteView({ challenges, userId, refreshToken, onChanged }: Props)
         </div>
         <strong>{selected.length}<small>/{voteLimit} max</small></strong>
         <button className="button button--dark" disabled={!canSubmitVotes(selected.length, submissions.length) || busy} onClick={saveVotes}>
-          {busy ? 'Saving…' : saved ? 'Votes saved' : selected.length ? `Confirm ${selected.length} ${selected.length === 1 ? 'vote' : 'votes'}` : 'Select a photo'}
+          {busy ? 'Saving…' : saved ? (selected.length ? 'Votes saved' : '0 votes saved') : `Confirm ${selected.length} ${selected.length === 1 ? 'vote' : 'votes'}`}
         </button>
       </div>
 
