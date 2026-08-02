@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { Challenge, Submission } from '../types'
 import { getSubmissions, getVotes, submitVotes } from '../lib/api'
+import { errorMessage } from '../lib/errors'
 import { canSubmitVotes, getVoteLimit } from '../lib/voting'
 
 interface Props {
@@ -53,7 +54,7 @@ export function VoteView({ challenges, userId, refreshToken, onChanged }: Props)
       setMessage(`${selected.length === 1 ? 'Vote' : 'Votes'} locked in. You can still change them later.`)
       onChanged()
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Could not save votes.')
+      setMessage(errorMessage(error, 'Could not save votes.'))
     } finally {
       setBusy(false)
     }
