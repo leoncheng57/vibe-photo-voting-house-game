@@ -1,5 +1,5 @@
 import type { User } from '@supabase/supabase-js'
-import type { Challenge, LeaderboardEntry, OriginalRecord, OriginalStatus, PartyStatus, Profile, StorageUsage, Submission } from '../types'
+import type { Challenge, LeaderboardEntry, OriginalCleanupStatus, OriginalRecord, OriginalStatus, PartyStatus, Profile, StorageUsage, Submission } from '../types'
 import type { PreparedPhoto } from './images'
 import { supabase } from './supabase'
 
@@ -11,7 +11,12 @@ function client() {
 export async function ensureAnonymousUser(): Promise<User> {
   const db = client()
   const { data: sessionData } = await db.auth.getSession()
-  if (sessionData.session?.user) return sessionData.session.user
+  if (sessionData.session?.user) {
+    const { data: userData, error: userError } = await db.auth.getUser()
+    if (userData.user) return userData.user
+    if (userError && userError.status !== 401 && userError.status !== 403) throw userError
+    await db.auth.signOut({ scope: 'local' }).catch(() => undefined)
+  }
 
   const { data, error } = await db.auth.signInAnonymously()
   if (error || !data.user) throw error ?? new Error('Could not join the party.')
@@ -242,6 +247,47 @@ export async function downloadOriginal(originalPath: string): Promise<Blob> {
   const { data, error } = await client().storage.from('photo-originals').download(originalPath)
   if (error || !data) throw error ?? new Error('The original photo could not be downloaded.')
   return data
+}
+
+export async function getOriginalCleanupStatus(versionIds: string[]): Promise<OriginalCleanupStatus[]> {
+  const { data, error } = await client().rpc('get_original_cleanup_status', {
+    selected_version_ids: versionIds,
+  })
+  if (error) throw error
+  const rows = data as Array<{
+    version_id: string
+    original_path: string
+    approved: boolean
+    object_exists: boolean
+    deletion_recorded: boolean
+  }>
+  return rows.map((row) => ({
+    versionId: row.version_id,
+    originalPath: row.original_path,
+    approved: row.approved,
+    objectExists: row.object_exists,
+    deletionRecorded: row.deletion_recorded,
+  }))
+}
+
+export async function deleteApprovedOriginals(versionIds: string[]): Promise<OriginalCleanupStatus[]> {
+  const db = client()
+  const status = await getOriginalCleanupStatus(versionIds)
+  if (status.length !== versionIds.length || status.some((row) => !row.approved)) {
+    throw new Error('Run this export’s cleanup SQL before deleting originals.')
+  }
+
+  const paths = status.filter((row) => row.objectExists).map((row) => row.originalPath)
+  for (let index = 0; index < paths.length; index += 100) {
+    const { error } = await db.storage.from('photo-originals').remove(paths.slice(index, index + 100))
+    if (error) throw error
+  }
+
+  const { error } = await db.rpc('confirm_original_cleanup', {
+    selected_version_ids: versionIds,
+  })
+  if (error) throw error
+  return getOriginalCleanupStatus(versionIds)
 }
 
 export async function getVotes(challengeId: number): Promise<string[]> {

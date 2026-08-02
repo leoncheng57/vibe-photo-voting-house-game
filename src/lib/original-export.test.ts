@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import type { OriginalRecord } from '../types'
-import { buildOriginalCleanupSql, originalVersionLabel, planOriginalArchive } from './original-export'
+import type { OriginalCleanupStatus, OriginalRecord } from '../types'
+import { buildOriginalCleanupSql, originalVersionLabel, planOriginalArchive, summarizeOriginalCleanup } from './original-export'
 
 function record(overrides: Partial<OriginalRecord>): OriginalRecord {
   return {
@@ -57,5 +57,23 @@ describe('original archive planning', () => {
     expect(sql).toContain(`array['${first}', '${second}']::uuid[]`)
     expect(sql.indexOf('update original_versions')).toBeLessThan(sql.indexOf('update submissions'))
     expect(() => buildOriginalCleanupSql(['not-a-version'])).toThrow()
+  })
+
+  it('summarizes exact cleanup approval and deletion progress', () => {
+    const status: OriginalCleanupStatus[] = [
+      { versionId: 'a', originalPath: '1/user/a.jpg', approved: true, objectExists: false, deletionRecorded: true },
+      { versionId: 'b', originalPath: '1/user/b.jpg', approved: true, objectExists: true, deletionRecorded: false },
+    ]
+
+    expect(summarizeOriginalCleanup(status, 2)).toEqual({
+      allApproved: true,
+      remainingObjects: 1,
+      deletionRecorded: false,
+    })
+    expect(summarizeOriginalCleanup(status.slice(0, 1), 2)).toEqual({
+      allApproved: false,
+      remainingObjects: 2,
+      deletionRecorded: false,
+    })
   })
 })

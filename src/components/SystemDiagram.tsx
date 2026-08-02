@@ -208,13 +208,13 @@ const exportLifecycleSteps = [
   },
   {
     title: 'Delete exported objects',
-    entry: 'Storage → photo-originals',
-    detail: 'Delete only the paths listed in that ZIP\u2019s manifest — never empty the bucket, because newer uploads may exist.',
+    entry: 'checklist → storage.remove()',
+    detail: 'The checklist removes only this export’s approved paths through Storage RLS; newer uploads cannot match that approval set.',
   },
   {
     title: 'Tombstone',
-    entry: 'deleted_at = now()',
-    detail: 'Approved rows whose object is really gone leave future exports but keep their audit metadata.',
+    entry: 'confirm_original_cleanup()',
+    detail: 'Only approved rows whose object is confirmed gone receive deleted_at and leave future exports; audit metadata remains.',
   },
   {
     title: 'Optional: derived game copies',
@@ -315,7 +315,7 @@ export function DatabaseDesign() {
             </div>
             <footer className="lifecycle-guarantees">
               <span>a failure after step 02 leaves the original as an exportable recovery copy</span>
-              <span>participants have no Storage update or delete policy in either bucket</span>
+              <span>participants cannot update Storage objects; original deletion requires exact host SQL approval</span>
             </footer>
           </figure>
 
@@ -352,7 +352,7 @@ export function DatabaseDesign() {
           </figure>
 
           <figure className="lifecycle" aria-label="Originals export and host-only cleanup ladder">
-            <figcaption><b>C · Export + host cleanup</b><span>Any member exports; only the host approves, deletes, and tombstones — scoped to one verified ZIP.</span></figcaption>
+            <figcaption><b>C · Export + host cleanup</b><span>Any member exports; host SQL approves exact IDs, then the checklist deletes and tombstones only that verified ZIP.</span></figcaption>
             <ol className="lifecycle-ladder">
               {exportLifecycleSteps.map((step, index) => (
                 <li key={step.title}>
@@ -388,7 +388,7 @@ export function SecurityOps() {
           <article><h3>Authentication</h3><ul><li>Anonymous Auth issues an authenticated-role JWT.</li><li>Identity persists in browser storage.</li><li>Clearing storage creates a new user identity that must re-enter the passphrase.</li></ul></article>
           <article><h3>Party membership</h3><ul><li><code>join_party()</code> compares the passphrase to a bcrypt hash inside Postgres.</li><li>A wrong passphrase never creates a membership.</li><li>Every table, view, RPC, and Storage policy requires an active membership while <code>is_open</code> is true.</li></ul></article>
           <article><h3>Database RLS</h3><ul><li>All party tables require an active membership.</li><li>Profiles may only be inserted for <code>auth.uid()</code>.</li><li>Submission mutation requires ownership and zero existing votes.</li><li>Direct vote writes are denied; ballots use the RPC.</li></ul></article>
-          <article><h3>Storage RLS</h3><ul><li>Both buckets are private.</li><li>Original uploads require an owned pending reservation with an exact path.</li><li>Participants have no original-delete policy; cleanup is host-only.</li><li>Reads require active party membership.</li></ul></article>
+          <article><h3>Storage RLS</h3><ul><li>Both buckets are private.</li><li>Original uploads require an owned pending reservation with an exact path.</li><li>Original deletion is limited to exact versions approved by host SQL.</li><li>Reads and checklist cleanup require active party membership.</li></ul></article>
           <article><h3>Image delivery</h3><ul><li>Images are fetched with authenticated <code>storage.download()</code> calls.</li><li>The browser renders device-local blob URLs; no reusable signed URLs are issued.</li><li>Members can still save or photograph what their own screen displays.</li></ul></article>
           <article><h3>Privileged logic</h3><ul><li><code>submit_votes</code> derives voter ID from JWT and requires membership.</li><li>Original reservation and activation RPCs validate ownership, membership, object presence, and replacement eligibility.</li><li>Cleanup SQL and service-role keys never enter the client build.</li></ul></article>
         </div>

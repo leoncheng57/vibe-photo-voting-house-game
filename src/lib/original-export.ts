@@ -1,4 +1,4 @@
-import type { OriginalRecord } from '../types'
+import type { OriginalCleanupStatus, OriginalRecord } from '../types'
 import { exportEntryName, exportFolderName } from './photo-policy'
 
 export interface PlannedOriginalFile {
@@ -13,6 +13,23 @@ export interface PlannedOriginalFolder {
   files: PlannedOriginalFile[]
   totalBytes: number
   processedCount: number
+}
+
+export interface OriginalExportSession {
+  versionIds: string[]
+  cleanupSql: string
+  totalFiles: number
+  totalBytes: number
+  archiveBytes: number
+}
+
+export function summarizeOriginalCleanup(status: OriginalCleanupStatus[], expectedCount: number) {
+  const completeSet = status.length === expectedCount
+  return {
+    allApproved: completeSet && status.every((row) => row.approved),
+    remainingObjects: completeSet ? status.filter((row) => row.objectExists).length : expectedCount,
+    deletionRecorded: completeSet && status.every((row) => row.deletionRecorded),
+  }
 }
 
 function pathExtension(path: string): string {
