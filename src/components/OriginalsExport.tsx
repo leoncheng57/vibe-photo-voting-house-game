@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { downloadOriginal, getAllOriginals, getPartyStatus } from '../lib/api'
+import { errorMessage } from '../lib/errors'
 import { buildOriginalCleanupSql, originalVersionLabel, planOriginalArchive } from '../lib/original-export'
 import { archiveStatusLabel, formatBytes } from '../lib/photo-policy'
 import { zipBlob, type ZipEntry } from '../lib/zip'
@@ -121,7 +122,7 @@ export function OriginalsExport() {
       URL.revokeObjectURL(url)
       setMessage(`ZIP with ${totalFiles} original versions (${formatBytes(archive.size)}) saved. Verify it opens and back it up before any cleanup.`)
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Export failed.')
+      setMessage(errorMessage(error, 'Export failed.'))
     } finally {
       setProgress(null)
     }

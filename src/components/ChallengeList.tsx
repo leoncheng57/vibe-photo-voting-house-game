@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Challenge, Submission } from '../types'
 import { getSubmissions, uploadSubmission } from '../lib/api'
+import { errorMessage } from '../lib/errors'
 import { preparePhoto } from '../lib/images'
 import { ARCHIVE_PRESERVE_LIMIT, classifyOriginal, formatBytes } from '../lib/photo-policy'
 
@@ -41,7 +42,7 @@ export function ChallengeList({ challenges, userId, refreshToken, onChanged }: P
       setSubmissions(await getSubmissions())
       onChanged()
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Upload failed.')
+      setMessage(errorMessage(error, 'Upload failed.'))
     } finally {
       setBusyId(null)
       const input = inputRefs.current[challenge.id]
