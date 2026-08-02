@@ -16,8 +16,8 @@ const paletteUrl = `${appRoot}developer/palette/`
 const developerUrl = progressUrl
 
 const navigationItems: Array<{ id: View; label: string; href: string; icon?: 'tv' }> = [
-  { id: 'challenges', label: 'Play', href: playUrl },
   { id: 'tutorial', label: 'How to play', href: `${playUrl}?tutorial` },
+  { id: 'challenges', label: 'Play', href: playUrl },
   { id: 'vote', label: 'Vote', href: `${playUrl}?vote` },
   { id: 'display', label: 'TV mode', href: `${playUrl}?display`, icon: 'tv' },
 ]

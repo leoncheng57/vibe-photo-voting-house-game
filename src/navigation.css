@@ -1,4 +1,4 @@
-.brand { display: inline-grid; min-width: 112px; height: 50px; align-content: center; justify-items: start; border: 2px solid var(--ink); background: var(--pool); padding: .38rem .65rem; transform: rotate(-1deg); }
+.brand { display: inline-grid; min-width: 112px; height: 50px; align-content: center; justify-items: start; justify-self: start; border: 2px solid var(--ink); background: var(--pool); padding: .38rem .65rem; transform: rotate(-1deg); }
 .brand b { font: 900 1.2rem/.9 Arial Black, Arial, sans-serif; }
 .brand span { margin-top: .2rem; font-size: .52rem; font-weight: 900; letter-spacing: .16em; line-height: 1; }
 .brand--button { color: inherit; text-decoration: none; cursor: pointer; }
