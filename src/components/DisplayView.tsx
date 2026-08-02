@@ -2,71 +2,102 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import type { Challenge, Submission } from '../types'
 import { getSubmissions } from '../lib/api'
+import { sortGallerySubmissions } from '../lib/gallery'
 import { Timer } from './Timer'
 import { Tutorial } from './Tutorial'
 import { Leaderboard } from './Leaderboard'
 
-const PAGE_DURATION_SECONDS = 30
-const PAGE_DURATION_MS = PAGE_DURATION_SECONDS * 1000
 const SCORE_DRAWER_TRANSITION_MS = 320
 const SCORE_DRAWER_OPEN_DELAY_MS = 20
+const GALLERY_SCROLL_PIXELS_PER_SECOND = 16
+const GALLERY_SCROLL_EDGE_PAUSE_MS = 1800
+const GALLERY_SCROLL_INTERACTION_PAUSE_MS = 5000
 type DisplayPage = 'gallery' | 'voting' | 'tutorial'
 
 export function DisplayView({ challenges, refreshToken, onExit }: { challenges: Challenge[]; refreshToken: number; onExit: () => void }) {
   const [index, setIndex] = useState(0)
-  const [photos, setPhotos] = useState<Submission[]>([])
-  const [revealed, setRevealed] = useState(false)
+  const [galleryPhotos, setGalleryPhotos] = useState<Submission[]>([])
+  const [votingPhotos, setVotingPhotos] = useState<Submission[]>([])
   const [error, setError] = useState('')
   const [page, setPage] = useState<DisplayPage>('gallery')
+  const [prefersReducedMotion] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+  const [galleryPaused, setGalleryPaused] = useState(prefersReducedMotion)
   const [previewPhotoId, setPreviewPhotoId] = useState<string | null>(null)
   const [confirmingScores, setConfirmingScores] = useState(false)
   const [scoresMounted, setScoresMounted] = useState(false)
   const [scoresRevealed, setScoresRevealed] = useState(false)
   const [scoresSettled, setScoresSettled] = useState(false)
   const [hidingScores, setHidingScores] = useState(false)
-  const [pageSeconds, setPageSeconds] = useState(PAGE_DURATION_SECONDS)
-  const pageEndsAt = useRef(Date.now() + PAGE_DURATION_MS)
   const scoreCloseTimer = useRef<number | null>(null)
   const scoreHideStartTimer = useRef<number | null>(null)
   const scoreOpenTimer = useRef<number | null>(null)
   const scoreSettleTimer = useRef<number | null>(null)
-  const previewOpen = useRef(false)
   const previewTrigger = useRef<HTMLButtonElement | null>(null)
   const previewClose = useRef<HTMLButtonElement | null>(null)
   const restorePreviewFocus = useRef(false)
+  const galleryScroll = useRef<HTMLDivElement | null>(null)
+  const galleryScrollAtEnd = useRef(false)
+  const galleryScrollPausedUntil = useRef(0)
+  const galleryHasFocus = useRef(false)
   const challenge = challenges[index]
+  const challengeById = useMemo(() => new Map(challenges.map((item) => [item.id, item])), [challenges])
   const joinUrl = useMemo(() => `${window.location.origin}${import.meta.env.BASE_URL}play/`, [])
 
   useEffect(() => {
-    if (!challenge) return
+    if (page !== 'gallery') return
     let current = true
-    setRevealed(false)
-    getSubmissions(challenge.id)
-      .then((nextPhotos) => { if (current) setPhotos(nextPhotos) })
+    getSubmissions()
+      .then((nextPhotos) => { if (current) setGalleryPhotos(sortGallerySubmissions(nextPhotos)) })
       .catch((reason: Error) => { if (current) setError(reason.message) })
     return () => { current = false }
-  }, [challenge, refreshToken])
+  }, [page, refreshToken])
 
   useEffect(() => {
-    if (!challenges.length || page !== 'gallery' || previewPhotoId) return
-    pageEndsAt.current = Date.now() + PAGE_DURATION_MS
-    setPageSeconds(PAGE_DURATION_SECONDS)
-    setIndex((current) => Math.min(current, challenges.length - 1))
+    if (!challenge || page !== 'voting') return
+    let current = true
+    getSubmissions(challenge.id)
+      .then((nextPhotos) => { if (current) setVotingPhotos(nextPhotos) })
+      .catch((reason: Error) => { if (current) setError(reason.message) })
+    return () => { current = false }
+  }, [challenge, page, refreshToken])
 
+  useEffect(() => {
+    const element = galleryScroll.current
+    if (page !== 'gallery' || previewPhotoId || galleryPaused || !element || prefersReducedMotion) return
+    const scrollElement = element
+
+    let previousTime = Date.now()
     const interval = window.setInterval(() => {
-      if (previewOpen.current) return
-      const now = Date.now()
-      if (now >= pageEndsAt.current) {
-        setIndex((current) => (current + 1) % challenges.length)
-        pageEndsAt.current = now + PAGE_DURATION_MS
-        setPageSeconds(PAGE_DURATION_SECONDS)
-        return
-      }
-      setPageSeconds(Math.ceil((pageEndsAt.current - now) / 1000))
-    }, 250)
+      const currentTime = Date.now()
+      const elapsed = Math.min(1000, currentTime - previousTime)
+      previousTime = currentTime
+      const maxScroll = scrollElement.scrollWidth - scrollElement.clientWidth
 
+      if (!galleryHasFocus.current && Date.now() >= galleryScrollPausedUntil.current && maxScroll > 0) {
+        if (galleryScrollAtEnd.current) {
+          scrollElement.scrollLeft = 0
+          galleryScrollAtEnd.current = false
+          galleryScrollPausedUntil.current = Date.now() + GALLERY_SCROLL_EDGE_PAUSE_MS
+        } else {
+          scrollElement.scrollLeft += GALLERY_SCROLL_PIXELS_PER_SECOND * elapsed / 1000
+        }
+        if (scrollElement.scrollLeft >= maxScroll - 1) {
+          scrollElement.scrollLeft = maxScroll
+          galleryScrollAtEnd.current = true
+          galleryScrollPausedUntil.current = Date.now() + GALLERY_SCROLL_EDGE_PAUSE_MS
+        }
+      }
+    }, 50)
     return () => window.clearInterval(interval)
-  }, [challenges.length, page, previewPhotoId])
+  }, [galleryPaused, galleryPhotos.length, page, prefersReducedMotion, previewPhotoId])
+
+  useEffect(() => {
+    const element = galleryScroll.current
+    if (!element || page !== 'gallery') return
+    element.scrollLeft = 0
+    galleryScrollAtEnd.current = false
+    galleryScrollPausedUntil.current = Date.now() + GALLERY_SCROLL_EDGE_PAUSE_MS
+  }, [galleryPhotos.length, page])
 
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
@@ -78,9 +109,7 @@ export function DisplayView({ challenges, refreshToken, onExit }: { challenges: 
         return
       }
       const delta = event.key === 'ArrowLeft' ? -1 : event.key === 'ArrowRight' ? 1 : 0
-      if (!delta || previewPhotoId || !challenges.length || (page !== 'gallery' && page !== 'voting')) return
-      pageEndsAt.current = Date.now() + PAGE_DURATION_MS
-      setPageSeconds(PAGE_DURATION_SECONDS)
+      if (!delta || previewPhotoId || !challenges.length || page !== 'voting') return
       setIndex((current) => (current + delta + challenges.length) % challenges.length)
     }
     window.addEventListener('keydown', onKey)
@@ -106,40 +135,32 @@ export function DisplayView({ challenges, refreshToken, onExit }: { challenges: 
     if (scoreSettleTimer.current) window.clearTimeout(scoreSettleTimer.current)
   }, [])
 
-  const sorted = revealed
-    ? [...photos].sort((a, b) => (b.voteCount ?? 0) - (a.voteCount ?? 0))
-    : photos
-  const displayedPhotos = page === 'gallery' ? sorted : photos
-  const previewPhoto = previewPhotoId ? photos.find((photo) => photo.id === previewPhotoId) : undefined
+  const displayedPhotos = page === 'gallery' ? galleryPhotos : votingPhotos
+  const previewPhoto = previewPhotoId ? displayedPhotos.find((photo) => photo.id === previewPhotoId) : undefined
   const previewPhotoIndex = previewPhotoId ? displayedPhotos.findIndex((photo) => photo.id === previewPhotoId) : -1
-  const voteTarget = Math.min(3, photos.length)
+  const previewChallenge = previewPhoto ? challengeById.get(previewPhoto.challenge_id) : undefined
+  const voteTarget = Math.min(3, votingPhotos.length)
 
   function move(delta: number) {
     if (!challenges.length) return
-    pageEndsAt.current = Date.now() + PAGE_DURATION_MS
-    setPageSeconds(PAGE_DURATION_SECONDS)
     setIndex((current) => (current + delta + challenges.length) % challenges.length)
   }
 
-  async function toggleResults() {
-    if (revealed) {
-      setRevealed(false)
-      return
-    }
-    try {
-      setPhotos(await getSubmissions(challenge.id))
-      setRevealed(true)
-    } catch (reason) {
-      setError(reason instanceof Error ? reason.message : 'Could not refresh results.')
-    }
+  function pauseGalleryScroll() {
+    galleryScrollPausedUntil.current = Date.now() + GALLERY_SCROLL_INTERACTION_PAUSE_MS
+  }
+
+  function toggleGalleryMotion() {
+    setGalleryPaused((current) => {
+      if (current) galleryScrollPausedUntil.current = 0
+      return !current
+    })
   }
 
   function selectPage(nextPage: DisplayPage) {
-    previewOpen.current = false
     restorePreviewFocus.current = false
     setPreviewPhotoId(null)
     previewTrigger.current = null
-    if (nextPage === 'voting') setRevealed(false)
     if (nextPage !== 'voting') {
       if (scoreCloseTimer.current) window.clearTimeout(scoreCloseTimer.current)
       if (scoreHideStartTimer.current) window.clearTimeout(scoreHideStartTimer.current)
@@ -155,14 +176,13 @@ export function DisplayView({ challenges, refreshToken, onExit }: { challenges: 
   }
 
   function openPhotoPreview(photoId: string, trigger: HTMLButtonElement) {
-    previewOpen.current = true
+    pauseGalleryScroll()
     restorePreviewFocus.current = false
     previewTrigger.current = trigger
     setPreviewPhotoId(photoId)
   }
 
   function closePhotoPreview() {
-    previewOpen.current = false
     restorePreviewFocus.current = true
     setPreviewPhotoId(null)
   }
@@ -220,7 +240,7 @@ export function DisplayView({ challenges, refreshToken, onExit }: { challenges: 
   if (!challenge) return null
 
   return (
-    <div className={`display-view ${page === 'voting' ? 'display-view--voting' : ''} ${scoresMounted ? 'display-view--scores-revealed' : ''}`}>
+    <div className={`display-view ${page === 'gallery' ? 'display-view--gallery' : ''} ${page === 'voting' ? 'display-view--voting' : ''} ${scoresMounted ? 'display-view--scores-revealed' : ''}`}>
       <header className={`display-header ${page === 'gallery' ? 'display-header--gallery' : ''}`}>
         <div className="display-brand-controls">
           <div className="brand brand--display"><b>HOUSE</b><span>PHOTO HUNT</span></div>
@@ -240,7 +260,56 @@ export function DisplayView({ challenges, refreshToken, onExit }: { challenges: 
         )}
       </header>
 
-      {(page === 'gallery' || page === 'voting') && <>
+      {page === 'gallery' && (
+        <section className="display-gallery-page" aria-label="Live party gallery">
+          <header className="display-gallery-intro">
+            <div><span className="eyebrow">Newest first · live from the house</span><h1>Every shot. One gallery.</h1></div>
+            <div className="display-gallery-motion">
+              <p>{galleryPhotos.length} photos across {challenges.length} challenges. Two rows move continuously to the right.</p>
+              <button className="button button--dark" type="button" aria-pressed={galleryPaused} disabled={prefersReducedMotion} onClick={toggleGalleryMotion}>{prefersReducedMotion ? 'Motion disabled' : galleryPaused ? 'Play carousel' : 'Pause carousel'}</button>
+            </div>
+          </header>
+          {error && <div className="notice notice--error">{error}</div>}
+          {galleryPhotos.length ? <div
+            className="display-gallery-scroll"
+            ref={galleryScroll}
+            onWheel={pauseGalleryScroll}
+            onTouchStart={pauseGalleryScroll}
+            onPointerDown={pauseGalleryScroll}
+            onFocusCapture={() => { galleryHasFocus.current = true }}
+            onBlurCapture={(event) => {
+              if (!event.currentTarget.contains(event.relatedTarget)) {
+                galleryHasFocus.current = false
+                pauseGalleryScroll()
+              }
+            }}
+          >
+            <div className="photo-grid photo-grid--display photo-grid--gallery">
+              {galleryPhotos.map((photo, photoIndex) => {
+                const photoChallenge = challengeById.get(photo.challenge_id)
+                const challengeIndex = Math.max(0, challenges.findIndex((item) => item.id === photo.challenge_id))
+                return <figure className={`gallery-card--${(challengeIndex % 3) + 1}`} key={photo.id}>
+                  <button
+                    className="display-photo-open"
+                    type="button"
+                    aria-label={`View full photo for ${photoChallenge?.title ?? 'challenge'}`}
+                    onClick={(event) => openPhotoPreview(photo.id, event.currentTarget)}
+                  >
+                    <img src={photo.photoUrl} alt={`Anonymous submission for ${photoChallenge?.title ?? 'a party challenge'}`} />
+                    <span>View full</span>
+                  </button>
+                  <figcaption>
+                    <strong>{photoChallenge?.title ?? 'Party challenge'}</strong>
+                    <span>Challenge {String(challengeIndex + 1).padStart(2, '0')} · Photo {String(photoIndex + 1).padStart(2, '0')}</span>
+                  </figcaption>
+                </figure>
+              })}
+            </div>
+          </div> : <div className="empty-state">Photos will appear here.</div>}
+        </section>
+      )}
+
+      {page === 'voting' && <>
         <section className="display-title">
           <button type="button" aria-label="Previous challenge" onClick={() => move(-1)}>←</button>
           <div>
@@ -251,10 +320,10 @@ export function DisplayView({ challenges, refreshToken, onExit }: { challenges: 
           <button type="button" aria-label="Next challenge" onClick={() => move(1)}>→</button>
         </section>
 
-        {page === 'voting' && <section className="display-voting-callout"><span>Voting is open</span><h1>Choose on your phone.</h1><p>{voteTarget ? <>Open <b>Vote</b> and select {voteTarget} {voteTarget === 1 ? 'favorite' : 'favorites'} for this challenge.</> : 'Photos will appear here as guests submit them.'}</p></section>}
+        <section className="display-voting-callout"><span>Voting is open</span><h1>Choose on your phone.</h1><p>{voteTarget ? <>Open <b>Vote</b> and select {voteTarget} {voteTarget === 1 ? 'favorite' : 'favorites'} for this challenge.</> : 'Photos will appear here as guests submit them.'}</p></section>
         {error && <div className="notice notice--error">{error}</div>}
-        <div className={`photo-grid photo-grid--display ${page === 'gallery' && revealed ? 'revealed' : ''}`}>
-          {displayedPhotos.map((photo, photoIndex) => (
+        <div className="photo-grid photo-grid--display">
+          {votingPhotos.map((photo, photoIndex) => (
             <figure key={photo.id}>
               <button
                 className="display-photo-open"
@@ -265,14 +334,11 @@ export function DisplayView({ challenges, refreshToken, onExit }: { challenges: 
                 <img src={photo.photoUrl} alt={`Anonymous submission ${photoIndex + 1} for ${challenge.title}`} />
                 <span>View full</span>
               </button>
-              <figcaption>
-                {page === 'gallery' && revealed ? <><strong>{photo.ownerName}</strong><span>{photo.voteCount} votes</span></> : <span>Photo {photoIndex + 1}</span>}
-              </figcaption>
+              <figcaption><span>Photo {photoIndex + 1}</span></figcaption>
             </figure>
           ))}
         </div>
-        {!photos.length && <div className="empty-state">Photos will appear here.</div>}
-        {page === 'gallery' && <div className="display-gallery-pager">Next in {pageSeconds}s <span>· ← → to move</span></div>}
+        {!votingPhotos.length && <div className="empty-state">Photos will appear here.</div>}
       </>}
 
       {page === 'tutorial' && <div className="display-tutorial-page">
@@ -310,13 +376,11 @@ export function DisplayView({ challenges, refreshToken, onExit }: { challenges: 
               <button ref={previewClose} className="button" type="button" onClick={closePhotoPreview}>Close full photo</button>
             </header>
             <div className="photo-lightbox__image">
-              <img src={previewPhoto.photoUrl} alt={`Full submission ${previewPhotoIndex + 1} for ${challenge.title}`} />
+              <img src={previewPhoto.photoUrl} alt={`Full submission ${previewPhotoIndex + 1} for ${previewChallenge?.title ?? 'a party challenge'}`} />
             </div>
             <footer>
-              <strong>{challenge.title}</strong>
-              {page === 'gallery' && revealed
-                ? <span>{previewPhoto.ownerName} · {previewPhoto.voteCount} votes</span>
-                : <span>Photographer hidden</span>}
+              <strong>{previewChallenge?.title ?? 'Party challenge'}</strong>
+              <span>Photographer hidden</span>
             </footer>
           </section>
         </div>
@@ -324,10 +388,11 @@ export function DisplayView({ challenges, refreshToken, onExit }: { challenges: 
 
       <footer className={`display-footer display-footer--${page}`}>
         {page === 'gallery' ? <>
-          <span>{photos.length} submissions</span>
-          <button className="button button--dark" onClick={toggleResults}>{revealed ? 'Hide results' : 'Reveal results'}</button>
+          <span>{galleryPhotos.length} photos</span>
+          <strong>Live gallery</strong>
+          <span>{prefersReducedMotion ? 'Reduced motion · manual scroll' : galleryPaused ? 'Carousel paused' : 'Newest first · moving right'}</span>
         </> : page === 'voting' ? <>
-          <span>{photos.length} anonymous submissions</span>
+          <span>{votingPhotos.length} anonymous submissions</span>
           <button
             className="button button--dark display-score-toggle"
             type="button"

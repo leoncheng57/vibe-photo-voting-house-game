@@ -49,7 +49,7 @@ The frontend is React, TypeScript, and Vite on GitHub Pages. Supabase provides a
 - Built-in tutorial walkthrough for first-time guests
 - Developer references for the color palette, architecture, database design, security and operations, repository files, host runbooks, and GitHub project progress under `/developer/`
 - Anonymous photographer names during voting
-- TV mode with Gallery, Voting, and How to Play pages, QR join code, automatic 30-second gallery paging, keyboard navigation, result reveal, and a host-confirmed final scoreboard
+- TV mode with a newest-first two-row scrolling Gallery, challenge-by-challenge Voting, How to Play, QR join codes, keyboard navigation, full-photo previews, and a host-confirmed final scoreboard
 - Full-resolution HEIC/JPEG originals preserved alongside optimized game copies
 - Always-visible storage meter against the Supabase Free 1 GB quota
 - One-click originals export to a local ZIP (folder per challenge) with a pre-download tree preview on the Photo Export Runbook page
@@ -147,12 +147,11 @@ The app deploys to:
 1. Put the `/play/` URL or TV mode QR code where guests can find it, and share the party passphrase out of band.
 2. Each guest enters the passphrase, then a unique display name, and takes one photo for every challenge. The TV device enters the passphrase once too.
 3. Start the informational timer on the display device. It does not lock app actions.
-4. When photo time ends, show the challenges in TV mode, which advances every 30 seconds.
-5. Guests select and confirm one, two, or three photos for that challenge on their phones. They may revisit and replace a saved ballot.
-6. Reveal that challenge's vote totals and photographers on the TV.
-7. Continue through all challenges, then use **Reveal final scores** in the TV Voting footer to show the winners.
+4. During photo time, leave TV **Gallery** open as a newest-first two-row photo wall; it scrolls horizontally and labels every photo with its challenge.
+5. When photo time ends, open TV **Voting** and move through one challenge at a time. Guests select and confirm one, two, or three photos on their phones and may revisit a saved ballot.
+6. Continue through all challenges, then use **Reveal final scores** in the TV Voting footer to show the winners.
 
-Use the left and right arrow keys in TV mode to switch challenges early and restart the 30-second countdown. Press the logo or Escape to leave TV mode.
+Use the left and right arrow keys in TV Voting to switch challenges. Interacting with Gallery pauses its automatic movement temporarily. Press **Exit TV mode** or Escape to leave TV mode.
 
 ## Capacity
 
