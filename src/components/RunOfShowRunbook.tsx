@@ -77,8 +77,8 @@ export function RunOfShowRunbook() {
             <ul>
               <li>Move around the house and take photos for any challenges they want to join.</li>
               <li>Submit one photo per challenge and review the uploaded preview before leaving the page.</li>
-              <li>A photo may be replaced until it receives a vote; replacement uploads a new original version and removes the superseded one.</li>
-              <li>A photo that has already received votes cannot be replaced or deleted.</li>
+              <li>Replacement uploads a new immutable original and game version while preserving every earlier original for export.</li>
+              <li>A voted photo may be replaced after confirming the warning; activation clears all votes attached to that submission.</li>
             </ul>
           </article>
           <article>
@@ -180,7 +180,6 @@ export function RunOfShowRunbook() {
           <article>
             <h3>Still outstanding before the event</h3>
             <ul>
-              <li>Append-only replacement-photo preservation — today a replacement removes the superseded original version: issue #37 (PR #51).</li>
               <li>Full UI/UX test pass against a disposable Supabase project: issue #24.</li>
             </ul>
           </article>

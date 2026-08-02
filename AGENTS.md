@@ -48,12 +48,12 @@ Run tests, lint, and build before considering a change complete.
 - Uploads reserve ledger metadata before writing bytes, upload immutable original and game paths, then activate the revision through `activate_original_version()`. Failed steps leave original bytes represented for host recovery/export rather than deleting them.
 - Historical game JPEGs are derived copies, excluded from the originals ZIP, and may be deleted only by the host after querying unreferenced `original_versions.game_path` values. Participants have no Storage update/delete policies.
 - Host cleanup approves exact exported ledger rows and clears `submissions.original_*` first. The checklist then deletes only those approved bucket objects through Storage RLS and tombstones only confirmed missing versions — never reverse that order. The flow lives on `/developer/photo-export/`.
-- The `photos` bucket is private. The app fetches image bytes with authenticated `storage.download()` calls and renders browser-local blob URLs; do not reintroduce reusable signed URLs. Blob URLs are cached per `storage_path` in `src/lib/api.ts` and must be invalidated when a submission changes, because photo replacement reuses the same path.
+- The `photos` bucket is private. The app fetches image bytes with authenticated `storage.download()` calls and renders browser-local blob URLs; do not reintroduce reusable signed URLs. Blob URLs are cached per immutable `storage_path` in `src/lib/api.ts`.
 - Storage objects and `public.submissions` rows do not cascade to each other. Never document or implement storage-only cleanup for a referenced photo.
 - Upload is not transactional across Storage and Postgres. Pending ledger rows and physically stored recovery copies are intentional failure records, not participant-cleaned orphans.
 - Delete a submission before deleting its Storage object. Votes referencing that submission cascade automatically.
-- Existing voted submissions cannot be replaced or deleted by participants under the current policies.
-- Voting submits submission IDs plus the immutable game paths the voter saw; the RPC locks and rejects stale paths so replacement cannot race with ballot creation.
+- Replacing a voted submission requires a client warning and atomically clears every vote attached to that stable submission ID before activating the new photo version. Participant deletion remains unavailable.
+- Voting submits submission IDs plus the immutable game paths the voter saw; row locks serialize replacement against ballot creation, and stale paths are rejected after activation.
 - Realtime subscriptions cover `submissions` and `votes`, not Storage changes.
 - The timer is informational and device-local. It does not lock uploads or voting.
 - Apply Supabase migrations in numeric order. Add a new migration for schema changes; do not rewrite migrations that may already have been applied.

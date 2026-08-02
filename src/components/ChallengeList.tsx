@@ -17,7 +17,9 @@ export function ChallengeList({ challenges, userId, refreshToken, onChanged }: P
   const [busyId, setBusyId] = useState<number | null>(null)
   const [message, setMessage] = useState('')
   const [oversizeBytes, setOversizeBytes] = useState<number | null>(null)
+  const [pendingReplacement, setPendingReplacement] = useState<{ challenge: Challenge; voteCount: number } | null>(null)
   const inputRefs = useRef<Record<number, HTMLInputElement | null>>({})
+  const confirmedVotedReplacement = useRef<number | null>(null)
 
   useEffect(() => {
     getSubmissions().then(setSubmissions).catch((error: Error) => setMessage(error.message))
@@ -25,6 +27,7 @@ export function ChallengeList({ challenges, userId, refreshToken, onChanged }: P
 
   async function selectPhoto(challenge: Challenge, file?: File) {
     if (!file) return
+    const clearsVotes = confirmedVotedReplacement.current === challenge.id
     setBusyId(challenge.id)
     setMessage('')
 
@@ -38,16 +41,38 @@ export function ChallengeList({ challenges, userId, refreshToken, onChanged }: P
     try {
       const prepared = await preparePhoto(file)
       await uploadSubmission(challenge.id, prepared)
-      setMessage(`Your photo for “${challenge.title}” is in.`)
+      setMessage(clearsVotes
+        ? `Your replacement for “${challenge.title}” is in. Its previous votes were cleared.`
+        : `Your photo for “${challenge.title}” is in.`)
       setSubmissions(await getSubmissions())
       onChanged()
     } catch (error) {
       setMessage(errorMessage(error, 'Upload failed.'))
     } finally {
       setBusyId(null)
+      confirmedVotedReplacement.current = null
       const input = inputRefs.current[challenge.id]
       if (input) input.value = ''
     }
+  }
+
+  function requestPhoto(challenge: Challenge, own?: Submission) {
+    confirmedVotedReplacement.current = null
+    const voteCount = own?.voteCount ?? 0
+    if (own && voteCount > 0) {
+      setPendingReplacement({ challenge, voteCount })
+      return
+    }
+    inputRefs.current[challenge.id]?.click()
+  }
+
+  function confirmReplacement(event: React.FormEvent) {
+    event.preventDefault()
+    if (!pendingReplacement) return
+    const challengeId = pendingReplacement.challenge.id
+    confirmedVotedReplacement.current = challengeId
+    setPendingReplacement(null)
+    inputRefs.current[challengeId]?.click()
   }
 
   return (
@@ -57,7 +82,7 @@ export function ChallengeList({ challenges, userId, refreshToken, onChanged }: P
           <span className="eyebrow">01 / Make something memorable</span>
           <h2>Six shots.<br />No bad ideas.</h2>
         </div>
-        <p>Take one photo for every challenge. You can replace a photo until the group starts voting.</p>
+        <p>Take one photo for every challenge. You can replace it later, but replacing a photo clears every vote it has received.</p>
       </header>
 
       {message && <div className="notice" role="status">{message}</div>}
@@ -86,7 +111,7 @@ export function ChallengeList({ challenges, userId, refreshToken, onChanged }: P
                     <button
                       className="button"
                       disabled={busyId !== null}
-                      onClick={() => inputRefs.current[challenge.id]?.click()}
+                      onClick={() => requestPhoto(challenge, own)}
                     >
                       {busyId === challenge.id ? 'Preparing…' : own ? 'Replace mine' : 'Add my photo'}
                     </button>
@@ -117,6 +142,23 @@ export function ChallengeList({ challenges, userId, refreshToken, onChanged }: P
             </p>
             <div>
               <button className="button button--dark" type="submit" autoFocus>Got it</button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {pendingReplacement && (
+        <div className="name-dialog" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setPendingReplacement(null) }}>
+          <form role="dialog" aria-modal="true" aria-labelledby="replacement-dialog-title" onSubmit={confirmReplacement}>
+            <span className="eyebrow">Replace voted photo</span>
+            <h2 id="replacement-dialog-title">Clear {pendingReplacement.voteCount} {pendingReplacement.voteCount === 1 ? 'vote' : 'votes'}?</h2>
+            <p className="dialog-warning dialog-warning--danger">
+              This photo currently has {pendingReplacement.voteCount} {pendingReplacement.voteCount === 1 ? 'vote' : 'votes'}.
+              Replacing it will permanently clear {pendingReplacement.voteCount === 1 ? 'that vote' : 'those votes'}. Are you sure you want to replace it?
+            </p>
+            <div>
+              <button className="button" type="button" autoFocus onClick={() => setPendingReplacement(null)}>Cancel</button>
+              <button className="button button--dark" type="submit">Choose replacement</button>
             </div>
           </form>
         </div>

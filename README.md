@@ -41,7 +41,7 @@ The frontend is React, TypeScript, and Vite on GitHub Pages. Supabase provides a
 
 - Passphrase-gated party membership enforced by Postgres row-level security
 - Six included housewarming photo challenges
-- One replaceable photo per guest per challenge
+- One replaceable photo per guest per challenge; replacing a voted photo requires confirmation and clears its votes
 - In-browser photo resizing before upload
 - Zero to three equal votes for distinct photos; saved ballots can be cleared and self-voting is allowed
 - TV-only leaderboard ranked by total votes received, with competition ranking for ties
