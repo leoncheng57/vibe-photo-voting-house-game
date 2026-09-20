@@ -15,6 +15,8 @@ import {
   WINNER_MODE_LABELS,
 } from '../lib/settings'
 
+const HOST_PIN_SQL_SNIPPET = "select set_host_pin('your-pin');"
+
 interface Props {
   onBack?: () => void
   onSettingsChange?: (settings: GameSettingsValue) => void
@@ -31,6 +33,17 @@ export function GameSettings({ onBack, onSettingsChange }: Props) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [status, setStatus] = useState('')
+  const [hostPinSqlCopied, setHostPinSqlCopied] = useState(false)
+
+  async function copyHostPinSqlToClipboard() {
+    try {
+      await navigator.clipboard.writeText(HOST_PIN_SQL_SNIPPET)
+      setHostPinSqlCopied(true)
+      setTimeout(() => setHostPinSqlCopied(false), 1600)
+    } catch {
+      // Clipboard access denied; the snippet stays selectable as a fallback.
+    }
+  }
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -115,7 +128,10 @@ export function GameSettings({ onBack, onSettingsChange }: Props) {
             Settings are protected by a host PIN, and there is no host role in this app — every guest signs in
             anonymously. Set the PIN once from the Supabase SQL editor:
           </p>
-          <pre className="settings-sql"><code>select set_host_pin('your-pin');</code></pre>
+          <pre className="settings-sql"><code>{HOST_PIN_SQL_SNIPPET}</code></pre>
+          <button type="button" className="button" onClick={() => void copyHostPinSqlToClipboard()}>
+            {hostPinSqlCopied ? 'Copied' : 'Copy the SQL'}
+          </button>
           <p>Reload this page afterwards and the form below unlocks.</p>
           <button type="button" className="button" onClick={() => void load()}>
             Check again
@@ -128,7 +144,7 @@ export function GameSettings({ onBack, onSettingsChange }: Props) {
           <section className="settings-section">
             <h2>Winner mode</h2>
             <p className="settings-section__note">How every challenge winner is decided.</p>
-            <div className="settings-modes" role="radiogroup" aria-label="Winner mode">
+            <div className="settings-modes">
               {WINNER_MODES.map((mode) => (
                 <label
                   key={mode}
@@ -175,6 +191,7 @@ export function GameSettings({ onBack, onSettingsChange }: Props) {
                         type="text"
                         className="settings-token__hex"
                         inputMode="text"
+                        maxLength={7}
                         autoComplete="off"
                         spellCheck={false}
                         value={value}
@@ -211,8 +228,8 @@ export function GameSettings({ onBack, onSettingsChange }: Props) {
             />
           </section>
 
-          {error && <p className="notice notice--error">{error}</p>}
-          {status && <p className="notice">{status}</p>}
+          {error && <p className="notice notice--error" role="alert">{error}</p>}
+          {status && <p className="notice" role="status">{status}</p>}
 
           <div className="settings-actions">
             <button type="submit" className="button button--dark" disabled={Boolean(blocker)}>
