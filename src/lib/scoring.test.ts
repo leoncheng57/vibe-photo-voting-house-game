@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getWinningPhotoIds, rankLeaderboardEntries, scorePhotos } from './scoring'
+import { getWinningPhotoIds, rankLeaderboardEntries, rankLeaderboardEntriesByWins, scorePhotos } from './scoring'
 
 describe('scorePhotos', () => {
   it('ranks photos by votes', () => {
@@ -56,6 +56,22 @@ describe('rankLeaderboardEntries', () => {
     ])).toMatchObject([
       { name: 'A', rank: 1 },
       { name: 'B', rank: 2 },
+      { name: 'C', rank: 2 },
+      { name: 'D', rank: 4 },
+    ])
+  })
+})
+
+describe('rankLeaderboardEntriesByWins', () => {
+  it('sorts by wins and gives tied win counts the same rank', () => {
+    expect(rankLeaderboardEntriesByWins([
+      { name: 'A', votes: 8, wins: 1 },
+      { name: 'B', votes: 6, wins: 3 },
+      { name: 'C', votes: 6, wins: 1 },
+      { name: 'D', votes: 4, wins: 0 },
+    ])).toMatchObject([
+      { name: 'B', rank: 1 },
+      { name: 'A', rank: 2 },
       { name: 'C', rank: 2 },
       { name: 'D', rank: 4 },
     ])
