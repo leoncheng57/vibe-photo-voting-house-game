@@ -1,28 +1,26 @@
-import type { CSSProperties } from 'react'
-import { SURFACE_THEMES, THEME_CSS_VARIABLES, THEME_TOKEN_NAMES } from '../config/settings-defaults'
-import { themeDeclarations } from '../lib/apply-theme'
-import type { ThemeSurface } from '../lib/active-app'
+import { DEFAULT_THEME, THEME_CSS_VARIABLES, THEME_TOKEN_NAMES } from '../config/settings-defaults'
 import type { ThemeTokens } from '../types'
 
-// Roles only. Every value is read from the token registry, so this page cannot
-// drift from the palettes the apps actually render.
+// Names and usage notes only — every value is read from the token registry, so
+// the documentation page cannot drift from the theme the app actually renders.
 const tokenNotes: Record<keyof ThemeTokens, { name: string; className: string; use: string }> = {
-  ink: { name: 'Ink', className: 'palette-swatch--navy', use: 'Type, borders, structure' },
-  sky: { name: 'Sky', className: 'palette-swatch--sky', use: 'Primary accent, buttons, active states' },
-  pool: { name: 'Pool', className: 'palette-swatch--pool', use: 'Cards, banners, highlights' },
-  powder: { name: 'Powder', className: 'palette-swatch--powder', use: 'Soft panels, notices' },
-  ice: { name: 'Ice', className: 'palette-swatch--ice', use: 'Quiet backgrounds' },
-  paper: { name: 'Paper', className: 'palette-swatch--cloud', use: 'Main canvas' },
-  alert: { name: 'Alert', className: 'palette-swatch--alert', use: 'Errors, missing content, destructive actions' },
-  accentBlue: { name: 'Accent', className: 'palette-swatch--accent-blue', use: 'Secondary accent, diagrams, data and storage marks' },
-  accentGreen: { name: 'Status', className: 'palette-swatch--accent-green', use: 'Healthy status, progress meters' },
+  ink: { name: 'Deep Plum', className: 'palette-swatch--navy', use: 'Type, borders, structure' },
+  sky: { name: 'Electric Violet', className: 'palette-swatch--sky', use: 'Primary accent, buttons, active states' },
+  pool: { name: 'Orchid', className: 'palette-swatch--pool', use: 'Cards, banners, highlights' },
+  powder: { name: 'Lilac Dust', className: 'palette-swatch--powder', use: 'Soft panels, notices' },
+  ice: { name: 'Frosted Violet', className: 'palette-swatch--ice', use: 'Quiet backgrounds' },
+  paper: { name: 'Cloud', className: 'palette-swatch--cloud', use: 'Main canvas' },
+  alert: { name: 'Alert Rose', className: 'palette-swatch--alert', use: 'Errors, missing content, destructive actions' },
+  accentBlue: { name: 'Signal Blue', className: 'palette-swatch--accent-blue', use: 'Secondary accent, diagrams, data and storage marks' },
+  accentGreen: { name: 'Signal Green', className: 'palette-swatch--accent-green', use: 'Secondary accent, healthy status, progress meters' },
 }
 
-const surfaces: Array<{ surface: ThemeSurface; title: string; note: string }> = [
-  { surface: 'house-party', title: 'House Photo Hunt', note: 'Navy and pool blue, served at /house-party/.' },
-  { surface: 'bday-hunt', title: 'Outdoor Birthday Hunt', note: 'Springtime plum and moss, served at /bday-hunt/.' },
-  { surface: 'shared', title: 'Shared pages', note: 'Neutral grey for the front page, these developer references and the legacy redirects.' },
-]
+const colors = THEME_TOKEN_NAMES.map((token) => ({
+  token,
+  variable: THEME_CSS_VARIABLES[token],
+  value: DEFAULT_THEME[token].toUpperCase(),
+  ...tokenNotes[token],
+}))
 
 // Each grid carries its own palette as custom properties, so the swatch classes
 // resolve to that palette rather than to the grey this page itself runs in.
@@ -34,29 +32,33 @@ export function Palette() {
   return (
     <div className="palette-page">
       <header className="palette-hero">
-        <span className="eyebrow">Photo Hunt / visual system</span>
-        <h1>One registry.<br /><i>Three palettes.</i></h1>
-        <p>Nine tokens, filled in once per surface. Each app paints its own palette at load, and a host theme can still replace any token at runtime.</p>
+        <span className="eyebrow">House Photo Hunt / visual system</span>
+        <h1>Purple night.<br /><i>Bright signal.</i></h1>
+        <p>One registry of nine tokens: a purple core with blue and green accents. Every value here is the live default, and a host theme can replace any of them at runtime.</p>
       </header>
 
-      {surfaces.map(({ surface, title, note }) => (
-        <section key={surface} className="palette-grid" aria-label={`${title} palette`} style={paletteStyle(SURFACE_THEMES[surface])}>
-          {THEME_TOKEN_NAMES.map((token, index) => {
-            const notes = tokenNotes[token]
-            return (
-              <article className={`palette-swatch ${notes.className}`} key={token}>
-                <span>{index === 0 ? title : String(index + 1).padStart(2, '0')}</span>
-                <div>
-                  <h2>{notes.name}</h2>
-                  <code>{SURFACE_THEMES[surface][token].toUpperCase()}</code>
-                  <code className="palette-swatch__variable">{THEME_CSS_VARIABLES[token]}</code>
-                  <p>{index === 0 ? note : notes.use}</p>
-                </div>
-              </article>
-            )
-          })}
-        </section>
-      ))}
+      <section className="palette-grid" aria-label="Website color palette">
+        {colors.map((color, index) => (
+          <article className={`palette-swatch ${color.className}`} key={color.token}>
+            <span>{String(index + 1).padStart(2, '0')}</span>
+            <div>
+              <h2>{color.name}</h2>
+              <code>{color.value}</code>
+              <code className="palette-swatch__variable">{color.variable}</code>
+              <p>{color.use}</p>
+            </div>
+          </article>
+        ))}
+      </section>
+
+      <section className="palette-combinations">
+        <span className="eyebrow">Approved combinations</span>
+        <div>
+          <article className="palette-combo palette-combo--sky"><b>VIOLET / PLUM</b><span>Everyday energy</span></article>
+          <article className="palette-combo palette-combo--navy"><b>PLUM / FROST</b><span>Big-screen drama</span></article>
+          <article className="palette-combo palette-combo--accents"><b>BLUE / GREEN</b><span>Diagrams and status</span></article>
+        </div>
+      </section>
     </div>
   )
 }

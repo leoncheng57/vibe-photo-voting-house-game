@@ -3,15 +3,15 @@
   background: var(--ice);
   font-family: Arial, Helvetica, sans-serif;
   font-synthesis: none;
-  --ink: #1f1f1f;
-  --sky: #a6a6a6;
-  --pool: #c2c2c2;
-  --powder: #d9d9d9;
-  --ice: #ebebeb;
-  --paper: #f7f7f7;
-  --alert: #e0e0e0;
-  --accent-blue: #6e6e6e;
-  --accent-green: #8c8c8c;
+  --ink: #241436;
+  --sky: #a78bfa;
+  --pool: #c4b5fd;
+  --powder: #ddd6fe;
+  --ice: #f0ebff;
+  --paper: #faf8ff;
+  --alert: #ffd6e7;
+  --accent-blue: #7dd3fc;
+  --accent-green: #86efac;
   --line: 3px solid var(--ink);
 }
 
@@ -22,12 +22,12 @@ code, pre { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospac
 .progress-page { width: min(1280px, calc(100% - 48px)); margin: 0 auto; padding: 56px 0 120px; }
 .progress-hero { display: grid; grid-template-columns: 1fr 300px; gap: 64px; align-items: end; padding-bottom: 42px; border-bottom: var(--line); }
 .progress-hero > div { min-width: 0; }
-.progress-hero > div:first-child > code { color: #4b4b4b; font-size: 13px; }
+.progress-hero > div:first-child > code { color: #574473; font-size: 13px; }
 .progress-kicker { display: block; margin-top: 36px; font-size: .72rem; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
 .progress-hero h1 { max-width: 800px; margin: .45rem 0 1rem; font: 900 clamp(3.5rem, 8vw, 7.2rem)/.82 Arial Black, Arial, sans-serif; letter-spacing: -.075em; text-transform: uppercase; }
-.progress-hero p { max-width: 700px; margin: 0; color: #4b4b4b; font: 700 1.1rem/1.5 Georgia, serif; }
+.progress-hero p { max-width: 700px; margin: 0; color: #574473; font: 700 1.1rem/1.5 Georgia, serif; }
 .progress-sync { display: grid; border: var(--line); background: var(--paper); box-shadow: 7px 7px 0 var(--ink); }
-.progress-sync span { padding: 1rem; border-bottom: 2px solid var(--ink); color: #4b4b4b; font: .7rem/1.5 "SFMono-Regular", Consolas, monospace; }
+.progress-sync span { padding: 1rem; border-bottom: 2px solid var(--ink); color: #574473; font: .7rem/1.5 "SFMono-Regular", Consolas, monospace; }
 .progress-sync :is(button, a) { min-height: 45px; border: 0; border-bottom: 2px solid var(--ink); color: var(--ink); background: var(--sky); padding: .7rem 1rem; font-size: .72rem; font-weight: 900; text-align: left; text-decoration: none; text-transform: uppercase; cursor: pointer; }
 .progress-sync button { display: flex; align-items: center; gap: .5rem; }
 .refresh-icon { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
@@ -52,15 +52,15 @@ code, pre { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospac
 .progress-lists h2 { margin: .2rem 0 0; font: 900 2rem/1 Arial Black, Arial, sans-serif; text-transform: uppercase; }
 .progress-lists header > a { color: var(--ink); font-size: .68rem; font-weight: 900; text-transform: uppercase; }
 .issue-group + .issue-group { border-top: 2px solid var(--ink); }
-.issue-group__heading { display: flex; align-items: center; justify-content: space-between; padding: .55rem 1rem; border-bottom: 1px solid #afafaf; }
+.issue-group__heading { display: flex; align-items: center; justify-content: space-between; padding: .55rem 1rem; border-bottom: 1px solid #b7a9d2; }
 .issue-group__heading strong { font: 900 .66rem Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
 .issue-group__heading span { display: grid; min-width: 24px; height: 24px; place-items: center; border: 1px solid currentColor; font: 800 .6rem "SFMono-Regular", Consolas, monospace; }
-.issue-group--high .issue-group__heading { color: #343434; background: #dddddd; }
+.issue-group--high .issue-group__heading { color: #7c1d3f; background: #f8d4e2; }
 .issue-group--medium .issue-group__heading { color: #6b4a06; background: #f7e6b4; }
-.issue-group--low .issue-group__heading { color: #474747; background: #e6e6e6; }
-.issue-group--none .issue-group__heading { color: #4b4b4b; background: var(--ice); }
+.issue-group--low .issue-group__heading { color: #4d4459; background: #e8e4ef; }
+.issue-group--none .issue-group__heading { color: #574473; background: var(--ice); }
 .progress-lists ol { margin: 0; padding: 0; list-style: none; }
-.progress-lists li { border-bottom: 1px solid #afafaf; }
+.progress-lists li { border-bottom: 1px solid #b7a9d2; }
 .progress-lists li:last-child { border-bottom: 0; }
 .progress-lists li > a { display: grid; grid-template-columns: 72px 52px 1fr auto; align-items: center; gap: 12px; min-height: 62px; color: var(--ink); padding: .75rem 1rem; text-decoration: none; }
 .progress-lists li > a:hover { background: var(--pool); }
@@ -69,18 +69,18 @@ code, pre { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospac
 .issue-summary { display: flex; min-width: 0; flex-wrap: wrap; align-items: center; gap: .35rem .65rem; }
 .issue-labels { display: flex; flex-wrap: wrap; gap: .3rem; }
 .issue-label { border: 1px solid var(--label-color); background: color-mix(in srgb, var(--label-color) 20%, white); padding: .16rem .38rem; font: 800 .55rem "SFMono-Regular", Consolas, monospace; line-height: 1; white-space: nowrap; }
-.progress-lists time { color: #595959; font: .68rem "SFMono-Regular", Consolas, monospace; white-space: nowrap; }
+.progress-lists time { color: #64527f; font: .68rem "SFMono-Regular", Consolas, monospace; white-space: nowrap; }
 .status { display: inline-block; border: 1px solid currentColor; padding: .22rem .4rem; font: 800 .58rem "SFMono-Regular", Consolas, monospace; text-align: center; text-transform: uppercase; }
 .status--open { color: #166b46; background: #c9f2da; }
-.status--closed { color: #343434; background: #dbdbdb; }
-.status--merged { color: #4f4f4f; background: #dbdbdb; }
-.status--draft { color: #4e4e4e; background: #e3e3e3; }
-.progress-empty { margin: 0; padding: 2rem; color: #595959; }
+.status--closed { color: #7c1d3f; background: #f6d3e0; }
+.status--merged { color: #65419a; background: #e4d6f8; }
+.status--draft { color: #55496b; background: #e6e1ef; }
+.progress-empty { margin: 0; padding: 2rem; color: #64527f; }
 .progress-files { margin-top: 64px; }
 .progress-files > header { border: var(--line); border-bottom: 0; background: var(--powder); padding: 1.2rem 1.4rem; }
 .progress-files > header span { font-size: .62rem; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
 .progress-files > header h2 { margin: .2rem 0; font: 900 2rem/1 Arial Black, Arial, sans-serif; text-transform: uppercase; }
-.progress-files > header p { margin: .5rem 0 0; color: #595959; font: 700 .9rem/1.4 Georgia, serif; }
+.progress-files > header p { margin: .5rem 0 0; color: #64527f; font: 700 .9rem/1.4 Georgia, serif; }
 .progress-files .progress-tabs { background: var(--paper); }
 .progress-markdown { overflow-wrap: anywhere; margin: 0; border: var(--line); border-top: 0; background: var(--paper); padding: clamp(1.2rem, 4vw, 3.5rem); box-shadow: 8px 8px 0 var(--ink); font: 1rem/1.65 Georgia, serif; }
 .progress-markdown > :first-child { margin-top: 0; }
@@ -89,11 +89,11 @@ code, pre { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospac
 .progress-markdown h1 { padding-bottom: .8rem; border-bottom: var(--line); font: 900 clamp(2.4rem, 6vw, 4.8rem)/.9 Arial Black, Arial, sans-serif; letter-spacing: -.06em; text-transform: uppercase; }
 .progress-markdown h2 { margin-top: 2.5rem; padding-bottom: .4rem; border-bottom: 2px solid var(--ink); font-size: 1.6rem; }
 .progress-markdown h3 { margin-top: 2rem; font-size: 1.2rem; }
-.progress-markdown a { color: #434343; font-weight: 700; }
-.progress-markdown :not(pre) > code { border: 1px solid #bbbbbb; background: var(--powder); padding: .1rem .3rem; font-size: .82em; }
-.progress-markdown pre { overflow-x: auto; border: 2px solid var(--ink); background: #191919; color: #d9d9d9; padding: 1rem; font-size: .78rem; line-height: 1.55; }
+.progress-markdown a { color: #6d28d9; font-weight: 700; }
+.progress-markdown :not(pre) > code { border: 1px solid #c3b6da; background: var(--powder); padding: .1rem .3rem; font-size: .82em; }
+.progress-markdown pre { overflow-x: auto; border: 2px solid var(--ink); background: #1c1630; color: #ddd6ee; padding: 1rem; font-size: .78rem; line-height: 1.55; }
 .progress-markdown table { display: block; overflow-x: auto; width: max-content; max-width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: .82rem; }
-.progress-markdown th, .progress-markdown td { border: 1px solid #afafaf; padding: .55rem .7rem; }
+.progress-markdown th, .progress-markdown td { border: 1px solid #b7a9d2; padding: .55rem .7rem; }
 .progress-markdown th { background: var(--powder); }
 .progress-markdown img { max-width: 100%; }
 .missing-document { border: var(--line); border-top: 0; background: var(--alert); padding: clamp(1.5rem, 4vw, 3rem); box-shadow: 8px 8px 0 var(--ink); }
