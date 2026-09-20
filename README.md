@@ -45,6 +45,7 @@ The frontend is React, TypeScript, and Vite on GitHub Pages. Supabase provides a
 - In-browser photo resizing before upload
 - Zero to three equal votes for distinct photos; saved ballots can be cleared and self-voting is allowed
 - TV-only leaderboard ranked by total votes received, with competition ranking for ties
+- Host-configurable appearance and winner mode, stored in the database and gated by a host PIN
 - Informational, device-local timer configured from TV mode
 - Optional Spotify Premium playback in TV mode through a resizable Spotify Connect player
 - Built-in tutorial walkthrough for first-time guests
@@ -63,7 +64,7 @@ Primary views are deep-linkable at `/play/`, `/play/?tutorial`, `/play/?vote`, a
 ## Supabase Setup
 
 1. Create a project on [Supabase](https://supabase.com/).
-2. Open **Authentication > Providers > Anonymous Sign-Ins** and enable anonymous sign-ins.
+2. Open **Authentication > Providers > Anonymous Sign-Ins** and enable anonymous sign-ins. This is mandatory: `signInAnonymously()` is the app's only authentication path, and nothing works without it.
 3. Apply the migrations in `supabase/migrations/` once, in numeric order. Either:
    - **Supabase CLI (preferred):** `supabase login`, `supabase link --project-ref <your-ref>`, then `supabase db push`. If earlier migrations were ever applied by hand, first baseline them with `supabase migration repair --status applied <versions>`.
    - **SQL Editor:** paste and run each file once, in numeric order:
@@ -72,24 +73,41 @@ Primary views are deep-linkable at `/play/`, `/play/?tutorial`, `/play/?vote`, a
      - `supabase/migrations/003_flexible_vote_count.sql`
      - `supabase/migrations/004_party_membership.sql`
      - `supabase/migrations/005_relax_passphrase_length.sql`
-      - `supabase/migrations/006_photo_originals.sql`
-      - `supabase/migrations/007_original_status.sql`
-      - `supabase/migrations/008_allow_partial_ballots.sql`
-      - `supabase/migrations/009_preserve_original_versions.sql`
+     - `supabase/migrations/006_photo_originals.sql`
+     - `supabase/migrations/007_original_status.sql`
+     - `supabase/migrations/008_allow_partial_ballots.sql`
+     - `supabase/migrations/009_preserve_original_versions.sql`
+     - `supabase/migrations/010_remove_legacy_submission_path_check.sql`
+     - `supabase/migrations/011_interactive_original_cleanup.sql`
+     - `supabase/migrations/012_total_vote_scoring.sql`
+     - `supabase/migrations/013_allow_empty_ballots.sql`
+     - `supabase/migrations/014_replace_voted_photos.sql`
+     - `supabase/migrations/015_game_settings.sql`
+
+   The `photos` and `photo-originals` buckets and every Storage policy are created by these migrations (001, 006, 009, and 011). Do not create buckets by hand in the dashboard; a hand-made bucket will not carry the row-level security the app depends on.
+
 4. Set the party passphrase in the SQL Editor. Nobody can join until this runs:
 
 ```sql
 select set_party_passphrase('your-long-passphrase');
 ```
 
-5. Open **Project Settings > API** and copy the project URL and publishable key.
-6. Copy `.env.example` to `.env` and fill in the Supabase public values:
+5. Set the host PIN in the SQL Editor. Game settings cannot be changed until this runs:
+
+```sql
+select set_host_pin('your-host-pin');
+```
+
+6. Open **Project Settings > API** and copy the project URL and publishable key.
+7. Copy `.env.example` to `.env` and fill in the Supabase public values:
 
 ```dotenv
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_your_key
 VITE_SPOTIFY_CLIENT_ID=your_optional_spotify_client_id
 ```
+
+Migration 015 adds no environment variable. Appearance and winner mode live in the database, and the host PIN that guards them is bcrypt-hashed in Postgres — neither belongs in `.env` or in GitHub.
 
 The publishable key is designed for browser use. Never add a Supabase secret key or service-role key to this repository or the frontend environment.
 
@@ -118,6 +136,32 @@ delete from memberships;                                -- reset: everyone re-en
 
 Rotating the passphrase does not remove existing members; deleting memberships does. Closing the party blocks all database and Storage requests immediately, including for existing members, without redeploying the site.
 
+## Game Settings
+
+Appearance and winner mode are stored on the single-row `party_settings` table and shared by every device; they are not per-browser preferences. Any member can read them, but changing them requires the host PIN set during setup.
+
+- **Theme** is the nine-token palette in `src/config/settings-defaults.ts` (`ink`, `sky`, `pool`, `powder`, `ice`, `paper`, `alert`, `accentBlue`, `accentGreen`). Stored tokens override the defaults at runtime; anything left unset falls back to the shipped purple palette.
+- **Winner mode** is either `voting` (the top-voted photo wins a challenge) or `random` (a uniform draw over that challenge's entrants). The database rejects any other value.
+
+The host PIN follows exactly the same rules as the party passphrase: it is bcrypt-hashed inside Postgres, never stored in the repository, JavaScript bundle, environment file, URL, or log, and is set or rotated only from the SQL Editor.
+
+```sql
+select set_host_pin('your-host-pin');   -- set or rotate; empty values are rejected
+```
+
+Rotating the PIN takes effect immediately and does not affect memberships, submissions, or votes. If `set_host_pin` has never run, settings changes fail with `No host PIN is set.` — guests can still play; only the settings screen is locked.
+
+## Sharing The Project With A Collaborator
+
+To let a co-host help run the party from the Supabase dashboard:
+
+1. Open **Project Settings > Team** in the Supabase dashboard and invite them by email.
+2. Grant the lowest role that lets them do their job. Read-only access is enough for watching storage and row counts; a co-host who must run the SQL Editor runbooks — rotating the passphrase, setting the host PIN, closing the party, approving photo cleanup — needs write access to the project.
+3. Share the party passphrase and the host PIN out of band, in conversation or on a board at the party. Never commit either one, put them in `.env`, paste them into an issue or a URL query string, or send them through the repository.
+4. The service-role key and any Supabase secret key never leave the host. They are not needed to play, to host, or to run any runbook in this README; the only script that uses one is `scripts/backfill-legacy-originals.mjs`, run locally by the host.
+5. Collaborators who only need to deploy the site need repository access, not Supabase access. The publishable key and project URL are already safe to share as repository secrets.
+
+
 ## Local Development
 
 ```bash
@@ -136,6 +180,8 @@ npm run build
 ```
 
 See [`SCREENSHOT_CAPTURE_PLAN.md`](SCREENSHOT_CAPTURE_PLAN.md) for the privacy-safe, automated README screenshot workflow.
+
+Run all three locally before opening a pull request. Continuous integration runs only on pushes to `main`, and that workflow runs `npm test` and `npm run build` but not `npm run lint`. Pull requests trigger no checks at all, so a pull request with no red marks has not been verified by anything.
 
 ## GitHub Pages Deployment
 
