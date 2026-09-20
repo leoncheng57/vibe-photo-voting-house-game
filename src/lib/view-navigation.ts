@@ -1,10 +1,11 @@
 import type { View } from '../types'
 
-const viewKeys = ['display', 'tutorial', 'vote'] as const
+const viewKeys = ['display', 'tutorial', 'vote', 'settings'] as const
 const queryKeyByView: Partial<Record<View, typeof viewKeys[number]>> = {
   display: 'display',
   tutorial: 'tutorial',
   vote: 'vote',
+  settings: 'settings',
 }
 
 export function getViewFromSearch(search: string): View {
@@ -12,6 +13,7 @@ export function getViewFromSearch(search: string): View {
   if (params.has('display')) return 'display'
   if (params.has('tutorial')) return 'tutorial'
   if (params.has('vote')) return 'vote'
+  if (params.has('settings')) return 'settings'
   return 'challenges'
 }
 
