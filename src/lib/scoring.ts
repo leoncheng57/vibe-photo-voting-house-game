@@ -36,3 +36,18 @@ export function getWinningPhotoIds(photos: Array<{ id: string; votes: number }>)
     .filter((photo) => photo.rank === 1 && photo.votes > 0)
     .map((photo) => photo.id)
 }
+
+// Under the 'random' winner mode vote totals no longer decide anything, so the
+// leaderboard ranks on wins instead. Unlike rankLeaderboardEntries this sorts,
+// because the API orders rows by votes.
+export function rankLeaderboardEntriesByWins<T extends { wins: number }>(entries: T[]): Array<T & { rank: number }> {
+  const sorted = [...entries].sort((a, b) => b.wins - a.wins)
+  let previousWins: number | undefined
+  let rank = 0
+
+  return sorted.map((entry, index) => {
+    if (entry.wins !== previousWins) rank = index + 1
+    previousWins = entry.wins
+    return { ...entry, rank }
+  })
+}
