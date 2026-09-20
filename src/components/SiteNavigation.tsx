@@ -23,6 +23,7 @@ const navigationItems: Array<{ id: View; label: string; href: string; icon?: 'tv
   { id: 'challenges', label: 'Play', href: playUrl },
   { id: 'vote', label: 'Vote', href: `${playUrl}?vote` },
   { id: 'display', label: 'TV mode', href: `${playUrl}?display`, icon: 'tv' },
+  { id: 'settings', label: 'Settings', href: `${playUrl}?settings` },
 ]
 
 type NavigationProps = {

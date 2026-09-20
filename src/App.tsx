@@ -6,14 +6,17 @@ import { MobileNavigation, SiteHeader } from './components/SiteNavigation'
 import { StorageMeter } from './components/StorageMeter'
 import { Timer } from './components/Timer'
 import { Tutorial } from './components/Tutorial'
+import { GameSettings as GameSettingsScreen } from './components/GameSettings'
 import { VoteView } from './components/VoteView'
-import { createProfile, ensureAnonymousUser, getChallenges, getPartyStatus, getProfile, invalidatePhoto, joinParty, signOut, updateProfile } from './lib/api'
+import { createProfile, ensureAnonymousUser, getChallenges, getGameSettings, getPartyStatus, getProfile, invalidatePhoto, joinParty, signOut, updateProfile } from './lib/api'
+import { applyTheme } from './lib/apply-theme'
 import { errorMessage } from './lib/errors'
 import { isSupabaseConfigured, supabase } from './lib/supabase'
 import { completeSpotifyAuthorization, hasSpotifyAuthorizationCallback } from './lib/spotify'
 import { useStorageUsage } from './lib/useStorageUsage'
 import { getViewFromSearch, getViewUrl } from './lib/view-navigation'
-import type { Challenge, PartyStatus, Profile, View } from './types'
+import { DEFAULT_GAME_SETTINGS } from './config/settings-defaults'
+import type { Challenge, GameSettings, PartyStatus, Profile, View } from './types'
 
 const appRoot = import.meta.env.BASE_URL
 const paletteUrl = `${appRoot}developer/palette/`
@@ -158,10 +161,34 @@ export default function App() {
   const [confirmingLeave, setConfirmingLeave] = useState(false)
   const [leaveError, setLeaveError] = useState('')
   const [leaving, setLeaving] = useState(false)
+  const [gameSettings, setGameSettings] = useState<GameSettings>(DEFAULT_GAME_SETTINGS)
   const [spotifyCallbackPending, setSpotifyCallbackPending] = useState(hasSpotifyAuthorizationCallback)
   const [spotifyAuthorizationError, setSpotifyAuthorizationError] = useState('')
   const spotifyCallbackStarted = useRef(false)
   const storageUsage = useStorageUsage(Boolean(profile), submissionToken)
+
+  useEffect(() => {
+    if (!profile) return
+    let cancelled = false
+    getGameSettings()
+      .then((settings) => {
+        if (cancelled) return
+        const next = { theme: settings.theme, winnerMode: settings.winnerMode }
+        setGameSettings(next)
+        applyTheme(next.theme, document.documentElement)
+      })
+      .catch(() => {
+        // Settings are cosmetic plus one game rule; never block the party on them.
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [profile])
+
+  function applyGameSettings(next: GameSettings) {
+    setGameSettings(next)
+    applyTheme(next.theme, document.documentElement)
+  }
 
   function navigateToView(nextView: View) {
     const nextUrl = getViewUrl(location.pathname, location.search, location.hash, nextView)
@@ -292,7 +319,7 @@ export default function App() {
   }
 
   if (view === 'display') {
-    return <DisplayView challenges={challenges} refreshToken={resultsToken} spotifyAuthorizationError={spotifyAuthorizationError} onExit={() => navigateToView('challenges')} />
+    return <DisplayView challenges={challenges} refreshToken={resultsToken} winnerMode={gameSettings.winnerMode} theme={gameSettings.theme} spotifyAuthorizationError={spotifyAuthorizationError} onExit={() => navigateToView('challenges')} />
   }
 
   return (
@@ -309,7 +336,8 @@ export default function App() {
       <main className="content">
         {view === 'challenges' && <ChallengeList challenges={challenges} userId={user.id} refreshToken={submissionToken} onChanged={() => { setSubmissionToken((value) => value + 1); setResultsToken((value) => value + 1) }} />}
         {view === 'tutorial' && <Tutorial />}
-        {view === 'vote' && <VoteView challenges={challenges} userId={user.id} refreshToken={submissionToken} onChanged={() => setResultsToken((value) => value + 1)} />}
+        {view === 'vote' && <VoteView challenges={challenges} userId={user.id} refreshToken={submissionToken} winnerMode={gameSettings.winnerMode} onChanged={() => setResultsToken((value) => value + 1)} />}
+        {view === 'settings' && <GameSettingsScreen onBack={() => navigateToView('challenges')} onSettingsChange={applyGameSettings} />}
       </main>
 
       <MobileNavigation active={view} onSelect={navigateToView} />

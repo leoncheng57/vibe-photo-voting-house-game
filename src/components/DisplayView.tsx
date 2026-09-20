@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
-import type { Challenge, Submission } from '../types'
+import type { Challenge, Submission, ThemeTokens, WinnerMode, WinnerPick } from '../types'
 import { getSubmissions } from '../lib/api'
 import { sortGallerySubmissions } from '../lib/gallery'
-import { getWinningPhotoIds } from '../lib/scoring'
+import { selectWinners, toWinnerCandidates } from '../lib/winner'
+import { DEFAULT_THEME, DEFAULT_WINNER_MODE } from '../config/settings-defaults'
 import { Timer } from './Timer'
 import { Tutorial } from './Tutorial'
 import { Leaderboard } from './Leaderboard'
@@ -18,7 +19,7 @@ const GALLERY_SCROLL_EDGE_PAUSE_MS = 1800
 const GALLERY_SCROLL_INTERACTION_PAUSE_MS = 5000
 type DisplayPage = 'gallery' | 'voting' | 'tutorial'
 
-export function DisplayView({ challenges, refreshToken, spotifyAuthorizationError, onExit }: { challenges: Challenge[]; refreshToken: number; spotifyAuthorizationError?: string; onExit: () => void }) {
+export function DisplayView({ challenges, refreshToken, winnerMode = DEFAULT_WINNER_MODE, theme = DEFAULT_THEME, spotifyAuthorizationError, onExit }: { challenges: Challenge[]; refreshToken: number; winnerMode?: WinnerMode; theme?: ThemeTokens; spotifyAuthorizationError?: string; onExit: () => void }) {
   const [index, setIndex] = useState(0)
   const [galleryPhotos, setGalleryPhotos] = useState<Submission[]>([])
   const [votingPhotos, setVotingPhotos] = useState<Submission[]>([])
@@ -150,12 +151,28 @@ export function DisplayView({ challenges, refreshToken, spotifyAuthorizationErro
   const previewPhotoIndex = previewPhotoId ? displayedPhotos.findIndex((photo) => photo.id === previewPhotoId) : -1
   const previewChallenge = previewPhoto ? challengeById.get(previewPhoto.challenge_id) : undefined
   const voteTarget = Math.min(3, votingPhotos.length)
-  const challengeWinners = useMemo(() => {
+  // A random pick must be latched per challenge: selectWinners redraws on every
+  // call, so without this the winner reshuffles each time the submissions poll
+  // refreshes. Voting mode is a pure function of the votes and needs no latch.
+  const randomPickLatch = useRef<{ key: string; picks: WinnerPick[] } | null>(null)
+  const challengeWinners = useMemo<Array<{ photo: Submission; pick: WinnerPick }>>(() => {
     const photoById = new Map(votingPhotos.map((photo) => [photo.id, photo]))
-    return getWinningPhotoIds(votingPhotos.map((photo) => ({ id: photo.id, votes: photo.voteCount ?? 0 })))
-      .map((photoId) => photoById.get(photoId))
-      .filter((photo): photo is Submission => Boolean(photo))
-  }, [votingPhotos])
+    const resolve = (picks: WinnerPick[]) => picks
+      .map((pick) => { const photo = photoById.get(pick.submissionId); return photo ? { photo, pick } : null })
+      .filter((entry): entry is { photo: Submission; pick: WinnerPick } => Boolean(entry))
+
+    if (winnerMode !== 'random') return resolve(selectWinners(toWinnerCandidates(votingPhotos), winnerMode))
+
+    const key = `${winnerMode}:${challenge?.id ?? 'none'}`
+    const latched = randomPickLatch.current
+    if (latched?.key === key) {
+      const stillPresent = resolve(latched.picks)
+      if (stillPresent.length) return stillPresent
+    }
+    const picks = selectWinners(toWinnerCandidates(votingPhotos), winnerMode)
+    randomPickLatch.current = { key, picks }
+    return resolve(picks)
+  }, [votingPhotos, winnerMode, challenge])
 
   function move(delta: number) {
     if (!challenges.length) return
@@ -293,7 +310,7 @@ export function DisplayView({ challenges, refreshToken, spotifyAuthorizationErro
         {page === 'gallery' && (
           <aside className="display-gallery-join" aria-label="Scan to join the party">
             <div><span>Late to the party?</span><strong>Scan to play</strong></div>
-            <QRCodeSVG value={joinUrl} size={64} bgColor="transparent" fgColor="#f5f8f7" />
+            <QRCodeSVG value={joinUrl} size={64} bgColor="transparent" fgColor={theme.paper} />
           </aside>
         )}
       </header>
@@ -398,7 +415,7 @@ export function DisplayView({ challenges, refreshToken, spotifyAuthorizationErro
         <ChallengeIllustrations challenges={challenges} />
         <aside className="display-tutorial-join" aria-label="Join the party">
           <span className="eyebrow">Join on your phone</span>
-          <QRCodeSVG value={joinUrl} size={220} bgColor="transparent" fgColor="#f5f8f7" />
+          <QRCodeSVG value={joinUrl} size={220} bgColor="transparent" fgColor={theme.paper} />
           <strong>Scan to play</strong>
           <p>No app download needed.</p>
         </aside>
@@ -406,7 +423,7 @@ export function DisplayView({ challenges, refreshToken, spotifyAuthorizationErro
 
       {page === 'voting' && scoresMounted && (
         <section className={`display-score-drawer ${scoresRevealed ? 'display-score-drawer--open' : ''} ${scoresSettled ? 'display-score-drawer--settled' : ''}`} id="final-scores" aria-label="Final scores">
-          <Leaderboard refreshToken={refreshToken} highlightPodium />
+          <Leaderboard refreshToken={refreshToken} winnerMode={winnerMode} highlightPodium />
         </section>
       )}
 
@@ -514,11 +531,11 @@ export function DisplayView({ challenges, refreshToken, spotifyAuthorizationErro
               <button className="button" type="button" autoFocus onClick={() => setChallengeWinnerRevealed(false)}>Close</button>
             </header>
             {challengeWinners.length ? <div className="challenge-winner-grid">
-              {challengeWinners.map((winner) => <figure key={winner.id}>
-                <img src={winner.photoUrl} alt={`Winning submission by ${winner.ownerName ?? 'a guest'}`} />
-                <figcaption><strong>{winner.ownerName ?? 'Guest'}</strong><span>{winner.voteCount ?? 0} {winner.voteCount === 1 ? 'vote' : 'votes'}</span></figcaption>
+              {challengeWinners.map(({ photo, pick }) => <figure key={photo.id}>
+                <img src={photo.photoUrl} alt={`Winning submission by ${photo.ownerName ?? 'a guest'}`} />
+                <figcaption><strong>{photo.ownerName ?? 'Guest'}</strong><span>{pick.voteCount === null ? 'Drawn at random' : `${pick.voteCount} ${pick.voteCount === 1 ? 'vote' : 'votes'}`}</span></figcaption>
               </figure>)}
-            </div> : <div className="challenge-winner-empty"><strong>No winner yet.</strong><p>This challenge has not received any votes.</p></div>}
+            </div> : <div className="challenge-winner-empty"><strong>No winner yet.</strong><p>{winnerMode === 'random' ? 'Nobody has entered this challenge yet.' : 'This challenge has not received any votes.'}</p></div>}
           </section>
         </div>
       )}
