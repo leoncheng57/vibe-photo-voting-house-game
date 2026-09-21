@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { HomeIcon } from './HomeIcon'
+import { APPS } from '../config/apps'
+import { getActiveAppId, getAppBaseUrl } from '../lib/active-app'
 import type { View } from '../types'
 
 const appRoot = import.meta.env.BASE_URL
-const playUrl = `${appRoot}play/`
+const activeApp = APPS[getActiveAppId()]
+const playUrl = getAppBaseUrl(activeApp.id, appRoot)
 const systemUrl = `${appRoot}developer/system/`
 const databaseUrl = `${appRoot}developer/db-design/`
 const securityUrl = `${appRoot}developer/security-ops/`
@@ -65,7 +68,7 @@ type SiteHeaderProps = NavigationProps & {
 export function SiteHeader({ active, onSelect, playerName, onEditProfile }: SiteHeaderProps) {
   return (
     <header className="site-header">
-      <a className="brand brand--button" href={appRoot}><b>HOUSE</b><span>PHOTO HUNT</span></a>
+      <a className="brand brand--button" href={appRoot}><b>{activeApp.shortName.toUpperCase()}</b><span>PHOTO HUNT</span></a>
       <nav aria-label="Primary navigation"><NavigationLinks active={active} onSelect={onSelect} /></nav>
       {playerName && onEditProfile ? (
         <button className="player-chip" onClick={onEditProfile}><span>Playing as · change</span><strong>{playerName}</strong></button>

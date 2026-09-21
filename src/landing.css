@@ -42,6 +42,18 @@ a:focus-visible { outline: 3px solid white; outline-offset: 2px; box-shadow: 0 0
 .landing-polaroid--two { right: 6%; top: 35%; transform: rotate(9deg); }
 .landing-polaroid--two::before { background: linear-gradient(25deg, var(--pool) 0 35%, #f4df73 35% 50%, var(--powder) 50%); }
 .landing-poster > strong { position: absolute; bottom: 6%; left: 7%; z-index: 2; font: 900 clamp(3rem, 7vw, 7rem)/.8 Arial Black, Arial, sans-serif; letter-spacing: -.08em; }
+.landing-apps { border-top: var(--line); background: var(--ice); padding: clamp(3rem, 7vw, 7rem) clamp(1rem, 6vw, 6rem); }
+.landing-apps > header span { font-size: .65rem; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
+.landing-apps h2 { margin: .4rem 0 2.5rem; font: 900 clamp(3rem, 7vw, 7rem)/.82 Arial Black, Arial, sans-serif; letter-spacing: -.07em; text-transform: uppercase; }
+.landing-apps > div { display: grid; grid-template-columns: repeat(2, 1fr); border-top: var(--line); border-left: var(--line); }
+.landing-app { display: flex; flex-direction: column; min-height: 320px; border-right: var(--line); border-bottom: var(--line); background: var(--paper); padding: 1.6rem; }
+.landing-app--bday-hunt { background: var(--powder); }
+.landing-app__kicker { font-size: .65rem; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
+.landing-app h3 { margin: .7rem 0 .4rem; font: 900 clamp(1.7rem, 3vw, 2.6rem)/.95 Arial Black, Arial, sans-serif; letter-spacing: -.03em; text-transform: uppercase; }
+.landing-app__tagline { margin: 0 0 .9rem; font: italic 900 1.3rem/1.1 Georgia, serif; }
+.landing-app p { max-width: 380px; font: 700 1rem/1.5 Georgia, serif; }
+.landing-app__actions { display: flex; flex-wrap: wrap; gap: .7rem; margin-top: auto; padding-top: 1.6rem; }
+
 .landing-steps { border-top: var(--line); background: var(--powder); padding: clamp(3rem, 7vw, 7rem) clamp(1rem, 6vw, 6rem); }
 .landing-steps > header span { font-size: .65rem; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
 .landing-steps h2 { margin: .4rem 0 2.5rem; font: 900 clamp(3rem, 7vw, 7rem)/.82 Arial Black, Arial, sans-serif; letter-spacing: -.07em; text-transform: uppercase; }
@@ -66,6 +78,8 @@ a:focus-visible { outline: 3px solid white; outline-offset: 2px; box-shadow: 0 0
   .landing-hero h1 { font-size: clamp(3.6rem, 18vw, 6rem); }
   .landing-poster { min-height: 540px; border-top: var(--line); border-left: 0; }
   .landing-polaroid { width: 56%; }
+  .landing-apps { padding-inline: 1rem; }
+  .landing-apps > div { grid-template-columns: 1fr; }
   .landing-steps { padding-inline: 1rem; }
   .landing-steps > div { grid-template-columns: 1fr; }
   .landing-steps article { min-height: 220px; }

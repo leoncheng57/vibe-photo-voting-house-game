@@ -1,0 +1,49 @@
+// One entry per playable app. The slug is also the deploy path, so renaming one
+// breaks every invite and blog link already published against it — add a
+// LEGACY_ROUTE_REDIRECTS entry instead of changing a slug in place.
+
+export const APP_IDS = ['house-party', 'bday-hunt'] as const
+
+export type AppId = typeof APP_IDS[number]
+
+export interface AppDefinition {
+  id: AppId
+  slug: string
+  name: string
+  shortName: string
+  kicker: string
+  tagline: string
+  description: string
+}
+
+export const APPS: Record<AppId, AppDefinition> = {
+  'house-party': {
+    id: 'house-party',
+    slug: 'house-party',
+    name: 'House Photo Hunt',
+    shortName: 'House',
+    kicker: 'A camera-roll house party',
+    tagline: 'Find it. Frame it. Fight for it.',
+    description:
+      'Six photo challenges indoors. Everyone shoots, the room votes anonymously, and the biggest screen in the house runs the reveal.',
+  },
+  'bday-hunt': {
+    id: 'bday-hunt',
+    slug: 'bday-hunt',
+    name: 'Outdoor Birthday Hunt',
+    shortName: 'Birthday',
+    kicker: 'A birthday scavenger hunt outdoors',
+    tagline: 'Get outside. Get the shot.',
+    description:
+      'The same photo hunt taken outdoors for a birthday: roam further, shoot in daylight, and crown the day over one shared screen.',
+  },
+}
+
+export const DEFAULT_APP_ID: AppId = 'house-party'
+
+// Routes that shipped before the repo held more than one app. Every one of them
+// still has to resolve, so each keeps an HTML stub that redirects here.
+export const LEGACY_ROUTE_REDIRECTS: Record<string, AppId> = {
+  play: 'house-party',
+  home: 'house-party',
+}
