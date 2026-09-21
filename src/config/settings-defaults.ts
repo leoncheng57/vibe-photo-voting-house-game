@@ -35,15 +35,15 @@ export const THEME_CSS_VARIABLES: Record<keyof ThemeTokens, string> = {
 }
 
 export const DEFAULT_THEME: ThemeTokens = {
-  ink: '#241436',
-  sky: '#a78bfa',
-  pool: '#c4b5fd',
-  powder: '#ddd6fe',
-  ice: '#f0ebff',
-  paper: '#faf8ff',
-  alert: '#ffd6e7',
-  accentBlue: '#7dd3fc',
-  accentGreen: '#86efac',
+  ink: '#2f1b2b',
+  sky: '#bb81b5',
+  pool: '#cea6c9',
+  powder: '#ddc4da',
+  ice: '#e9dcec',
+  paper: '#faf7fb',
+  alert: '#eec6d6',
+  accentBlue: '#cb96c4',
+  accentGreen: '#9cb88b',
 }
 
 export const WINNER_MODES: readonly WinnerMode[] = ['voting', 'random'] as const
