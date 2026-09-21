@@ -199,7 +199,7 @@ export function GameSettings({ onBack, onSettingsChange }: Props) {
                         onChange={(event) => setToken(name, event.target.value)}
                       />
                     </div>
-                    {!valid && <small className="form-error">Use a hex value like #a78bfa.</small>}
+                    {!valid && <small className="form-error">Use a hex value like #bb81b5.</small>}
                   </div>
                 )
               })}
