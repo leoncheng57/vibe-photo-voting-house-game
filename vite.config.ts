@@ -9,6 +9,9 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html'),
+        houseParty: resolve(__dirname, 'house-party/index.html'),
+        bdayHunt: resolve(__dirname, 'bday-hunt/index.html'),
+        // Redirect stubs for the routes that shipped before the apps split.
         home: resolve(__dirname, 'home/index.html'),
         play: resolve(__dirname, 'play/index.html'),
         system: resolve(__dirname, 'developer/system/index.html'),

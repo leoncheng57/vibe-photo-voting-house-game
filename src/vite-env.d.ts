@@ -3,6 +3,10 @@
 interface ImportMetaEnv {
   readonly VITE_SUPABASE_URL?: string
   readonly VITE_SUPABASE_PUBLISHABLE_KEY?: string
+  readonly VITE_SUPABASE_URL_HOUSE_PARTY?: string
+  readonly VITE_SUPABASE_PUBLISHABLE_KEY_HOUSE_PARTY?: string
+  readonly VITE_SUPABASE_URL_BDAY_HUNT?: string
+  readonly VITE_SUPABASE_PUBLISHABLE_KEY_BDAY_HUNT?: string
   readonly VITE_SPOTIFY_CLIENT_ID?: string
 }
 

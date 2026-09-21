@@ -3,12 +3,57 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#8fd7f3" />
-    <meta name="description" content="Join House Photo Hunt challenges, voting, scores, and TV mode." />
-    <title>Play | House Photo Hunt</title>
+    <meta name="theme-color" content="#10233d" />
+    <meta name="description" content="House Photo Hunt has moved to /house-party/." />
+    <meta name="redirect-to" content="house-party/" />
+    <meta name="robots" content="noindex" />
+    <title>Moved | House Photo Hunt</title>
+    <!-- Styles are inlined: this page is meant to vanish in one frame, so it
+         must not wait on a stylesheet request before it is readable. -->
+    <style>
+      :root { --ink: #10233d; --paper: #f5f8f7; --sky: #8fd7f3; --pool: #b7e6f7; --powder: #d5f0fa; }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0; min-height: 100vh; min-width: 320px;
+        display: grid; place-content: center; justify-items: center; gap: 2rem;
+        padding: 2rem; text-align: center;
+        font-family: Arial, Helvetica, sans-serif; color: white; background: var(--ink);
+      }
+      .brand { display: inline-block; text-decoration: none; border: 3px solid var(--ink); background: var(--pool); color: var(--ink); padding: .4rem .8rem; font-weight: 900; letter-spacing: .04em; box-shadow: 4px 4px 0 var(--sky); }
+      .brand span { font-weight: 400; }
+      .card { max-width: 34rem; border: 3px solid var(--ink); background: var(--paper); color: var(--ink); padding: clamp(1.5rem, 5vw, 2.5rem); box-shadow: 8px 8px 0 var(--sky); }
+      .eyebrow { display: block; margin-bottom: .75rem; font-size: .72rem; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
+      .eyebrow i { font-style: normal; animation: blink 1.4s steps(4, end) infinite; }
+      h1 { margin: 0 0 1rem; font: 900 clamp(2.25rem, 8vw, 3.75rem)/.9 "Arial Black", Arial, sans-serif; text-transform: uppercase; }
+      p { margin: 0 0 1rem; line-height: 1.5; }
+      p:last-of-type { margin-bottom: 1.75rem; }
+      code { background: var(--powder); padding: .1rem .35rem; font-weight: 700; }
+      .actions { display: flex; flex-wrap: wrap; gap: .75rem; justify-content: center; }
+      .button { display: inline-block; min-height: 44px; border: 2px solid var(--ink); background: var(--paper); color: inherit; padding: .65rem 1rem; font-weight: 900; text-decoration: none; box-shadow: 3px 3px 0 var(--ink); }
+      .button--primary { background: var(--sky); }
+      .button:hover { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+      .button:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+      .footnote { max-width: 34rem; font-size: .85rem; line-height: 1.5; color: var(--powder); }
+      .footnote a { color: white; }
+      @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+      @media (prefers-reduced-motion: reduce) { .eyebrow i { animation: none; } .button:hover { transform: none; } }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <a class="brand" href="%BASE_URL%"><b>PHOTO</b><span>HUNT</span></a>
+
+    <main class="card">
+      <span class="eyebrow">Taking you there<i>&hellip;</i></span>
+      <h1>This page moved</h1>
+      <p>House Photo Hunt now lives at <code>/house-party/</code>, and this link forwards there automatically.</p>
+      <p>If nothing happens, use the button.</p>
+      <div class="actions">
+        <a class="button button--primary" href="%BASE_URL%house-party/">Go to House Photo Hunt <span aria-hidden="true">&rarr;</span></a>
+      </div>
+    </main>
+
+    <p class="footnote">There is a second game too: <a href="%BASE_URL%bday-hunt/">Outdoor Birthday Hunt</a>. Both are listed on the <a href="%BASE_URL%">front page</a>.</p>
+
+    <script type="module" src="/src/legacy-redirect.ts"></script>
   </body>
 </html>
