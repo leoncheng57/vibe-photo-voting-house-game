@@ -103,7 +103,7 @@ export function submitBlockerMessage(blocker: SubmitBlocker | null): string | nu
     case 'no-host-pin':
       return 'No host PIN is set yet, so settings cannot be changed from here.'
     case 'invalid-color':
-      return 'Every color needs a hex value like #a78bfa.'
+      return 'Every color needs a hex value like #bb81b5.'
     case 'no-changes':
       return 'Nothing has changed yet.'
     case 'missing-pin':
