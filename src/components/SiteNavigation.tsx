@@ -21,12 +21,13 @@ const repositoryFilesUrl = `${appRoot}developer/repository-files/`
 const paletteUrl = `${appRoot}developer/palette/`
 const developerUrl = progressUrl
 
+// Settings is host-only (PIN-gated), so it stays out of the guest nav and is
+// reached directly at ?settings; the run-of-show runbook links it.
 const navigationItems: Array<{ id: View; label: string; href: string; icon?: 'tv' }> = [
   { id: 'tutorial', label: 'How to play', href: `${playUrl}?tutorial` },
   { id: 'challenges', label: 'Play', href: playUrl },
   { id: 'vote', label: 'Vote', href: `${playUrl}?vote` },
   { id: 'display', label: 'TV mode', href: `${playUrl}?display`, icon: 'tv' },
-  { id: 'settings', label: 'Settings', href: `${playUrl}?settings` },
 ]
 
 type NavigationProps = {
