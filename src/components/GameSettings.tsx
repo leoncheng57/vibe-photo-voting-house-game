@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { GameSettings as GameSettingsValue, ThemeTokens, WinnerMode } from '../types'
 import { DEFAULT_GAME_SETTINGS, THEME_TOKEN_NAMES, WINNER_MODES } from '../config/settings-defaults'
 import { getGameSettings, updateGameSettings } from '../lib/api'
@@ -45,6 +45,14 @@ export function GameSettings({ onBack, onSettingsChange }: Props) {
     }
   }
 
+  // Held in a ref so load stays stable. The parent passes a fresh callback on
+  // every render, and load reports back through it, so depending on it here
+  // re-ran load after every load and left the screen stuck on "Loading".
+  const onSettingsChangeRef = useRef(onSettingsChange)
+  useEffect(() => {
+    onSettingsChangeRef.current = onSettingsChange
+  }, [onSettingsChange])
+
   const load = useCallback(async () => {
     setLoading(true)
     setError('')
@@ -54,13 +62,13 @@ export function GameSettings({ onBack, onSettingsChange }: Props) {
       setSaved(next)
       setDraft(next)
       setHostPinSet(record.hostPinSet)
-      onSettingsChange?.(next)
+      onSettingsChangeRef.current?.(next)
     } catch (loadError) {
       setError(errorMessage(loadError, 'Could not load the party settings.'))
     } finally {
       setLoading(false)
     }
-  }, [onSettingsChange])
+  }, [])
 
   useEffect(() => {
     void load()
