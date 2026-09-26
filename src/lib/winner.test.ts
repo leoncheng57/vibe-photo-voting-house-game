@@ -3,7 +3,9 @@ import type { Submission } from '../types'
 import {
   areVoteScoresMeaningful,
   countRandomDrawWins,
+  drawGrandWinner,
   drawRandomWinners,
+  getGrandDrawSeed,
   getRandomDrawSeed,
   getWinnerStrategy,
   seededRandom,
@@ -134,5 +136,29 @@ describe('countRandomDrawWins', () => {
 
   it('credits nobody when there are no entries', () => {
     expect(countRandomDrawWins([]).size).toBe(0)
+  })
+})
+
+describe('grand draw', () => {
+  const entries = [{ id: 'p3' }, { id: 'p1' }, { id: 'p2' }, { id: 'p4' }]
+
+  it('picks exactly one entry from all of them', () => {
+    const picks = drawGrandWinner(entries)
+    expect(picks).toHaveLength(1)
+    expect(entries.map((entry) => entry.id)).toContain(picks[0].submissionId)
+    expect(picks[0]).toMatchObject({ voteCount: null, mode: 'random' })
+  })
+
+  it('gives the same winner whatever order the entries arrive in', () => {
+    expect(drawGrandWinner([...entries].reverse())).toEqual(drawGrandWinner(entries))
+  })
+
+  it('is seeded apart from any single challenge draw', () => {
+    expect(getGrandDrawSeed(['b', 'a'])).toBe('grand:a,b')
+    expect(getGrandDrawSeed(['a'])).not.toBe(getRandomDrawSeed(1, ['a']))
+  })
+
+  it('picks nobody when nobody has entered', () => {
+    expect(drawGrandWinner([])).toEqual([])
   })
 })

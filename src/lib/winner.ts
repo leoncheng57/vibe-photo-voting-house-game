@@ -136,3 +136,16 @@ export function countRandomDrawWins(entries: DrawEntry[]): Map<string, number> {
   }
   return wins
 }
+
+// One overall winner drawn from every entry across every challenge. Each photo
+// is one ticket, so a guest who entered every challenge has that many chances.
+// Seeded like the per-challenge draw, on the whole entry set, so it holds still
+// across reloads and screens until an entry changes.
+export function getGrandDrawSeed(candidateIds: string[]): string {
+  return `grand:${[...candidateIds].sort().join(',')}`
+}
+
+export function drawGrandWinner(candidates: WinnerCandidate[]): WinnerPick[] {
+  const ordered = [...candidates].sort((left, right) => (left.id < right.id ? -1 : left.id > right.id ? 1 : 0))
+  return selectWinners(ordered, 'random', seededRandom(getGrandDrawSeed(ordered.map((candidate) => candidate.id))))
+}
