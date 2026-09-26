@@ -75,3 +75,17 @@ export interface LeaderboardEntry {
 }
 
 export type View = 'challenges' | 'tutorial' | 'vote' | 'display'
+
+// One palette's worth of design tokens. Keys are stable; see
+// config/settings-defaults.ts for the CSS custom property each one maps to.
+export interface ThemeTokens {
+  ink: string
+  sky: string
+  pool: string
+  powder: string
+  ice: string
+  paper: string
+  alert: string
+  accentBlue: string
+  accentGreen: string
+}

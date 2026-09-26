@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getAppBaseUrl, getAppIdFromPathname } from './active-app'
+import { getAppBaseUrl, getAppIdFromPathname, getThemeSurfaceFromPathname } from './active-app'
 
 describe('getAppIdFromPathname', () => {
   it('reads the app from its own route', () => {
@@ -26,5 +26,18 @@ describe('getAppBaseUrl', () => {
     expect(getAppBaseUrl('bday-hunt', '/')).toBe('/bday-hunt/')
     expect(getAppBaseUrl('house-party', '/vibe-photo-voting-house-game/'))
       .toBe('/vibe-photo-voting-house-game/house-party/')
+  })
+})
+
+describe('getThemeSurfaceFromPathname', () => {
+  it('gives each app its own surface', () => {
+    expect(getThemeSurfaceFromPathname('/house-party/')).toBe('house-party')
+    expect(getThemeSurfaceFromPathname('/vibe-photo-voting-house-game/bday-hunt/')).toBe('bday-hunt')
+  })
+
+  it('treats the front page, developer pages and legacy redirects as shared', () => {
+    expect(getThemeSurfaceFromPathname('/')).toBe('shared')
+    expect(getThemeSurfaceFromPathname('/developer/palette/')).toBe('shared')
+    expect(getThemeSurfaceFromPathname('/play/')).toBe('shared')
   })
 })

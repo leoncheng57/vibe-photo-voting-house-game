@@ -15,6 +15,7 @@ House Party Photo Hunt is a mobile-first party photo challenge. The frontend is 
 - `src/lib/scoring.ts`: client-side vote ranking and challenge-winner helpers
 - `src/types.ts`: shared application types
 - `src/styles.css`: main application styles and responsive behavior
+- `src/config/settings-defaults.ts` and `src/lib/apply-theme.ts`: the nine-token colour registry and its three palettes — house-party blue, bday-hunt springtime purple, grey for shared pages. The page's path picks the palette at load; stylesheets fall back to the grey
 - `src/developer-system.tsx` and `src/developer-system.css`: developer system reference page
 - `src/developer-progress.tsx` and `src/developer-repository-files.tsx`: live GitHub progress and repository documentation pages
 - `SCREENSHOT_CAPTURE_PLAN.md`: privacy-safe automated documentation screenshot workflow
