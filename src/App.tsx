@@ -45,6 +45,21 @@ function SetupRequired({ onTutorial }: { onTutorial: () => void }) {
   )
 }
 
+// A closed app runs without a backend (see resolveCredentials), so its guests
+// get this instead of the setup instructions meant for a host.
+function AppClosed({ onTutorial }: { onTutorial: () => void }) {
+  return (
+    <main className="error-page">
+      <h1>{activeApp.name} is closed.</h1>
+      <p>This game isn’t running right now. Check back when the host opens it.</p>
+      <div className="setup-page__actions">
+        <a className="button" href={appRoot}>Back to all games</a>
+        <button className="button" onClick={onTutorial}>See how to play →</button>
+      </div>
+    </main>
+  )
+}
+
 function PartyClosed() {
   return (
     <main className="error-page">
@@ -277,6 +292,7 @@ export default function App() {
   }
 
   if (!isSupabaseConfigured && view === 'tutorial') return <main className="public-tutorial"><Tutorial winnerMode={gameSettings.winnerMode} onBack={() => navigateToView('challenges')} /></main>
+  if (!isSupabaseConfigured && !activeApp.open) return <AppClosed onTutorial={() => navigateToView('tutorial')} />
   if (!isSupabaseConfigured) return <SetupRequired onTutorial={() => navigateToView('tutorial')} />
   if (loading) return <div className="loading-screen"><div className="brand"><b>{activeApp.shortName.toUpperCase()}</b><span>PHOTO HUNT</span></div><span>Opening the door…</span></div>
   if (error) return <main className="error-page"><h1>Couldn’t open the party.</h1><p>{error}</p><button className="button" onClick={() => location.reload()}>Try again</button></main>

@@ -191,6 +191,8 @@ Run all three locally before opening a pull request. Continuous integration runs
 4. Open **Settings > Pages** and select **GitHub Actions** as the source.
 5. Push to `main`, or manually run the **Deploy to GitHub Pages** workflow.
 
+The shared secrets serve every open app and the developer pages. An app marked `open: false` in `src/config/apps.ts` (the house party, for now) never falls back to them: it shows a closed page until it has its own project, set through `VITE_SUPABASE_URL_HOUSE_PARTY` and `VITE_SUPABASE_PUBLISHABLE_KEY_HOUSE_PARTY` added to the build step in `.github/workflows/deploy.yml`.
+
 The app deploys to:
 
 <https://leoncheng.dev/vibe-photo-voting-house-game/>
