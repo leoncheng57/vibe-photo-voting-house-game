@@ -2,6 +2,7 @@ import { ReferenceHeader } from './SystemDiagram'
 
 const hostRunbookPageUrl = `${import.meta.env.BASE_URL}developer/host-runbook/`
 const photoExportPageUrl = `${import.meta.env.BASE_URL}developer/photo-export/`
+const bdayHuntUrl = `${import.meta.env.BASE_URL}bday-hunt/`
 
 export function RunOfShowRunbook() {
   return (
@@ -9,14 +10,14 @@ export function RunOfShowRunbook() {
       <ReferenceHeader
         path="/developer/run-of-show"
         title="Run of Show Runbook"
-        description="The operating plan for a hosted event: preflight, three party phases, hotfix protocol, and feature status. The host controls the shared TV and phase changes; guests play from their own phones at /play/. The timer is a visual cue only and never locks uploads or voting."
+        description="The operating plan for the Outdoor Birthday Hunt: preflight, three party phases, hotfix protocol, and feature status. The host controls the shared TV and phase changes; guests play from their own phones at /bday-hunt/. Winners are drawn at random, so there is no voting. The timer is a visual cue only and never locks uploads."
       />
 
       <nav className="dev-index" aria-label="Run of show sections">
         <a href="#preflight">01 Preflight</a>
         <a href="#phase-1">02 Arrival</a>
         <a href="#phase-2">03 Photo hunt</a>
-        <a href="#phase-3">04 Voting and winners</a>
+        <a href="#phase-3">04 Draw and winners</a>
         <a href="#hotfix">05 Hotfix protocol</a>
         <a href="#feature-status">06 Feature status</a>
       </nav>
@@ -24,9 +25,11 @@ export function RunOfShowRunbook() {
       <section className="dev-section" id="preflight">
         <header><span>01</span><div><h2>Preflight — Before Guests Arrive</h2><p>Complete every step before sharing the link with anyone.</p></div></header>
         <ol className="originals-runbook">
-          <li><b>Open the party.</b> Confirm the passphrase admits one guest browser end to end.</li>
-          <li><b>Check the TV.</b> Confirm TV mode loads, the QR code points to <code>/play/</code>, and the TV browser stays signed in.</li>
-          <li><b>Dry-run one photo.</b> Upload one synthetic test photo, confirm it appears on TV, vote for it from a second browser profile, then remove all test data using the coordinated cleanup runbook — database row first, Storage object second.</li>
+          <li><b>Open the party.</b> Confirm the passphrase admits one guest browser end to end at <a href={bdayHuntUrl}><code>/bday-hunt/</code></a>.</li>
+          <li><b>Check the winner mode.</b> Open <code>/bday-hunt/?settings</code>, enter the host PIN, and confirm Winner is <b>Random</b>. The saved setting overrides the app default once a guest joins, so a stray <b>Voting</b> brings the Vote tab back.</li>
+          <li><b>Check the prompts.</b> The challenge list shows the three birthday prompts: Accidental Twins, Peak Candid and Birthday Boy.</li>
+          <li><b>Check the TV.</b> Confirm <code>/bday-hunt/?display</code> loads, the QR code points to <code>/bday-hunt/</code>, and the TV browser stays signed in.</li>
+          <li><b>Dry-run one photo.</b> Upload one synthetic test photo, confirm it appears on TV and on the Draw tab, then remove all test data using the coordinated cleanup runbook — database row first, Storage object second.</li>
           <li><b>Check storage headroom.</b> Open the Photo Export Runbook and verify the storage meter is comfortably below 50%.</li>
           <li><b>Stage the credentials.</b> Put the party link and passphrase somewhere the host can share without displaying the passphrase in the QR code.</li>
           <li><b>Keep a host laptop nearby.</b> Use it for host controls and hotfixes, but never expose Supabase credentials or guest data on the TV.</li>
@@ -42,7 +45,7 @@ export function RunOfShowRunbook() {
             <ul>
               <li>Open the link or scan the TV QR code.</li>
               <li>Enter the host-provided passphrase.</li>
-              <li>Choose a unique display name. A guest may edit it later without changing identity, submissions, or votes.</li>
+              <li>Choose a unique display name. A guest may edit it later without changing identity or submissions.</li>
               <li>Read How to Play and start browsing challenges.</li>
             </ul>
           </article>
@@ -53,7 +56,7 @@ export function RunOfShowRunbook() {
               <li>Leave the TV on the How to Play tab so late arrivals receive the same instructions; the rotating Gallery also shows a join QR code for latecomers.</li>
               <li>Verbally explain that each browser profile is one guest identity — a second guest needs another browser or browser profile, not another tab.</li>
               <li>Confirm guests can reach the challenge list before starting photo time.</li>
-              <li>Explain that photographers remain anonymous during voting and that self-voting is allowed.</li>
+              <li>Explain that there is no voting: each prompt's winner is drawn at random from its entries, so every photo has the same chance.</li>
             </ul>
           </article>
           <article>
@@ -75,10 +78,9 @@ export function RunOfShowRunbook() {
             <h3>Guests</h3>
             <code>one photo per challenge</code>
             <ul>
-              <li>Move around the house and take photos for any challenges they want to join.</li>
+              <li>Roam and take photos for any of the three prompts they want to join. Birthday Boy needs the birthday boy in the frame.</li>
               <li>Submit one photo per challenge and review the uploaded preview before leaving the page.</li>
               <li>Replacement uploads a new immutable original and game version while preserving every earlier original for export.</li>
-              <li>A voted photo may be replaced after confirming the warning; activation clears all votes attached to that submission.</li>
             </ul>
           </article>
           <article>
@@ -93,11 +95,11 @@ export function RunOfShowRunbook() {
           </article>
           <article>
             <h3>Transition check</h3>
-            <code>ready for voting?</code>
+            <code>ready for the draw?</code>
             <ul>
               <li>A final-photo warning has been announced.</li>
               <li>Active uploads have been allowed to finish.</li>
-              <li>Every challenge intended for voting has submissions.</li>
+              <li>Every prompt has at least one entry; a prompt with none has nothing to draw.</li>
             </ul>
           </article>
         </div>
@@ -114,28 +116,24 @@ export function RunOfShowRunbook() {
       </section>
 
       <section className="dev-section" id="phase-3">
-        <header><span>04</span><div><h2>Phase 3: Voting and Winners</h2><p>Typical duration: about one minute per challenge, plus the final reveal.</p></div></header>
+        <header><span>04</span><div><h2>Phase 3: Draw and Winners</h2><p>Typical duration: a few minutes, plus the final reveal.</p></div></header>
         <div className="dev-facts">
           <article>
             <h3>Guests</h3>
-            <code>ballots on phones</code>
+            <code>watch the TV</code>
             <ul>
-              <li>Open Vote on their phones.</li>
-              <li>Vote on the challenge currently shown by the host with up to three choices. Deselect every photo and confirm zero votes to clear a saved ballot.</li>
-              <li>Submit a ballot, then revisit earlier challenges to change saved votes if desired.</li>
-              <li>Keep the TV for shared instructions and reveals rather than entering votes there.</li>
+              <li>Nothing to do on phones: random mode hides the Vote tab, and an old <code>?vote</code> link lands on the challenge list.</li>
+              <li>Results never appear on guest phones; the reveal happens on the TV.</li>
             </ul>
           </article>
           <article>
             <h3>Host</h3>
-            <code>one challenge at a time</code>
+            <code>one prompt at a time</code>
             <ul>
-              <li>Move through challenges one at a time using the TV Voting view.</li>
-              <li>Announce the challenge and allow roughly one minute for ballots.</li>
-              <li>Reveal each challenge only after the room confirms voting is complete.</li>
-              <li>Results never appear on guest phones. After each round, press and hold <b>Reveal challenge winner</b> until its progress fill completes to show the winning photo or tied photos.</li>
-              <li>When all rounds end, select the robot button and confirm the host-only final-score dialog. The guest with the most total votes received wins; tied totals share a rank.</li>
-              <li>Award prizes only after the final result refresh.</li>
+              <li>Open the TV <b>Draw</b> tab and step through the prompts with the arrow buttons or ← → keys.</li>
+              <li>Announce the prompt, then press and hold <b>Hold to reveal winner</b> until its progress fill completes to show the drawn photo.</li>
+              <li>The draw is seeded by the prompt and its entries: going back, reloading, or opening TV mode on another screen shows the same winner. A replaced or new photo changes the entries and therefore the draw, so finish uploads first.</li>
+              <li>When all prompts are drawn, select the robot button and confirm the host-only final-score dialog. The guest with the most draw wins is the birthday champion; tied totals share a rank.</li>
             </ul>
           </article>
           <article>
@@ -149,6 +147,7 @@ export function RunOfShowRunbook() {
             </ul>
           </article>
         </div>
+        <p className="dev-crosslink">Running an event with voting instead? Set Winner to <b>Voting</b> in settings: guests get the Vote tab and pick up to three photos per challenge, and the TV tab becomes Voting, with the same hold-to-reveal and final-score steps counting votes received.</p>
       </section>
 
       <section className="dev-section" id="hotfix">
@@ -156,7 +155,7 @@ export function RunOfShowRunbook() {
         <ol className="originals-runbook">
           <li><b>Stabilize.</b> Keep the current phase stable; do not ask guests to repeat writes until the failure is understood.</li>
           <li><b>Record safely.</b> Note the affected challenge, action, browser, and approximate time — never record the passphrase or private photo URLs.</li>
-          <li><b>Prefer reversible workarounds.</b> Advance manually, extend the timer, or skip one challenge.</li>
+          <li><b>Prefer reversible workarounds.</b> Advance manually, extend the timer, or skip one prompt.</li>
           <li><b>Hold the security line.</b> Do not change RLS, expose a service-role key, or delete Storage objects as a live workaround.</li>
           <li><b>Stop if uncertain.</b> If privacy, authentication, or data preservation is uncertain, close the party and stop writes.</li>
         </ol>
@@ -169,9 +168,11 @@ export function RunOfShowRunbook() {
             <h3>Already shipped and assumed by this plan</h3>
             <ul>
               <li>TV Gallery rotation with countdown, full-image preview, and latecomer join QR (issues #27, #52, #56).</li>
-              <li>TV Voting and How to Play pages (issue #34).</li>
+              <li>TV Draw (or Voting) and How to Play pages (issue #34).</li>
+              <li>Random winner mode with a seeded, repeatable draw and no voting, set per project from the host settings screen (issue #86).</li>
+              <li>Three birthday prompts, with copy that counts the prompts from the data (issue #86).</li>
               <li>Timer creation and editing in the TV mode header, with an end-of-timer beep and blinking alert (issues #36, #55).</li>
-              <li>Flexible, editable 1–3 vote ballots (issue #35).</li>
+              <li>Flexible, editable 1–3 vote ballots for voting mode (issue #35).</li>
               <li>TV-only, host-confirmed final scoreboard (issue #41).</li>
               <li>Deep-linkable application views (issue #54).</li>
               <li>Full-resolution original archive with storage meter and export runbook.</li>
