@@ -3,7 +3,11 @@ import { getLeaderboard, getSubmissions } from '../lib/api'
 import { rankLeaderboardEntries, rankLeaderboardEntriesByWins } from '../lib/scoring'
 import { areVoteScoresMeaningful, countRandomDrawWins } from '../lib/winner'
 import { DEFAULT_WINNER_MODE } from '../config/settings-defaults'
+import { APPS } from '../config/apps'
+import { getActiveAppId } from '../lib/active-app'
 import type { LeaderboardEntry, WinnerMode } from '../types'
+
+const activeApp = APPS[getActiveAppId()]
 
 interface Props {
   refreshToken: number
@@ -37,7 +41,7 @@ export function Leaderboard({ refreshToken, highlightPodium = false, winnerMode 
     <div>
       <header className="section-heading section-heading--leaderboard">
         <div>
-          <span className="eyebrow">{showVotes ? 'Most votes wins / Eternal house glory' : 'Luck of the draw / Eternal house glory'}</span>
+          <span className="eyebrow">{showVotes ? 'Most votes wins' : 'Luck of the draw'} / {activeApp.copy.glory}</span>
           <h2>The<br />leaderboard.</h2>
         </div>
         <p>
