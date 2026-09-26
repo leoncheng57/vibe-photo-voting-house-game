@@ -28,7 +28,7 @@ a:focus-visible { outline: 3px solid white; outline-offset: 2px; box-shadow: 0 0
 .landing-hero__copy { display: flex; flex-direction: column; justify-content: center; padding: clamp(2.2rem, 6vw, 7rem); }
 .landing-kicker { font-size: .7rem; font-weight: 900; letter-spacing: .14em; text-transform: uppercase; }
 .landing-hero h1 { margin: .8rem 0 1.8rem; font: 900 clamp(4.2rem, 9vw, 9.5rem)/.72 Arial Black, Arial, sans-serif; letter-spacing: -.09em; text-transform: uppercase; }
-.landing-hero h1 i { color: #434343; font-family: Georgia, serif; font-weight: 400; text-transform: none; }
+.landing-hero h1 i { color: #8a6a4f; font-family: Georgia, serif; font-weight: 400; text-transform: none; }
 .landing-hero__copy > p { max-width: 680px; margin: 0; font: 700 clamp(1.05rem, 1.6vw, 1.35rem)/1.5 Georgia, serif; }
 .landing-actions { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 2.2rem; }
 .landing-button { display: flex; min-height: 52px; align-items: center; gap: 2rem; border: var(--line); padding: .8rem 1rem; background: var(--paper); box-shadow: 5px 5px 0 var(--ink); font-size: .72rem; font-weight: 900; text-decoration: none; text-transform: uppercase; }
