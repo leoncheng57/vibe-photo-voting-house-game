@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { Challenge, Submission } from '../types'
 import { getSubmissions, uploadSubmission } from '../lib/api'
 import { errorMessage } from '../lib/errors'
+import { challengeListHeading } from '../lib/challenge-copy'
 import { preparePhoto } from '../lib/images'
 import { ARCHIVE_PRESERVE_LIMIT, classifyOriginal, formatBytes } from '../lib/photo-policy'
 
@@ -80,7 +81,7 @@ export function ChallengeList({ challenges, userId, refreshToken, onChanged }: P
       <header className="section-heading">
         <div>
           <span className="eyebrow">01 / Make something memorable</span>
-          <h2>Six shots.<br />No bad ideas.</h2>
+          <h2>{challengeListHeading(challenges.length)}<br />No bad ideas.</h2>
         </div>
         <p>Take one photo for every challenge. You can replace it later, but replacing a photo clears every vote it has received.</p>
       </header>

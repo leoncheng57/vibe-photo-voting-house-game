@@ -3,8 +3,11 @@ import { QRCodeSVG } from 'qrcode.react'
 import type { Challenge, Submission, ThemeTokens, WinnerMode, WinnerPick } from '../types'
 import { getSubmissions } from '../lib/api'
 import { sortGallerySubmissions } from '../lib/gallery'
-import { selectWinners, toWinnerCandidates } from '../lib/winner'
+import { drawRandomWinners, selectWinners, toWinnerCandidates } from '../lib/winner'
 import { DEFAULT_THEME, DEFAULT_WINNER_MODE } from '../config/settings-defaults'
+import { APPS } from '../config/apps'
+import { getActiveAppId, getAppBaseUrl } from '../lib/active-app'
+import { isVotingOpen } from '../lib/voting'
 import { Timer } from './Timer'
 import { Tutorial } from './Tutorial'
 import { Leaderboard } from './Leaderboard'
@@ -18,6 +21,7 @@ const GALLERY_SCROLL_PIXELS_PER_SECOND = 40
 const GALLERY_SCROLL_EDGE_PAUSE_MS = 1800
 const GALLERY_SCROLL_INTERACTION_PAUSE_MS = 5000
 type DisplayPage = 'gallery' | 'voting' | 'tutorial'
+const activeApp = APPS[getActiveAppId()]
 
 export function DisplayView({ challenges, refreshToken, winnerMode = DEFAULT_WINNER_MODE, theme = DEFAULT_THEME, spotifyAuthorizationError, onExit }: { challenges: Challenge[]; refreshToken: number; winnerMode?: WinnerMode; theme?: ThemeTokens; spotifyAuthorizationError?: string; onExit: () => void }) {
   const [index, setIndex] = useState(0)
@@ -49,7 +53,7 @@ export function DisplayView({ challenges, refreshToken, winnerMode = DEFAULT_WIN
   const galleryHasFocus = useRef(false)
   const challenge = challenges[index]
   const challengeById = useMemo(() => new Map(challenges.map((item) => [item.id, item])), [challenges])
-  const joinUrl = useMemo(() => `${window.location.origin}${import.meta.env.BASE_URL}play/`, [])
+  const joinUrl = useMemo(() => `${window.location.origin}${getAppBaseUrl(getActiveAppId(), import.meta.env.BASE_URL)}`, [])
 
   useEffect(() => {
     if (page !== 'gallery') return
@@ -151,27 +155,18 @@ export function DisplayView({ challenges, refreshToken, winnerMode = DEFAULT_WIN
   const previewPhotoIndex = previewPhotoId ? displayedPhotos.findIndex((photo) => photo.id === previewPhotoId) : -1
   const previewChallenge = previewPhoto ? challengeById.get(previewPhoto.challenge_id) : undefined
   const voteTarget = Math.min(3, votingPhotos.length)
-  // A random pick must be latched per challenge: selectWinners redraws on every
-  // call, so without this the winner reshuffles each time the submissions poll
-  // refreshes. Voting mode is a pure function of the votes and needs no latch.
-  const randomPickLatch = useRef<{ key: string; picks: WinnerPick[] } | null>(null)
+  const votingOpen = isVotingOpen(winnerMode)
+  // Both modes are pure functions of the entries: the random draw is seeded by
+  // the challenge and its entry set, so revisits and reloads show the same winner.
   const challengeWinners = useMemo<Array<{ photo: Submission; pick: WinnerPick }>>(() => {
     const photoById = new Map(votingPhotos.map((photo) => [photo.id, photo]))
     const resolve = (picks: WinnerPick[]) => picks
       .map((pick) => { const photo = photoById.get(pick.submissionId); return photo ? { photo, pick } : null })
       .filter((entry): entry is { photo: Submission; pick: WinnerPick } => Boolean(entry))
 
-    if (winnerMode !== 'random') return resolve(selectWinners(toWinnerCandidates(votingPhotos), winnerMode))
-
-    const key = `${winnerMode}:${challenge?.id ?? 'none'}`
-    const latched = randomPickLatch.current
-    if (latched?.key === key) {
-      const stillPresent = resolve(latched.picks)
-      if (stillPresent.length) return stillPresent
-    }
-    const picks = selectWinners(toWinnerCandidates(votingPhotos), winnerMode)
-    randomPickLatch.current = { key, picks }
-    return resolve(picks)
+    const candidates = toWinnerCandidates(votingPhotos)
+    if (winnerMode !== 'random') return resolve(selectWinners(candidates, winnerMode))
+    return challenge ? resolve(drawRandomWinners(challenge.id, candidates)) : []
   }, [votingPhotos, winnerMode, challenge])
 
   function move(delta: number) {
@@ -298,13 +293,13 @@ export function DisplayView({ challenges, refreshToken, winnerMode = DEFAULT_WIN
     <div className={`display-view ${page === 'gallery' ? 'display-view--gallery' : ''} ${page === 'voting' ? 'display-view--voting' : ''} ${scoresMounted ? 'display-view--scores-revealed' : ''}`}>
       <header className={`display-header ${page === 'gallery' ? 'display-header--gallery' : ''}`}>
         <div className="display-brand-controls">
-          <div className="brand brand--display"><b>HOUSE</b><span>PHOTO HUNT</span></div>
+          <div className="brand brand--display"><b>{activeApp.shortName.toUpperCase()}</b><span>PHOTO HUNT</span></div>
           <button className="display-exit-button" type="button" onClick={onExit}>Exit TV mode</button>
         </div>
         <nav className="display-tabs" aria-label="TV mode views">
           <button type="button" aria-current={page === 'tutorial' ? 'page' : undefined} onClick={() => selectPage('tutorial')}>How to play</button>
           <button type="button" aria-current={page === 'gallery' ? 'page' : undefined} onClick={() => selectPage('gallery')}>Gallery</button>
-          <button type="button" aria-current={page === 'voting' ? 'page' : undefined} onClick={() => selectPage('voting')}>Voting</button>
+          <button type="button" aria-current={page === 'voting' ? 'page' : undefined} onClick={() => selectPage('voting')}>{votingOpen ? 'Voting' : 'Draw'}</button>
         </nav>
         <Timer compact editable />
         {page === 'gallery' && (
@@ -389,7 +384,9 @@ export function DisplayView({ challenges, refreshToken, winnerMode = DEFAULT_WIN
           <button type="button" aria-label="Next challenge" onClick={() => move(1)}>→</button>
         </section>
 
-        <section className="display-voting-callout"><span>Voting is open</span><h1>Choose on your phone.</h1><p>{voteTarget ? <>Open <b>Vote</b> and select {voteTarget} {voteTarget === 1 ? 'favorite' : 'favorites'} for this challenge.</> : 'Photos will appear here as guests submit them.'}</p></section>
+        {votingOpen
+          ? <section className="display-voting-callout"><span>Voting is open</span><h1>Choose on your phone.</h1><p>{voteTarget ? <>Open <b>Vote</b> and select {voteTarget} {voteTarget === 1 ? 'favorite' : 'favorites'} for this challenge.</> : 'Photos will appear here as guests submit them.'}</p></section>
+          : <section className="display-voting-callout"><span>No voting tonight</span><h1>Luck picks the winner.</h1><p>{votingPhotos.length ? <>One of these {votingPhotos.length} {votingPhotos.length === 1 ? 'entry' : 'entries'} will be drawn at random.</> : 'Photos will appear here as guests submit them.'}</p></section>}
         {error && <div className="notice notice--error">{error}</div>}
         <div className="photo-grid photo-grid--display">
           {votingPhotos.map((photo, photoIndex) => (
@@ -411,7 +408,7 @@ export function DisplayView({ challenges, refreshToken, winnerMode = DEFAULT_WIN
       </>}
 
       {page === 'tutorial' && <div className="display-tutorial-page">
-        <Tutorial variant="tv" />
+        <Tutorial variant="tv" winnerMode={winnerMode} />
         <ChallengeIllustrations challenges={challenges} />
         <aside className="display-tutorial-join" aria-label="Join the party">
           <span className="eyebrow">Join on your phone</span>
@@ -502,7 +499,7 @@ export function DisplayView({ challenges, refreshToken, winnerMode = DEFAULT_WIN
           </div>
           <span>← → to change challenge</span>
         </> : <>
-          <span>House Photo Hunt</span>
+          <span>{activeApp.name}</span>
           <span>Use the tabs to return to the gallery</span>
         </>}
       </footer>

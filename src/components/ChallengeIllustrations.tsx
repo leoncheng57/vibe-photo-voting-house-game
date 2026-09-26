@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import type { Challenge } from '../types'
+import { countWord } from '../lib/challenge-copy'
 
 function IllustrationArt({ slug }: { slug: string }) {
   let art: ReactNode
@@ -82,7 +83,7 @@ function IllustrationArt({ slug }: { slug: string }) {
 export function ChallengeIllustrations({ challenges }: { challenges: Challenge[] }) {
   return (
     <section className="challenge-illustrations" aria-labelledby="challenge-illustrations-title">
-      <h2 className="visually-hidden" id="challenge-illustrations-title">The six photo challenges</h2>
+      <h2 className="visually-hidden" id="challenge-illustrations-title">The {countWord(challenges.length).toLowerCase()} photo challenges</h2>
       {challenges.map((challenge, index) => (
         <figure key={challenge.id} className={`challenge-illustration challenge-illustration--${index + 1}`}>
           <div role="img" aria-label={`${challenge.title}: ${challenge.prompt}`}>

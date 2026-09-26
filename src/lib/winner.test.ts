@@ -2,7 +2,11 @@ import { describe, expect, it } from 'vitest'
 import type { Submission } from '../types'
 import {
   areVoteScoresMeaningful,
+  countRandomDrawWins,
+  drawRandomWinners,
+  getRandomDrawSeed,
   getWinnerStrategy,
+  seededRandom,
   selectWinners,
   toWinnerCandidates,
 } from './winner'
@@ -78,5 +82,57 @@ describe('areVoteScoresMeaningful', () => {
     expect(areVoteScoresMeaningful('voting')).toBe(true)
     expect(areVoteScoresMeaningful()).toBe(true)
     expect(areVoteScoresMeaningful('random')).toBe(false)
+  })
+})
+
+describe('seeded random draw', () => {
+  const entrants = [{ id: 'c' }, { id: 'a' }, { id: 'b' }, { id: 'd' }]
+
+  it('gives the same winner for the same challenge and entries in any order', () => {
+    const first = drawRandomWinners(4, entrants)
+    const reordered = drawRandomWinners(4, [...entrants].reverse())
+    expect(first).toHaveLength(1)
+    expect(reordered).toEqual(first)
+  })
+
+  it('keeps every draw inside [0, 1)', () => {
+    const random = seededRandom('any seed')
+    for (let index = 0; index < 1000; index += 1) {
+      const value = random()
+      expect(value).toBeGreaterThanOrEqual(0)
+      expect(value).toBeLessThan(1)
+    }
+  })
+
+  it('spreads wins across entrants rather than favouring one position', () => {
+    const counts = new Map<string, number>()
+    for (let challengeId = 1; challengeId <= 400; challengeId += 1) {
+      const [pick] = drawRandomWinners(challengeId, entrants)
+      counts.set(pick.submissionId, (counts.get(pick.submissionId) ?? 0) + 1)
+    }
+    for (const entrant of entrants) expect(counts.get(entrant.id) ?? 0).toBeGreaterThan(60)
+  })
+
+  it('keys the seed on the sorted entry set', () => {
+    expect(getRandomDrawSeed(2, ['b', 'a'])).toBe('2:a,b')
+  })
+})
+
+describe('countRandomDrawWins', () => {
+  it('credits each challenge draw to the owner of the drawn entry', () => {
+    const entries = [
+      { id: 's1', challenge_id: 1, user_id: 'ana' },
+      { id: 's2', challenge_id: 1, user_id: 'ben' },
+      { id: 's3', challenge_id: 2, user_id: 'ana' },
+    ]
+    const wins = countRandomDrawWins(entries)
+    const [challengeOnePick] = drawRandomWinners(1, [{ id: 's1' }, { id: 's2' }])
+    const challengeOneOwner = challengeOnePick.submissionId === 's1' ? 'ana' : 'ben'
+    expect([...wins.values()].reduce((sum, value) => sum + value, 0)).toBe(2)
+    expect(wins.get('ana')).toBe(challengeOneOwner === 'ana' ? 2 : 1)
+  })
+
+  it('credits nobody when there are no entries', () => {
+    expect(countRandomDrawWins([]).size).toBe(0)
   })
 })

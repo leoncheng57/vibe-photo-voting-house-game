@@ -29,6 +29,7 @@ const navigationItems: Array<{ id: View; label: string; href: string; icon?: 'tv
 type NavigationProps = {
   active: View | 'developer'
   onSelect?: (view: View) => void
+  votingOpen?: boolean
 }
 
 function RobotIcon() {
@@ -47,11 +48,12 @@ function TvIcon() {
   )
 }
 
-function NavigationLinks({ active, onSelect }: NavigationProps) {
+function NavigationLinks({ active, onSelect, votingOpen = true }: NavigationProps) {
+  const items = votingOpen ? navigationItems : navigationItems.filter((item) => item.id !== 'vote')
   return (
     <>
       <a className="home-link" href={appRoot} aria-label="Home"><HomeIcon /></a>
-      {navigationItems.map((item) => onSelect ? (
+      {items.map((item) => onSelect ? (
         <button key={item.id} className={`${active === item.id ? 'active' : ''} ${item.icon ? 'nav-with-icon' : ''} ${item.id === 'display' ? 'tv-mode-link' : ''}`} aria-current={active === item.id ? 'page' : undefined} onClick={() => onSelect(item.id)}>{item.icon === 'tv' && <TvIcon />}{item.label}</button>
       ) : (
         <a key={item.id} className={`${active === item.id ? 'active' : ''} ${item.icon ? 'nav-with-icon' : ''} ${item.id === 'display' ? 'tv-mode-link' : ''}`} href={item.href} aria-current={active === item.id ? 'page' : undefined}>{item.icon === 'tv' && <TvIcon />}{item.label}</a>
@@ -66,11 +68,11 @@ type SiteHeaderProps = NavigationProps & {
   onEditProfile?: () => void
 }
 
-export function SiteHeader({ active, onSelect, playerName, onEditProfile }: SiteHeaderProps) {
+export function SiteHeader({ active, onSelect, votingOpen, playerName, onEditProfile }: SiteHeaderProps) {
   return (
     <header className="site-header">
       <a className="brand brand--button" href={appRoot}><b>{activeApp.shortName.toUpperCase()}</b><span>PHOTO HUNT</span></a>
-      <nav aria-label="Primary navigation"><NavigationLinks active={active} onSelect={onSelect} /></nav>
+      <nav aria-label="Primary navigation"><NavigationLinks active={active} onSelect={onSelect} votingOpen={votingOpen} /></nav>
       {playerName && onEditProfile ? (
         <button className="player-chip" onClick={onEditProfile}><span>Playing as · change</span><strong>{playerName}</strong></button>
       ) : (

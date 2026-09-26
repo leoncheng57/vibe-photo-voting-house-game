@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { getLeaderboard } from '../lib/api'
+import { getLeaderboard, getSubmissions } from '../lib/api'
 import { rankLeaderboardEntries, rankLeaderboardEntriesByWins } from '../lib/scoring'
-import { areVoteScoresMeaningful } from '../lib/winner'
+import { areVoteScoresMeaningful, countRandomDrawWins } from '../lib/winner'
 import { DEFAULT_WINNER_MODE } from '../config/settings-defaults'
 import type { LeaderboardEntry, WinnerMode } from '../types'
 
@@ -15,14 +15,22 @@ export function Leaderboard({ refreshToken, highlightPodium = false, winnerMode 
   const [entries, setEntries] = useState<LeaderboardEntry[]>([])
   const [error, setError] = useState('')
 
+  const showVotes = areVoteScoresMeaningful(winnerMode)
+
   useEffect(() => {
-    const refresh = () => getLeaderboard().then(setEntries).catch((reason: Error) => setError(reason.message))
+    // The leaderboard view counts wins from votes. A random draw is never stored,
+    // so in that mode the wins are replayed from the same seeded draw the TV shows.
+    const load = () => showVotes
+      ? getLeaderboard()
+      : Promise.all([getLeaderboard(), getSubmissions()]).then(([rows, submissions]) => {
+        const wins = countRandomDrawWins(submissions)
+        return rows.map((row) => ({ ...row, wins: wins.get(row.user_id) ?? 0 }))
+      })
+    const refresh = () => load().then(setEntries).catch((reason: Error) => setError(reason.message))
     void refresh()
     const interval = window.setInterval(refresh, 5000)
     return () => window.clearInterval(interval)
-  }, [refreshToken])
-
-  const showVotes = areVoteScoresMeaningful(winnerMode)
+  }, [refreshToken, showVotes])
   const rankedEntries = showVotes ? rankLeaderboardEntries(entries) : rankLeaderboardEntriesByWins(entries)
 
   return (
