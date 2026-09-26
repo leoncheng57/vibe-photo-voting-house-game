@@ -24,6 +24,7 @@ export interface AppDefinition {
     stripe: string
     place: string
     champion: string
+    glory: string
   }
   // Used only until the party's own settings load (and before a guest has
   // joined, when they cannot be read). The party_settings row stays authoritative.
@@ -41,7 +42,7 @@ export const APPS: Record<AppId, AppDefinition> = {
     description:
       'Six photo challenges indoors. Everyone shoots, the room votes anonymously, and the biggest screen in the house runs the reveal.',
     open: false,
-    copy: { stripe: 'HOUSEWARMING · ONE NIGHT ONLY', place: 'the house', champion: 'house champion' },
+    copy: { stripe: 'HOUSEWARMING · ONE NIGHT ONLY', place: 'the house', champion: 'house champion', glory: 'Eternal house glory' },
     defaultWinnerMode: 'voting',
   },
   'bday-hunt': {
@@ -54,12 +55,17 @@ export const APPS: Record<AppId, AppDefinition> = {
     description:
       'The same photo hunt taken outdoors for a birthday: roam further, shoot in daylight, and crown the day over one shared screen.',
     open: true,
-    copy: { stripe: 'BIRTHDAY · ONE DAY ONLY', place: 'the hunt', champion: 'birthday champion' },
+    copy: { stripe: 'BIRTHDAY · ONE DAY ONLY', place: 'the hunt', champion: 'birthday champion', glory: 'Eternal birthday glory' },
     defaultWinnerMode: 'random',
   },
 }
 
 export const DEFAULT_APP_ID: AppId = 'house-party'
+
+// Where pages that belong to no app (the front page, developer references)
+// send someone who wants to play: the first open app, so a closed game's
+// links are never the way back in.
+export const PLAYABLE_APP_ID: AppId = APP_IDS.find((appId) => APPS[appId].open) ?? DEFAULT_APP_ID
 
 // Routes that shipped before the repo held more than one app. Every one of them
 // still has to resolve, so each keeps an HTML stub that redirects here.

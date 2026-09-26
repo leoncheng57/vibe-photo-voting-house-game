@@ -16,7 +16,7 @@ interface Progress {
   total: number
 }
 
-const ZIP_NAME = 'house-photo-hunt-originals.zip'
+const ZIP_NAME = 'photo-hunt-originals.zip'
 
 export function OriginalsExport({ onExported, refreshToken = 0 }: { onExported?: (session: OriginalExportSession) => void; refreshToken?: number }) {
   const [status, setStatus] = useState<Status>(isSupabaseConfigured ? 'loading' : 'unconfigured')

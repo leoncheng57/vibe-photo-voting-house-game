@@ -1,12 +1,15 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { HomeIcon } from './HomeIcon'
-import { APPS } from '../config/apps'
-import { getActiveAppId, getAppBaseUrl } from '../lib/active-app'
+import { APPS, PLAYABLE_APP_ID } from '../config/apps'
+import { getActiveThemeSurface, getAppBaseUrl } from '../lib/active-app'
 import type { View } from '../types'
 
 const appRoot = import.meta.env.BASE_URL
-const activeApp = APPS[getActiveAppId()]
-const playUrl = getAppBaseUrl(activeApp.id, appRoot)
+// Pages outside any app (developer references) brand as the whole project and
+// point their game links at the app that is currently open.
+const surface = getActiveThemeSurface()
+const navApp = APPS[surface === 'shared' ? PLAYABLE_APP_ID : surface]
+const playUrl = getAppBaseUrl(navApp.id, appRoot)
 const systemUrl = `${appRoot}developer/system/`
 const databaseUrl = `${appRoot}developer/db-design/`
 const securityUrl = `${appRoot}developer/security-ops/`
@@ -71,7 +74,7 @@ type SiteHeaderProps = NavigationProps & {
 export function SiteHeader({ active, onSelect, votingOpen, playerName, onEditProfile }: SiteHeaderProps) {
   return (
     <header className="site-header">
-      <a className="brand brand--button" href={appRoot}><b>{activeApp.shortName.toUpperCase()}</b><span>PHOTO HUNT</span></a>
+      <a className="brand brand--button" href={appRoot}>{surface === 'shared' ? <><b>PHOTO</b><span>HUNT</span></> : <><b>{navApp.shortName.toUpperCase()}</b><span>PHOTO HUNT</span></>}</a>
       <nav aria-label="Primary navigation"><NavigationLinks active={active} onSelect={onSelect} votingOpen={votingOpen} /></nav>
       {playerName && onEditProfile ? (
         <button className="player-chip" onClick={onEditProfile}><span>Playing as · change</span><strong>{playerName}</strong></button>
@@ -178,7 +181,7 @@ export function DeveloperTabs({ active }: { active: DeveloperPage }) {
 
 export function DeveloperBanner() {
   return (
-    <aside className="developer-banner" aria-label="House Photo Hunt developer workspace">
+    <aside className="developer-banner" aria-label="Photo Hunt developer workspace">
       <strong>Developer Workspace</strong>
       <span className="developer-banner__robots" aria-hidden="true">
         {Array.from({ length: 5 }, (_, index) => <RobotIcon key={index} />)}
