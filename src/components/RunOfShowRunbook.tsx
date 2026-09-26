@@ -26,7 +26,7 @@ export function RunOfShowRunbook() {
         <header><span>01</span><div><h2>Preflight — Before Guests Arrive</h2><p>Complete every step before sharing the link with anyone.</p></div></header>
         <ol className="originals-runbook">
           <li><b>Open the party.</b> Confirm the passphrase admits one guest browser end to end at <a href={bdayHuntUrl}><code>/bday-hunt/</code></a>.</li>
-          <li><b>Check the winner mode.</b> Open <code>/bday-hunt/?settings</code>, enter the host PIN, and confirm Winner is <b>Random</b>. The saved setting overrides the app default once a guest joins, so a stray <b>Voting</b> brings the Vote tab back.</li>
+          <li><b>Check the winner mode.</b> Open <a href={`${bdayHuntUrl}?settings`}><code>/bday-hunt/?settings</code></a> (it is not in the guest nav), enter the host PIN, and confirm Winner is <b>Random</b>. The saved setting overrides the app default once a guest joins, so a stray <b>Voting</b> brings the Vote tab back.</li>
           <li><b>Check the prompts.</b> The challenge list shows the three birthday prompts: Accidental Twins, Peak Candid and Birthday Boy.</li>
           <li><b>Check the TV.</b> Confirm <code>/bday-hunt/?display</code> loads, the QR code points to <code>/bday-hunt/</code>, and the TV browser stays signed in.</li>
           <li><b>Dry-run one photo.</b> Upload one synthetic test photo, confirm it appears on TV and on the Draw tab, then remove all test data using the coordinated cleanup runbook — database row first, Storage object second.</li>
