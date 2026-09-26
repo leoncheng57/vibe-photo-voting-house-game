@@ -140,7 +140,7 @@ Rotating the passphrase does not remove existing members; deleting memberships d
 
 Appearance and winner mode are stored on the single-row `party_settings` table and shared by every device; they are not per-browser preferences. Any member can read them, but changing them requires the host PIN set during setup.
 
-- **Theme** is the nine-token palette in `src/config/settings-defaults.ts` (`ink`, `sky`, `pool`, `powder`, `ice`, `paper`, `alert`, `accentBlue`, `accentGreen`). Stored tokens override the defaults at runtime; anything left unset falls back to the shipped springtime palette.
+- **Theme** is the nine-token palette in `src/config/settings-defaults.ts` (`ink`, `sky`, `pool`, `powder`, `ice`, `paper`, `alert`, `accentBlue`, `accentGreen`). Each surface ships its own defaults: the house party is navy and pool blue, the birthday hunt is springtime plum and moss, and the pages neither app owns (the front page, developer references and legacy redirects) are neutral grey. The page's path picks the palette at load. Stored tokens override that project's defaults at runtime, and anything left unset falls back to them.
 - **Winner mode** is either `voting` (the top-voted photo wins a challenge) or `random` (a uniform draw over that challenge's entrants). The database rejects any other value.
 
 The host PIN follows exactly the same rules as the party passphrase: it is bcrypt-hashed inside Postgres, never stored in the repository, JavaScript bundle, environment file, URL, or log, and is set or rotated only from the SQL Editor.
