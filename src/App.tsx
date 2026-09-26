@@ -22,13 +22,14 @@ import { isVotingOpen } from './lib/voting'
 import type { Challenge, GameSettings, PartyStatus, Profile, View, WinnerMode } from './types'
 
 const appRoot = import.meta.env.BASE_URL
-const initialGameSettings: GameSettings = { ...DEFAULT_GAME_SETTINGS, winnerMode: APPS[getActiveAppId()].defaultWinnerMode }
+const activeApp = APPS[getActiveAppId()]
+const initialGameSettings: GameSettings = { ...DEFAULT_GAME_SETTINGS, winnerMode: activeApp.defaultWinnerMode }
 const paletteUrl = `${appRoot}developer/palette/`
 
 function SetupRequired({ onTutorial }: { onTutorial: () => void }) {
   return (
     <main className="setup-page">
-      <div className="brand"><b>HOUSE</b><span>PHOTO HUNT</span></div>
+      <div className="brand"><b>{activeApp.shortName.toUpperCase()}</b><span>PHOTO HUNT</span></div>
       <section>
         <span className="eyebrow">One last setup step</span>
         <h1>Connect the<br />party backend.</h1>
@@ -84,7 +85,7 @@ function PassphraseGate({ onJoined, onTutorial }: { onJoined: () => Promise<void
   return (
     <main className="gate-page">
       <section className="gate-card">
-        <div className="brand"><b>HOUSE</b><span>PHOTO HUNT</span></div>
+        <div className="brand"><b>{activeApp.shortName.toUpperCase()}</b><span>PHOTO HUNT</span></div>
         <span className="gate-lock" aria-hidden="true"><LockIcon /></span>
         <span className="eyebrow">A private party</span>
         <h1>What’s the<br /><i>passphrase?</i></h1>
@@ -125,14 +126,14 @@ function JoinForm({ user, profile, winnerMode, onJoined, onTutorial }: { user: U
 
   return (
     <main className="join-page">
-      <div className="join-page__stripe">HOUSEWARMING · ONE NIGHT ONLY · HOUSEWARMING · ONE NIGHT ONLY</div>
+      <div className="join-page__stripe">{activeApp.copy.stripe} · {activeApp.copy.stripe}</div>
       <section className="join-card">
-        <div className="brand"><b>HOUSE</b><span>PHOTO HUNT</span></div>
+        <div className="brand"><b>{activeApp.shortName.toUpperCase()}</b><span>PHOTO HUNT</span></div>
         <div className="join-card__copy">
           <span className="eyebrow">A camera roll competition</span>
           {isVotingOpen(winnerMode) ? <>
             <h1>Shoot.<br />Vote.<br /><i>Glory.</i></h1>
-            <p>A photo for every challenge. Up to three votes each. One house champion.</p>
+            <p>A photo for every challenge. Up to three votes each. One {activeApp.copy.champion}.</p>
           </> : <>
             <h1>Shoot.<br />Draw.<br /><i>Glory.</i></h1>
             <p>A photo for every challenge. One winner drawn at random from each.</p>
@@ -142,7 +143,7 @@ function JoinForm({ user, profile, winnerMode, onJoined, onTutorial }: { user: U
           <label htmlFor="name">What should we call you?</label>
           <div>
             <input id="name" maxLength={24} value={name} onChange={(event) => setName(event.target.value)} placeholder="Your name" autoFocus />
-            <button className="button button--dark" disabled={busy || name.trim().length < 2}>{busy ? 'Saving…' : profile ? 'Save & enter →' : 'Enter the house →'}</button>
+            <button className="button button--dark" disabled={busy || name.trim().length < 2}>{busy ? 'Saving…' : profile ? 'Save & enter →' : `Enter ${activeApp.copy.place} →`}</button>
           </div>
           <button className="join-card__tutorial" type="button" onClick={onTutorial}>New here? See how to play →</button>
           {error && <p className="form-error">{error}</p>}
@@ -277,7 +278,7 @@ export default function App() {
 
   if (!isSupabaseConfigured && view === 'tutorial') return <main className="public-tutorial"><Tutorial winnerMode={gameSettings.winnerMode} onBack={() => navigateToView('challenges')} /></main>
   if (!isSupabaseConfigured) return <SetupRequired onTutorial={() => navigateToView('tutorial')} />
-  if (loading) return <div className="loading-screen"><div className="brand"><b>HOUSE</b><span>PHOTO HUNT</span></div><span>Opening the door…</span></div>
+  if (loading) return <div className="loading-screen"><div className="brand"><b>{activeApp.shortName.toUpperCase()}</b><span>PHOTO HUNT</span></div><span>Opening the door…</span></div>
   if (error) return <main className="error-page"><h1>Couldn’t open the party.</h1><p>{error}</p><button className="button" onClick={() => location.reload()}>Try again</button></main>
   if (user && partyStatus && !partyStatus.is_open) return <PartyClosed />
   if (user && partyStatus && !partyStatus.is_member && view === 'tutorial') return <main className="public-tutorial"><Tutorial winnerMode={gameSettings.winnerMode} onBack={() => navigateToView('challenges')} /></main>
