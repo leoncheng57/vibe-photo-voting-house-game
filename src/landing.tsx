@@ -56,7 +56,9 @@ export function LandingPage() {
                   <p className="landing-app__tagline">{app.tagline}</p>
                   <p>{app.description}</p>
                   <div className="landing-app__actions">
-                    <a className="landing-button landing-button--primary" href={playUrl}>Play <span>→</span></a>
+                    {app.open
+                      ? <a className="landing-button landing-button--primary" href={playUrl}>Play <span>→</span></a>
+                      : <button className="landing-button landing-button--primary landing-button--closed" type="button" disabled>Closed</button>}
                     <a className="landing-button" href={`${playUrl}?tutorial`}>How to play</a>
                   </div>
                 </article>

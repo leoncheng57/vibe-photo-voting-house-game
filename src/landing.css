@@ -35,6 +35,8 @@ a:focus-visible { outline: 3px solid white; outline-offset: 2px; box-shadow: 0 0
 .landing-button:hover { transform: translate(3px, 3px); box-shadow: 2px 2px 0 var(--ink); }
 .landing-button--primary { color: white; background: var(--ink); }
 .landing-button--primary span { font-size: 1.2rem; }
+.landing-button--closed { font: inherit; font-size: .72rem; font-weight: 900; text-transform: uppercase; color: var(--ink); background: transparent; border-style: dashed; box-shadow: none; cursor: not-allowed; opacity: .7; }
+.landing-button--closed:hover { transform: none; box-shadow: none; }
 .landing-developer-link { width: fit-content; margin-top: 1.6rem; border-bottom: 2px solid var(--ink); font-size: .68rem; font-weight: 900; text-decoration: none; text-transform: uppercase; }
 .landing-poster { position: relative; min-height: 620px; overflow: hidden; border-left: var(--line); background: var(--sky); background-image: radial-gradient(color-mix(in srgb, var(--ink) 20%, transparent) 1.5px, transparent 1.5px); background-size: 24px 24px; }
 .landing-poster::after { content: ''; position: absolute; right: -18%; bottom: -22%; width: 78%; aspect-ratio: 1; border: var(--line); border-radius: 50%; background: var(--pool); box-shadow: inset 0 0 0 35px var(--sky), inset 0 0 0 38px var(--ink); }
