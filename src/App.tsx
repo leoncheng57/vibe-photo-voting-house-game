@@ -6,16 +6,23 @@ import { MobileNavigation, SiteHeader } from './components/SiteNavigation'
 import { StorageMeter } from './components/StorageMeter'
 import { Timer } from './components/Timer'
 import { Tutorial } from './components/Tutorial'
+import { GameSettings as GameSettingsScreen } from './components/GameSettings'
 import { VoteView } from './components/VoteView'
-import { createProfile, ensureAnonymousUser, getChallenges, getPartyStatus, getProfile, invalidatePhoto, joinParty, signOut, updateProfile } from './lib/api'
+import { createProfile, ensureAnonymousUser, getChallenges, getGameSettings, getPartyStatus, getProfile, invalidatePhoto, joinParty, signOut, updateProfile } from './lib/api'
+import { applyTheme } from './lib/apply-theme'
 import { errorMessage } from './lib/errors'
 import { isSupabaseConfigured, supabase } from './lib/supabase'
 import { completeSpotifyAuthorization, hasSpotifyAuthorizationCallback } from './lib/spotify'
 import { useStorageUsage } from './lib/useStorageUsage'
 import { getViewFromSearch, getViewUrl } from './lib/view-navigation'
-import type { Challenge, PartyStatus, Profile, View } from './types'
+import { DEFAULT_GAME_SETTINGS } from './config/settings-defaults'
+import { APPS } from './config/apps'
+import { getActiveAppId } from './lib/active-app'
+import { isVotingOpen } from './lib/voting'
+import type { Challenge, GameSettings, PartyStatus, Profile, View, WinnerMode } from './types'
 
 const appRoot = import.meta.env.BASE_URL
+const initialGameSettings: GameSettings = { ...DEFAULT_GAME_SETTINGS, winnerMode: APPS[getActiveAppId()].defaultWinnerMode }
 const paletteUrl = `${appRoot}developer/palette/`
 
 function SetupRequired({ onTutorial }: { onTutorial: () => void }) {
@@ -96,7 +103,7 @@ function PassphraseGate({ onJoined, onTutorial }: { onJoined: () => Promise<void
   )
 }
 
-function JoinForm({ user, profile, onJoined, onTutorial }: { user: User; profile?: Profile; onJoined: (profile: Profile) => void; onTutorial: () => void }) {
+function JoinForm({ user, profile, winnerMode, onJoined, onTutorial }: { user: User; profile?: Profile; winnerMode: WinnerMode; onJoined: (profile: Profile) => void; onTutorial: () => void }) {
   const [name, setName] = useState(profile?.display_name ?? '')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -121,11 +128,15 @@ function JoinForm({ user, profile, onJoined, onTutorial }: { user: User; profile
       <div className="join-page__stripe">HOUSEWARMING · ONE NIGHT ONLY · HOUSEWARMING · ONE NIGHT ONLY</div>
       <section className="join-card">
         <div className="brand"><b>HOUSE</b><span>PHOTO HUNT</span></div>
-        <span className="join-card__number">06</span>
         <div className="join-card__copy">
           <span className="eyebrow">A camera roll competition</span>
-          <h1>Shoot.<br />Vote.<br /><i>Glory.</i></h1>
-          <p>Six photo challenges. Up to three votes each. One house champion.</p>
+          {isVotingOpen(winnerMode) ? <>
+            <h1>Shoot.<br />Vote.<br /><i>Glory.</i></h1>
+            <p>A photo for every challenge. Up to three votes each. One house champion.</p>
+          </> : <>
+            <h1>Shoot.<br />Draw.<br /><i>Glory.</i></h1>
+            <p>A photo for every challenge. One winner drawn at random from each.</p>
+          </>}
         </div>
         <form onSubmit={submit}>
           <label htmlFor="name">What should we call you?</label>
@@ -158,10 +169,34 @@ export default function App() {
   const [confirmingLeave, setConfirmingLeave] = useState(false)
   const [leaveError, setLeaveError] = useState('')
   const [leaving, setLeaving] = useState(false)
+  const [gameSettings, setGameSettings] = useState<GameSettings>(initialGameSettings)
   const [spotifyCallbackPending, setSpotifyCallbackPending] = useState(hasSpotifyAuthorizationCallback)
   const [spotifyAuthorizationError, setSpotifyAuthorizationError] = useState('')
   const spotifyCallbackStarted = useRef(false)
   const storageUsage = useStorageUsage(Boolean(profile), submissionToken)
+
+  useEffect(() => {
+    if (!profile) return
+    let cancelled = false
+    getGameSettings()
+      .then((settings) => {
+        if (cancelled) return
+        const next = { theme: settings.theme, winnerMode: settings.winnerMode }
+        setGameSettings(next)
+        applyTheme(next.theme, document.documentElement)
+      })
+      .catch(() => {
+        // Settings are cosmetic plus one game rule; never block the party on them.
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [profile])
+
+  function applyGameSettings(next: GameSettings) {
+    setGameSettings(next)
+    applyTheme(next.theme, document.documentElement)
+  }
 
   function navigateToView(nextView: View) {
     const nextUrl = getViewUrl(location.pathname, location.search, location.hash, nextView)
@@ -240,18 +275,18 @@ export default function App() {
     setChallenges(availableChallenges)
   }
 
-  if (!isSupabaseConfigured && view === 'tutorial') return <main className="public-tutorial"><Tutorial onBack={() => navigateToView('challenges')} /></main>
+  if (!isSupabaseConfigured && view === 'tutorial') return <main className="public-tutorial"><Tutorial winnerMode={gameSettings.winnerMode} onBack={() => navigateToView('challenges')} /></main>
   if (!isSupabaseConfigured) return <SetupRequired onTutorial={() => navigateToView('tutorial')} />
   if (loading) return <div className="loading-screen"><div className="brand"><b>HOUSE</b><span>PHOTO HUNT</span></div><span>Opening the door…</span></div>
   if (error) return <main className="error-page"><h1>Couldn’t open the party.</h1><p>{error}</p><button className="button" onClick={() => location.reload()}>Try again</button></main>
   if (user && partyStatus && !partyStatus.is_open) return <PartyClosed />
-  if (user && partyStatus && !partyStatus.is_member && view === 'tutorial') return <main className="public-tutorial"><Tutorial onBack={() => navigateToView('challenges')} /></main>
+  if (user && partyStatus && !partyStatus.is_member && view === 'tutorial') return <main className="public-tutorial"><Tutorial winnerMode={gameSettings.winnerMode} onBack={() => navigateToView('challenges')} /></main>
   if (user && partyStatus && !partyStatus.is_member) {
     const currentUser = user
     return <PassphraseGate onJoined={() => enterParty(currentUser)} onTutorial={() => navigateToView('tutorial')} />
   }
-  if (user && !profile && view === 'tutorial') return <main className="public-tutorial"><Tutorial onBack={() => navigateToView('challenges')} /></main>
-  if (user && !profile) return <JoinForm user={user} onJoined={setProfile} onTutorial={() => navigateToView('tutorial')} />
+  if (user && !profile && view === 'tutorial') return <main className="public-tutorial"><Tutorial winnerMode={gameSettings.winnerMode} onBack={() => navigateToView('challenges')} /></main>
+  if (user && !profile) return <JoinForm user={user} winnerMode={gameSettings.winnerMode} onJoined={setProfile} onTutorial={() => navigateToView('tutorial')} />
   if (!user || !profile) return null
   const currentUser = user
   const currentProfile = profile
@@ -291,13 +326,17 @@ export default function App() {
     }
   }
 
+  const votingOpen = isVotingOpen(gameSettings.winnerMode)
+  // A saved ?vote link still resolves after the host switches to a random draw.
+  const shownView: View = view === 'vote' && !votingOpen ? 'challenges' : view
+
   if (view === 'display') {
-    return <DisplayView challenges={challenges} refreshToken={resultsToken} spotifyAuthorizationError={spotifyAuthorizationError} onExit={() => navigateToView('challenges')} />
+    return <DisplayView challenges={challenges} refreshToken={resultsToken} winnerMode={gameSettings.winnerMode} theme={gameSettings.theme} spotifyAuthorizationError={spotifyAuthorizationError} onExit={() => navigateToView('challenges')} />
   }
 
   return (
     <div className="app-shell">
-      <SiteHeader active={view} onSelect={navigateToView} playerName={profile.display_name} onEditProfile={openNameEditor} />
+      <SiteHeader active={shownView} onSelect={navigateToView} votingOpen={votingOpen} playerName={profile.display_name} onEditProfile={openNameEditor} />
       <div className="storage-strip">
         <StorageMeter summary={storageUsage.summary} failed={storageUsage.failed} variant="bar" />
       </div>
@@ -307,12 +346,13 @@ export default function App() {
         <StorageMeter summary={storageUsage.summary} failed={storageUsage.failed} variant="bar" />
       </div>
       <main className="content">
-        {view === 'challenges' && <ChallengeList challenges={challenges} userId={user.id} refreshToken={submissionToken} onChanged={() => { setSubmissionToken((value) => value + 1); setResultsToken((value) => value + 1) }} />}
-        {view === 'tutorial' && <Tutorial />}
-        {view === 'vote' && <VoteView challenges={challenges} userId={user.id} refreshToken={submissionToken} onChanged={() => setResultsToken((value) => value + 1)} />}
+        {shownView === 'challenges' && <ChallengeList challenges={challenges} userId={user.id} refreshToken={submissionToken} onChanged={() => { setSubmissionToken((value) => value + 1); setResultsToken((value) => value + 1) }} />}
+        {view === 'tutorial' && <Tutorial winnerMode={gameSettings.winnerMode} />}
+        {shownView === 'vote' && <VoteView challenges={challenges} userId={user.id} refreshToken={submissionToken} winnerMode={gameSettings.winnerMode} onChanged={() => setResultsToken((value) => value + 1)} />}
+        {view === 'settings' && <GameSettingsScreen onBack={() => navigateToView('challenges')} onSettingsChange={applyGameSettings} />}
       </main>
 
-      <MobileNavigation active={view} onSelect={navigateToView} />
+      <MobileNavigation active={shownView} onSelect={navigateToView} votingOpen={votingOpen} />
 
       {editingName && (
         <div className="name-dialog" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setEditingName(false) }}>

@@ -1,10 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
-import type { Challenge, Submission } from '../types'
+import type { Challenge, Submission, ThemeTokens, WinnerMode, WinnerPick } from '../types'
 import { getSubmissions } from '../lib/api'
 import { sortGallerySubmissions } from '../lib/gallery'
-import { getWinningPhotoIds } from '../lib/scoring'
+import { drawRandomWinners, selectWinners, toWinnerCandidates } from '../lib/winner'
+import { DEFAULT_THEME, DEFAULT_WINNER_MODE } from '../config/settings-defaults'
+import { APPS } from '../config/apps'
 import { getActiveAppId, getAppBaseUrl } from '../lib/active-app'
+import { isVotingOpen } from '../lib/voting'
 import { Timer } from './Timer'
 import { Tutorial } from './Tutorial'
 import { Leaderboard } from './Leaderboard'
@@ -18,8 +21,9 @@ const GALLERY_SCROLL_PIXELS_PER_SECOND = 40
 const GALLERY_SCROLL_EDGE_PAUSE_MS = 1800
 const GALLERY_SCROLL_INTERACTION_PAUSE_MS = 5000
 type DisplayPage = 'gallery' | 'voting' | 'tutorial'
+const activeApp = APPS[getActiveAppId()]
 
-export function DisplayView({ challenges, refreshToken, spotifyAuthorizationError, onExit }: { challenges: Challenge[]; refreshToken: number; spotifyAuthorizationError?: string; onExit: () => void }) {
+export function DisplayView({ challenges, refreshToken, winnerMode = DEFAULT_WINNER_MODE, theme = DEFAULT_THEME, spotifyAuthorizationError, onExit }: { challenges: Challenge[]; refreshToken: number; winnerMode?: WinnerMode; theme?: ThemeTokens; spotifyAuthorizationError?: string; onExit: () => void }) {
   const [index, setIndex] = useState(0)
   const [galleryPhotos, setGalleryPhotos] = useState<Submission[]>([])
   const [votingPhotos, setVotingPhotos] = useState<Submission[]>([])
@@ -151,12 +155,19 @@ export function DisplayView({ challenges, refreshToken, spotifyAuthorizationErro
   const previewPhotoIndex = previewPhotoId ? displayedPhotos.findIndex((photo) => photo.id === previewPhotoId) : -1
   const previewChallenge = previewPhoto ? challengeById.get(previewPhoto.challenge_id) : undefined
   const voteTarget = Math.min(3, votingPhotos.length)
-  const challengeWinners = useMemo(() => {
+  const votingOpen = isVotingOpen(winnerMode)
+  // Both modes are pure functions of the entries: the random draw is seeded by
+  // the challenge and its entry set, so revisits and reloads show the same winner.
+  const challengeWinners = useMemo<Array<{ photo: Submission; pick: WinnerPick }>>(() => {
     const photoById = new Map(votingPhotos.map((photo) => [photo.id, photo]))
-    return getWinningPhotoIds(votingPhotos.map((photo) => ({ id: photo.id, votes: photo.voteCount ?? 0 })))
-      .map((photoId) => photoById.get(photoId))
-      .filter((photo): photo is Submission => Boolean(photo))
-  }, [votingPhotos])
+    const resolve = (picks: WinnerPick[]) => picks
+      .map((pick) => { const photo = photoById.get(pick.submissionId); return photo ? { photo, pick } : null })
+      .filter((entry): entry is { photo: Submission; pick: WinnerPick } => Boolean(entry))
+
+    const candidates = toWinnerCandidates(votingPhotos)
+    if (winnerMode !== 'random') return resolve(selectWinners(candidates, winnerMode))
+    return challenge ? resolve(drawRandomWinners(challenge.id, candidates)) : []
+  }, [votingPhotos, winnerMode, challenge])
 
   function move(delta: number) {
     if (!challenges.length) return
@@ -282,19 +293,19 @@ export function DisplayView({ challenges, refreshToken, spotifyAuthorizationErro
     <div className={`display-view ${page === 'gallery' ? 'display-view--gallery' : ''} ${page === 'voting' ? 'display-view--voting' : ''} ${scoresMounted ? 'display-view--scores-revealed' : ''}`}>
       <header className={`display-header ${page === 'gallery' ? 'display-header--gallery' : ''}`}>
         <div className="display-brand-controls">
-          <div className="brand brand--display"><b>HOUSE</b><span>PHOTO HUNT</span></div>
+          <div className="brand brand--display"><b>{activeApp.shortName.toUpperCase()}</b><span>PHOTO HUNT</span></div>
           <button className="display-exit-button" type="button" onClick={onExit}>Exit TV mode</button>
         </div>
         <nav className="display-tabs" aria-label="TV mode views">
           <button type="button" aria-current={page === 'tutorial' ? 'page' : undefined} onClick={() => selectPage('tutorial')}>How to play</button>
           <button type="button" aria-current={page === 'gallery' ? 'page' : undefined} onClick={() => selectPage('gallery')}>Gallery</button>
-          <button type="button" aria-current={page === 'voting' ? 'page' : undefined} onClick={() => selectPage('voting')}>Voting</button>
+          <button type="button" aria-current={page === 'voting' ? 'page' : undefined} onClick={() => selectPage('voting')}>{votingOpen ? 'Voting' : 'Draw'}</button>
         </nav>
         <Timer compact editable />
         {page === 'gallery' && (
           <aside className="display-gallery-join" aria-label="Scan to join the party">
             <div><span>Late to the party?</span><strong>Scan to play</strong></div>
-            <QRCodeSVG value={joinUrl} size={64} bgColor="transparent" fgColor="#f5f8f7" />
+            <QRCodeSVG value={joinUrl} size={64} bgColor="transparent" fgColor={theme.paper} />
           </aside>
         )}
       </header>
@@ -373,7 +384,9 @@ export function DisplayView({ challenges, refreshToken, spotifyAuthorizationErro
           <button type="button" aria-label="Next challenge" onClick={() => move(1)}>→</button>
         </section>
 
-        <section className="display-voting-callout"><span>Voting is open</span><h1>Choose on your phone.</h1><p>{voteTarget ? <>Open <b>Vote</b> and select {voteTarget} {voteTarget === 1 ? 'favorite' : 'favorites'} for this challenge.</> : 'Photos will appear here as guests submit them.'}</p></section>
+        {votingOpen
+          ? <section className="display-voting-callout"><span>Voting is open</span><h1>Choose on your phone.</h1><p>{voteTarget ? <>Open <b>Vote</b> and select {voteTarget} {voteTarget === 1 ? 'favorite' : 'favorites'} for this challenge.</> : 'Photos will appear here as guests submit them.'}</p></section>
+          : <section className="display-voting-callout"><span>No voting tonight</span><h1>Luck picks the winner.</h1><p>{votingPhotos.length ? <>One of these {votingPhotos.length} {votingPhotos.length === 1 ? 'entry' : 'entries'} will be drawn at random.</> : 'Photos will appear here as guests submit them.'}</p></section>}
         {error && <div className="notice notice--error">{error}</div>}
         <div className="photo-grid photo-grid--display">
           {votingPhotos.map((photo, photoIndex) => (
@@ -395,11 +408,11 @@ export function DisplayView({ challenges, refreshToken, spotifyAuthorizationErro
       </>}
 
       {page === 'tutorial' && <div className="display-tutorial-page">
-        <Tutorial variant="tv" />
+        <Tutorial variant="tv" winnerMode={winnerMode} />
         <ChallengeIllustrations challenges={challenges} />
         <aside className="display-tutorial-join" aria-label="Join the party">
           <span className="eyebrow">Join on your phone</span>
-          <QRCodeSVG value={joinUrl} size={220} bgColor="transparent" fgColor="#f5f8f7" />
+          <QRCodeSVG value={joinUrl} size={220} bgColor="transparent" fgColor={theme.paper} />
           <strong>Scan to play</strong>
           <p>No app download needed.</p>
         </aside>
@@ -407,7 +420,7 @@ export function DisplayView({ challenges, refreshToken, spotifyAuthorizationErro
 
       {page === 'voting' && scoresMounted && (
         <section className={`display-score-drawer ${scoresRevealed ? 'display-score-drawer--open' : ''} ${scoresSettled ? 'display-score-drawer--settled' : ''}`} id="final-scores" aria-label="Final scores">
-          <Leaderboard refreshToken={refreshToken} highlightPodium />
+          <Leaderboard refreshToken={refreshToken} winnerMode={winnerMode} highlightPodium />
         </section>
       )}
 
@@ -486,7 +499,7 @@ export function DisplayView({ challenges, refreshToken, spotifyAuthorizationErro
           </div>
           <span>← → to change challenge</span>
         </> : <>
-          <span>House Photo Hunt</span>
+          <span>{activeApp.name}</span>
           <span>Use the tabs to return to the gallery</span>
         </>}
       </footer>
@@ -515,11 +528,11 @@ export function DisplayView({ challenges, refreshToken, spotifyAuthorizationErro
               <button className="button" type="button" autoFocus onClick={() => setChallengeWinnerRevealed(false)}>Close</button>
             </header>
             {challengeWinners.length ? <div className="challenge-winner-grid">
-              {challengeWinners.map((winner) => <figure key={winner.id}>
-                <img src={winner.photoUrl} alt={`Winning submission by ${winner.ownerName ?? 'a guest'}`} />
-                <figcaption><strong>{winner.ownerName ?? 'Guest'}</strong><span>{winner.voteCount ?? 0} {winner.voteCount === 1 ? 'vote' : 'votes'}</span></figcaption>
+              {challengeWinners.map(({ photo, pick }) => <figure key={photo.id}>
+                <img src={photo.photoUrl} alt={`Winning submission by ${photo.ownerName ?? 'a guest'}`} />
+                <figcaption><strong>{photo.ownerName ?? 'Guest'}</strong><span>{pick.voteCount === null ? 'Drawn at random' : `${pick.voteCount} ${pick.voteCount === 1 ? 'vote' : 'votes'}`}</span></figcaption>
               </figure>)}
-            </div> : <div className="challenge-winner-empty"><strong>No winner yet.</strong><p>This challenge has not received any votes.</p></div>}
+            </div> : <div className="challenge-winner-empty"><strong>No winner yet.</strong><p>{winnerMode === 'random' ? 'Nobody has entered this challenge yet.' : 'This challenge has not received any votes.'}</p></div>}
           </section>
         </div>
       )}

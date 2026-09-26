@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { canSubmitVotes, getVoteLimit } from './voting'
+import { canSubmitVotes, getBallotSummary, getVoteLimit } from './voting'
 
 describe('voting policy', () => {
   it('caps ballots at three available submissions', () => {
@@ -15,5 +15,16 @@ describe('voting policy', () => {
     expect(canSubmitVotes(2, 4)).toBe(true)
     expect(canSubmitVotes(3, 4)).toBe(true)
     expect(canSubmitVotes(4, 4)).toBe(false)
+  })
+})
+
+describe('ballot summary', () => {
+  it('explains that votes decide the winner under voting mode', () => {
+    expect(getBallotSummary('voting')).toContain('worth one vote')
+    expect(getBallotSummary()).toBe(getBallotSummary('voting'))
+  })
+
+  it('warns that votes do not decide the winner under random mode', () => {
+    expect(getBallotSummary('random')).toContain('drawn at random')
   })
 })
