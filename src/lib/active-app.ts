@@ -13,3 +13,17 @@ export function getActiveAppId(): AppId {
 export function getAppBaseUrl(appId: AppId, siteBaseUrl: string): string {
   return `${siteBaseUrl}${APPS[appId].slug}/`
 }
+
+// Pages that belong to no app (the front page, developer references, legacy
+// redirects) theme as 'shared' instead of falling back to the house game.
+export type ThemeSurface = AppId | 'shared'
+
+export function getThemeSurfaceFromPathname(pathname: string): ThemeSurface {
+  const segments = pathname.split('/').filter(Boolean)
+  return APP_IDS.find((appId) => segments.includes(APPS[appId].slug)) ?? 'shared'
+}
+
+export function getActiveThemeSurface(): ThemeSurface {
+  if (typeof window === 'undefined') return 'shared'
+  return getThemeSurfaceFromPathname(window.location.pathname)
+}

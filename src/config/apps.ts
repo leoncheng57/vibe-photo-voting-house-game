@@ -14,6 +14,9 @@ export interface AppDefinition {
   kicker: string
   tagline: string
   description: string
+  // A closed app keeps its route, but the front page shows it as closed
+  // instead of offering Play.
+  open: boolean
 }
 
 export const APPS: Record<AppId, AppDefinition> = {
@@ -26,6 +29,7 @@ export const APPS: Record<AppId, AppDefinition> = {
     tagline: 'Find it. Frame it. Fight for it.',
     description:
       'Six photo challenges indoors. Everyone shoots, the room votes anonymously, and the biggest screen in the house runs the reveal.',
+    open: false,
   },
   'bday-hunt': {
     id: 'bday-hunt',
@@ -36,6 +40,7 @@ export const APPS: Record<AppId, AppDefinition> = {
     tagline: 'Get outside. Get the shot.',
     description:
       'The same photo hunt taken outdoors for a birthday: roam further, shoot in daylight, and crown the day over one shared screen.',
+    open: true,
   },
 }
 

@@ -48,6 +48,7 @@ The frontend is React, TypeScript, and Vite on GitHub Pages. Supabase provides a
 - Informational, device-local timer configured from TV mode
 - Optional Spotify Premium playback in TV mode through a resizable Spotify Connect player
 - Built-in tutorial walkthrough for first-time guests
+- Per-app palettes: House Photo Hunt is navy and pool blue, Outdoor Birthday Hunt is springtime plum and moss, and the pages they share (the front page, developer references and legacy redirects) are neutral grey
 - Developer references for the color palette, architecture, database design, security and operations, repository files, and GitHub project progress, plus run-of-show, host password, and photo export runbooks under `/developer/`
 - Anonymous photographer names during voting
 - TV mode with a newest-first two-row scrolling Gallery, challenge-by-challenge Voting, protected challenge-winner reveals, How to Play, QR join codes, keyboard navigation, full-photo previews, and a host-confirmed final scoreboard
