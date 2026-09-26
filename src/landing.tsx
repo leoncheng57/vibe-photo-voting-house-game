@@ -1,10 +1,18 @@
-import { StrictMode } from 'react'
+import { StrictMode, type CSSProperties } from 'react'
 import { createRoot } from 'react-dom/client'
 import { APPS, APP_IDS } from './config/apps'
 import { getAppBaseUrl } from './lib/active-app'
+import { themeDeclarations } from './lib/apply-theme'
+import { SURFACE_THEMES } from './config/settings-defaults'
 import './landing.css'
 
 const appRoot = import.meta.env.BASE_URL
+
+// The front page itself is grey; each game's card previews that game's own
+// palette by redefining the tokens on the card.
+function appCardStyle(appId: keyof typeof SURFACE_THEMES): CSSProperties {
+  return Object.fromEntries(themeDeclarations(SURFACE_THEMES[appId]).map(({ property, value }) => [property, value])) as CSSProperties
+}
 
 export function LandingPage() {
   return (
@@ -42,7 +50,7 @@ export function LandingPage() {
               const app = APPS[appId]
               const playUrl = getAppBaseUrl(appId, appRoot)
               return (
-                <article className={`landing-app landing-app--${app.slug}`} key={app.id}>
+                <article className={`landing-app landing-app--${app.slug}`} key={app.id} style={appCardStyle(appId)}>
                   <span className="landing-app__kicker">{app.kicker}</span>
                   <h3>{app.name}</h3>
                   <p className="landing-app__tagline">{app.tagline}</p>
