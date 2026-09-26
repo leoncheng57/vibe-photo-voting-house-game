@@ -3,7 +3,7 @@ import { QRCodeSVG } from 'qrcode.react'
 import type { Challenge, Submission, ThemeTokens, WinnerMode, WinnerPick } from '../types'
 import { getSubmissions } from '../lib/api'
 import { sortGallerySubmissions } from '../lib/gallery'
-import { drawRandomWinners, selectWinners, toWinnerCandidates } from '../lib/winner'
+import { drawGrandWinner, drawRandomWinners, selectWinners, toWinnerCandidates } from '../lib/winner'
 import { DEFAULT_THEME, DEFAULT_WINNER_MODE } from '../config/settings-defaults'
 import { APPS } from '../config/apps'
 import { getActiveAppId, getAppBaseUrl } from '../lib/active-app'
@@ -39,6 +39,9 @@ export function DisplayView({ challenges, refreshToken, winnerMode = DEFAULT_WIN
   const [hidingScores, setHidingScores] = useState(false)
   const [challengeRevealHolding, setChallengeRevealHolding] = useState(false)
   const [challengeWinnerRevealed, setChallengeWinnerRevealed] = useState(false)
+  // Grand prize: one photo drawn from every entry in every challenge.
+  const [grandOpen, setGrandOpen] = useState(false)
+  const [grandPhotos, setGrandPhotos] = useState<Submission[] | null>(null)
   const scoreCloseTimer = useRef<number | null>(null)
   const scoreHideStartTimer = useRef<number | null>(null)
   const scoreOpenTimer = useRef<number | null>(null)
@@ -117,18 +120,19 @@ export function DisplayView({ challenges, refreshToken, winnerMode = DEFAULT_WIN
         if (previewPhotoId) closePhotoPreview()
         else if (challengeRevealHolding) cancelChallengeRevealHold()
         else if (challengeWinnerRevealed) setChallengeWinnerRevealed(false)
+        else if (grandOpen) setGrandOpen(false)
         else if (confirmingScores) setConfirmingScores(false)
         else if (scoresMounted) hideScores()
         else onExit()
         return
       }
       const delta = event.key === 'ArrowLeft' ? -1 : event.key === 'ArrowRight' ? 1 : 0
-      if (!delta || previewPhotoId || challengeRevealHolding || challengeWinnerRevealed || !challenges.length || page !== 'voting') return
+      if (!delta || previewPhotoId || challengeRevealHolding || challengeWinnerRevealed || grandOpen || !challenges.length || page !== 'voting') return
       setIndex((current) => (current + delta + challenges.length) % challenges.length)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [challengeRevealHolding, challengeWinnerRevealed, challenges.length, confirmingScores, onExit, page, previewPhotoId, scoresMounted])
+  }, [challengeRevealHolding, challengeWinnerRevealed, challenges.length, confirmingScores, grandOpen, onExit, page, previewPhotoId, scoresMounted])
 
   useEffect(() => {
     if (previewPhotoId) {
@@ -168,6 +172,20 @@ export function DisplayView({ challenges, refreshToken, winnerMode = DEFAULT_WIN
     if (winnerMode !== 'random') return resolve(selectWinners(candidates, winnerMode))
     return challenge ? resolve(drawRandomWinners(challenge.id, candidates)) : []
   }, [votingPhotos, winnerMode, challenge])
+
+  const grandWinner = useMemo(() => {
+    if (!grandPhotos) return null
+    const [pick] = drawGrandWinner(toWinnerCandidates(grandPhotos))
+    return pick ? grandPhotos.find((photo) => photo.id === pick.submissionId) ?? null : null
+  }, [grandPhotos])
+
+  function openGrandDraw() {
+    setGrandOpen(true)
+    setGrandPhotos(null)
+    getSubmissions()
+      .then(setGrandPhotos)
+      .catch((reason: Error) => { setGrandOpen(false); setError(reason.message) })
+  }
 
   function move(delta: number) {
     if (!challenges.length) return
@@ -479,6 +497,7 @@ export function DisplayView({ challenges, refreshToken, winnerMode = DEFAULT_WIN
             >
               <span>Hold to reveal winner</span>
             </button>
+            {!votingOpen && <button className="button display-grand-draw" type="button" aria-haspopup="dialog" onClick={openGrandDraw}>Grand prize</button>}
             <button
               className="button button--dark display-final-score-toggle"
               type="button"
@@ -517,6 +536,25 @@ export function DisplayView({ challenges, refreshToken, winnerMode = DEFAULT_WIN
               <button className="button button--dark">Reveal scores</button>
             </div>
           </form>
+        </div>
+      )}
+
+      {grandOpen && (
+        <div className="name-dialog challenge-winner-dialog" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setGrandOpen(false) }}>
+          <section role="dialog" aria-modal="true" aria-labelledby="grand-winner-title">
+            <header>
+              <div><span className="eyebrow">One photo from every challenge</span><h2 id="grand-winner-title">Grand prize</h2></div>
+              <button className="button" type="button" autoFocus onClick={() => setGrandOpen(false)}>Close</button>
+            </header>
+            {!grandPhotos ? <div className="challenge-winner-empty"><strong>Drawing…</strong></div>
+              : grandWinner ? <div className="challenge-winner-grid">
+                <figure>
+                  <img src={grandWinner.photoUrl} alt={`Grand prize submission by ${grandWinner.ownerName ?? 'a guest'}`} />
+                  <figcaption><strong>{grandWinner.ownerName ?? 'Guest'}</strong><span>{challengeById.get(grandWinner.challenge_id)?.title ?? 'Challenge'} · drawn from {grandPhotos.length} {grandPhotos.length === 1 ? 'entry' : 'entries'}</span></figcaption>
+                </figure>
+              </div>
+              : <div className="challenge-winner-empty"><strong>No entries yet.</strong><p>Nobody has entered a challenge.</p></div>}
+          </section>
         </div>
       )}
 
