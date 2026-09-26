@@ -37,14 +37,18 @@ Use the existing development server when it is already running. Otherwise:
 npm run dev -- --host 127.0.0.1
 ```
 
-For views that require submissions, configure the local app against a disposable Supabase project with synthetic data. If a safe demo session is already open in cmux, it can be used without creating new records.
+For views that require submissions, configure the local app against a disposable Supabase project with synthetic data.
+
+The four game captures (challenges, voting, TV mode, leaderboard) show the house party's blue palette, so capture them at `/house-party/`. The house party is closed (`open: false` in `src/config/apps.ts`), and a closed app never uses the shared `VITE_SUPABASE_*` pair, so point it at the disposable project with `VITE_SUPABASE_URL_HOUSE_PARTY` and `VITE_SUPABASE_PUBLISHABLE_KEY_HOUSE_PARTY` in `.env.local`. Never capture game views from `/bday-hunt/`, which runs against the live birthday project.
+
+The three developer captures need no data and render in the neutral grey palette shared by every page outside an app. If a safe demo session is already open in cmux, it can be used without creating new records.
 
 ## Open A Browser Surface
 
 Open the guest home route in a dedicated browser surface:
 
 ```bash
-cmux browser open "http://127.0.0.1:5173/play/" --focus false
+cmux browser open "http://127.0.0.1:5173/house-party/" --focus false
 ```
 
 The command returns a dynamic surface reference such as `surface:19`. Use that value for subsequent commands and confirm the loaded page:
@@ -79,7 +83,7 @@ For TV mode, use a browser surface in a dedicated cmux window so the browser rec
 ```bash
 cmux new-window
 cmux --id-format both tree --all
-cmux new-surface --type browser --pane <pane-uuid> --window <window-uuid> --url "http://127.0.0.1:5173/play/" --focus true
+cmux new-surface --type browser --pane <pane-uuid> --window <window-uuid> --url "http://127.0.0.1:5173/house-party/" --focus true
 ```
 
 Target sizes are approximate. Verify that mobile media queries are active and that the TV layout remains on one screen.
@@ -205,6 +209,10 @@ cmux browser --surface <surface> screenshot --out "$(pwd)/docs/images/github-pri
 ```bash
 cmux browser --surface <surface> screenshot --out "$(pwd)/docs/images/developer-palette-desktop.png" --json
 ```
+
+## Headless Chrome Fallback
+
+The developer captures can be taken without cmux by driving headless Chrome over the DevTools protocol: launch it with `--headless=new --remote-debugging-port=<port> --hide-scrollbars` and a throwaway `--user-data-dir`, then call `Emulation.setDeviceMetricsOverride` (1440 x 900 at 1x for the palette; 1206 x 828 at 2x for the system reference and GitHub progress), `Page.navigate`, and `Page.captureScreenshot`. For GitHub progress, scroll `.progress-lists > section` into view and back off by the sticky header's height. Keep the script outside the repository.
 
 ## Playwright Fallback
 

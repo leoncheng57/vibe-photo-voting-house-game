@@ -31,7 +31,7 @@ The frontend is React, TypeScript, and Vite on GitHub Pages. Supabase provides a
 
 ![Desktop developer system reference showing architecture documentation and navigation](docs/images/developer-system-desktop.png)
 
-![Desktop developer palette showing the House Photo Hunt color system](docs/images/developer-palette-desktop.png)
+![Desktop developer palette showing the shared colour registry and its three palettes](docs/images/developer-palette-desktop.png)
 
 ### GitHub project priorities
 
