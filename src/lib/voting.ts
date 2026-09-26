@@ -11,7 +11,12 @@ export function canSubmitVotes(selectedCount: number, submissionCount: number) {
   return submissionCount > 0 && selectedCount >= 0 && selectedCount <= limit
 }
 
-// Voting stays open in every mode; only what a ballot decides changes.
+// Under 'random' nothing a ballot says can change the result, so the vote
+// screen and every link to it are hidden rather than left open as decoration.
+export function isVotingOpen(winnerMode: WinnerMode = DEFAULT_WINNER_MODE) {
+  return areVoteScoresMeaningful(winnerMode)
+}
+
 export function getBallotSummary(winnerMode: WinnerMode = DEFAULT_WINNER_MODE) {
   return areVoteScoresMeaningful(winnerMode)
     ? 'Submit up to three favorites. Every choice is worth one vote, your own photo is fair game, and confirming zero votes clears your ballot.'

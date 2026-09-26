@@ -80,3 +80,59 @@ export function selectWinners(
 export function areVoteScoresMeaningful(mode: WinnerMode = DEFAULT_WINNER_MODE): boolean {
   return mode !== 'random'
 }
+
+// A random draw has to give the same answer on every render, every reload and
+// every screen, or the TV reveals one winner and a revisit shows another. The
+// seed is the challenge plus its exact set of entries, so the pick only changes
+// when an entry is added, replaced or removed.
+export function getRandomDrawSeed(challengeId: number, candidateIds: string[]): string {
+  return `${challengeId}:${[...candidateIds].sort().join(',')}`
+}
+
+// FNV-1a into mulberry32: tiny, dependency-free, and uniform enough to pick
+// one photo out of a party's worth.
+export function seededRandom(seed: string): RandomSource {
+  let state = 0x811c9dc5
+  for (let index = 0; index < seed.length; index += 1) {
+    state ^= seed.charCodeAt(index)
+    state = Math.imul(state, 0x01000193)
+  }
+  return () => {
+    state = (state + 0x6d2b79f5) | 0
+    let value = Math.imul(state ^ (state >>> 15), 1 | state)
+    value = (value + Math.imul(value ^ (value >>> 7), 61 | value)) ^ value
+    return ((value ^ (value >>> 14)) >>> 0) / 4294967296
+  }
+}
+
+// Sorted first: the draw is an index, and the TV and the leaderboard receive the
+// same entries in different orders.
+export function drawRandomWinners(challengeId: number, candidates: WinnerCandidate[]): WinnerPick[] {
+  const ordered = [...candidates].sort((left, right) => (left.id < right.id ? -1 : left.id > right.id ? 1 : 0))
+  const seed = getRandomDrawSeed(challengeId, ordered.map((candidate) => candidate.id))
+  return selectWinners(ordered, 'random', seededRandom(seed))
+}
+
+export interface DrawEntry {
+  id: string
+  challenge_id: number
+  user_id: string
+}
+
+// Random wins are never stored, so the leaderboard replays the same draw the
+// TV shows for every challenge and counts the results per guest.
+export function countRandomDrawWins(entries: DrawEntry[]): Map<string, number> {
+  const byChallenge = new Map<number, DrawEntry[]>()
+  for (const entry of entries) {
+    byChallenge.set(entry.challenge_id, [...(byChallenge.get(entry.challenge_id) ?? []), entry])
+  }
+  const wins = new Map<string, number>()
+  for (const [challengeId, challengeEntries] of byChallenge) {
+    const ownerById = new Map(challengeEntries.map((entry) => [entry.id, entry.user_id]))
+    for (const pick of drawRandomWinners(challengeId, challengeEntries.map((entry) => ({ id: entry.id })))) {
+      const owner = ownerById.get(pick.submissionId)
+      if (owner) wins.set(owner, (wins.get(owner) ?? 0) + 1)
+    }
+  }
+  return wins
+}
