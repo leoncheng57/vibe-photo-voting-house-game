@@ -4,6 +4,7 @@ import type { Challenge, Submission } from '../types'
 import { getSubmissions } from '../lib/api'
 import { sortGallerySubmissions } from '../lib/gallery'
 import { getWinningPhotoIds } from '../lib/scoring'
+import { getActiveAppId, getAppBaseUrl } from '../lib/active-app'
 import { Timer } from './Timer'
 import { Tutorial } from './Tutorial'
 import { Leaderboard } from './Leaderboard'
@@ -48,7 +49,7 @@ export function DisplayView({ challenges, refreshToken, spotifyAuthorizationErro
   const galleryHasFocus = useRef(false)
   const challenge = challenges[index]
   const challengeById = useMemo(() => new Map(challenges.map((item) => [item.id, item])), [challenges])
-  const joinUrl = useMemo(() => `${window.location.origin}${import.meta.env.BASE_URL}play/`, [])
+  const joinUrl = useMemo(() => `${window.location.origin}${getAppBaseUrl(getActiveAppId(), import.meta.env.BASE_URL)}`, [])
 
   useEffect(() => {
     if (page !== 'gallery') return
