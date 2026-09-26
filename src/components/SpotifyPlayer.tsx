@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
+import { APPS } from '../config/apps'
+import { getActiveAppId } from '../lib/active-app'
 import {
   beginSpotifyAuthorization,
   clearSpotifyAuthorization,
@@ -93,7 +95,7 @@ export function SpotifyPlayer({ authorizationError = '' }: { authorizationError?
     loadSpotifySdk().then(async () => {
       if (cancelled || !mounted.current || !window.Spotify) return
       currentPlayer = new window.Spotify.Player({
-        name: 'House Photo Hunt TV',
+        name: `${APPS[getActiveAppId()].name} TV`,
         enableMediaSession: true,
         getOAuthToken: (callback) => {
           getSpotifyAccessToken()

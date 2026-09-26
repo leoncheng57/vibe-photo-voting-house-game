@@ -1,6 +1,10 @@
 import type { WinnerMode } from '../types'
 import { DEFAULT_WINNER_MODE } from '../config/settings-defaults'
 import { isVotingOpen } from '../lib/voting'
+import { APPS } from '../config/apps'
+import { getActiveAppId } from '../lib/active-app'
+
+const activeApp = APPS[getActiveAppId()]
 
 interface Props {
   onBack?: () => void
@@ -11,7 +15,7 @@ interface Props {
 const votingSteps = [
   {
     number: '01',
-    title: 'Join the house',
+    title: `Join ${activeApp.copy.place}`,
     copy: 'Open the link or scan the TV code, enter the party passphrase from the host, then pick a unique party name. No email or app download is needed.',
     note: 'Keep this browser open: your guest identity lives on this device.',
   },

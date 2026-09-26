@@ -313,7 +313,7 @@ export function DisplayView({ challenges, refreshToken, winnerMode = DEFAULT_WIN
       {page === 'gallery' && (
         <section className="display-gallery-page" aria-label="Live party gallery">
           <header className="display-gallery-intro">
-            <div><span className="eyebrow">Newest first · live from the house</span><h1>Every shot. One gallery.</h1></div>
+            <div><span className="eyebrow">Newest first · live from {activeApp.copy.place}</span><h1>Every shot. One gallery.</h1></div>
             <div className="display-gallery-motion">
               <p>{galleryPhotos.length} photos across {challenges.length} challenges. Two rows move continuously to the right.</p>
               <button
