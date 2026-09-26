@@ -32,6 +32,9 @@ export function GameSettings({ onBack, onSettingsChange }: Props) {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  // Kept apart from save errors: until a load succeeds, hostPinSet is unknown,
+  // not false, so neither the "No host PIN yet" state nor the form can show.
+  const [loadError, setLoadError] = useState('')
   const [status, setStatus] = useState('')
   const [hostPinSqlCopied, setHostPinSqlCopied] = useState(false)
 
@@ -56,6 +59,7 @@ export function GameSettings({ onBack, onSettingsChange }: Props) {
   const load = useCallback(async () => {
     setLoading(true)
     setError('')
+    setLoadError('')
     try {
       const record = await getGameSettings()
       const next: GameSettingsValue = { theme: record.theme, winnerMode: record.winnerMode }
@@ -63,8 +67,8 @@ export function GameSettings({ onBack, onSettingsChange }: Props) {
       setDraft(next)
       setHostPinSet(record.hostPinSet)
       onSettingsChangeRef.current?.(next)
-    } catch (loadError) {
-      setError(errorMessage(loadError, 'Could not load the party settings.'))
+    } catch (caught) {
+      setLoadError(errorMessage(caught, 'Could not load the party settings.'))
     } finally {
       setLoading(false)
     }
@@ -129,7 +133,17 @@ export function GameSettings({ onBack, onSettingsChange }: Props) {
 
       {loading && <p className="settings-loading">Loading the party settings…</p>}
 
-      {!loading && !hostPinSet && (
+      {!loading && loadError && (
+        <section className="empty-state settings-empty">
+          <h2>Couldn’t load the settings</h2>
+          <p className="notice notice--error" role="alert">{loadError}</p>
+          <button type="button" className="button" onClick={() => void load()}>
+            Try again
+          </button>
+        </section>
+      )}
+
+      {!loading && !loadError && !hostPinSet && (
         <section className="empty-state settings-empty">
           <h2>No host PIN yet</h2>
           <p>
@@ -147,7 +161,7 @@ export function GameSettings({ onBack, onSettingsChange }: Props) {
         </section>
       )}
 
-      {!loading && hostPinSet && (
+      {!loading && !loadError && hostPinSet && (
         <form className="settings-form" onSubmit={(event) => void save(event)}>
           <section className="settings-section">
             <h2>Winner mode</h2>
