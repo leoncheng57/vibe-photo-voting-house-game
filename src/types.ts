@@ -74,9 +74,9 @@ export interface LeaderboardEntry {
   wins: number
 }
 
-export type View = 'challenges' | 'tutorial' | 'vote' | 'display'
+export type WinnerMode = 'voting' | 'random'
 
-// One palette's worth of design tokens. Keys are stable; see
+// Host-configurable palette. Keys are stable contract; see
 // config/settings-defaults.ts for the CSS custom property each one maps to.
 export interface ThemeTokens {
   ink: string
@@ -89,3 +89,19 @@ export interface ThemeTokens {
   accentBlue: string
   accentGreen: string
 }
+
+export interface GameSettings {
+  theme: ThemeTokens
+  winnerMode: WinnerMode
+}
+
+// A winner is whoever the active strategy picks; under 'voting' that is the
+// top-voted photo, under 'random' it is a uniform draw over entrants.
+export interface WinnerPick {
+  submissionId: string
+  ownerName: string | null
+  voteCount: number | null
+  mode: WinnerMode
+}
+
+export type View = 'challenges' | 'tutorial' | 'vote' | 'display' | 'settings'

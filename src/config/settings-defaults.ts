@@ -1,4 +1,4 @@
-// Canonical source for every themeable token and its per-surface defaults.
+// Canonical source for every themeable token, its per-surface defaults, and the game-mode defaults.
 //
 // The seven-token :root block was copy-pasted into four stylesheets and had
 // already drifted (landing.css was missing --ice and --alert; navigation.css
@@ -6,7 +6,7 @@
 // token name or default value is declared; stylesheets consume them at runtime
 // through applyTheme.
 
-import type { ThemeTokens } from '../types'
+import type { GameSettings, ThemeTokens, WinnerMode } from '../types'
 import { getActiveThemeSurface, type ThemeSurface } from '../lib/active-app'
 
 export const THEME_TOKEN_NAMES = [
@@ -83,3 +83,12 @@ export const SURFACE_THEMES: Record<ThemeSurface, ThemeTokens> = {
 // Resolved once per page load: every runtime consumer (applyTheme, the settings
 // RPC merge, the palette page) reads the palette of the page it is running on.
 export const DEFAULT_THEME: ThemeTokens = SURFACE_THEMES[getActiveThemeSurface()]
+
+export const WINNER_MODES: readonly WinnerMode[] = ['voting', 'random'] as const
+
+export const DEFAULT_WINNER_MODE: WinnerMode = 'voting'
+
+export const DEFAULT_GAME_SETTINGS: GameSettings = {
+  theme: DEFAULT_THEME,
+  winnerMode: DEFAULT_WINNER_MODE,
+}

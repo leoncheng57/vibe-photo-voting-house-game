@@ -1,0 +1,56 @@
+{
+  "goal": "Make palette and winner-mode host-configurable via in-app settings backed by Supabase, landing as stacked PRs against the existing repo",
+  "branch": "claude/background-parallel-tasks-xvug68",
+  "contract_files": [
+    "src/types.ts",
+    "src/config/settings-defaults.ts",
+    "src/lib/api.ts",
+    "src/lib/supabase.ts",
+    "src/App.tsx",
+    "src/components/SiteNavigation.tsx",
+    "src/components/DisplayView.tsx",
+    "supabase/migrations/015_game_settings.sql"
+  ],
+  "parcels": [
+    {
+      "id": "P1",
+      "title": "Theme layer: collapse 4 duplicated :root blocks, apply tokens at runtime, purple palette",
+      "mode": "shared",
+      "owns": ["src/styles.css","src/landing.css","src/navigation.css","src/developer-progress.css","src/developer-system.css","src/components/Palette.tsx","src/lib/apply-theme.ts","src/lib/apply-theme.test.ts"],
+      "reads": ["src/types.ts","src/config/settings-defaults.ts"],
+      "done": "npm test && npm run lint && npm run build",
+      "depends_on": [],
+      "brief": "see parcel-brief template"
+    },
+    {
+      "id": "P2",
+      "title": "Winner mode: voting | random behind one strategy interface",
+      "mode": "shared",
+      "owns": ["src/lib/winner.ts","src/lib/winner.test.ts","src/lib/scoring.ts","src/lib/scoring.test.ts","src/lib/voting.ts","src/lib/voting.test.ts","src/components/Leaderboard.tsx","src/components/VoteView.tsx"],
+      "reads": ["src/types.ts","src/config/settings-defaults.ts","src/lib/api.ts"],
+      "done": "npm test && npm run lint && npm run build",
+      "depends_on": [],
+      "brief": "see parcel-brief template"
+    },
+    {
+      "id": "P3",
+      "title": "Host settings UI (palette pickers + winner mode toggle)",
+      "mode": "shared",
+      "owns": ["src/components/GameSettings.tsx","src/lib/settings.ts","src/lib/settings.test.ts"],
+      "reads": ["src/types.ts","src/config/settings-defaults.ts","src/lib/api.ts"],
+      "done": "npm test && npm run lint && npm run build",
+      "depends_on": [],
+      "brief": "see parcel-brief template"
+    },
+    {
+      "id": "P4",
+      "title": "Fresh-Supabase runbook, Stephen handoff steps, theme-color meta tags",
+      "mode": "shared",
+      "owns": ["README.md","AGENTS.md",".env.example","index.html","home/index.html","play/index.html","developer/**/index.html"],
+      "reads": ["supabase/migrations/**"],
+      "done": "npm run build",
+      "depends_on": [],
+      "brief": "see parcel-brief template"
+    }
+  ]
+}
