@@ -14,6 +14,7 @@ House Party Photo Hunt is a mobile-first party photo challenge. The frontend is 
 - `src/lib/zip.ts`: dependency-free store-only ZIP writer for the originals export (unit tested)
 - `src/lib/scoring.ts`: client-side vote ranking and challenge-winner helpers
 - `src/types.ts`: shared application types
+- `src/config/settings-defaults.ts`: canonical theme token names, their CSS custom properties, the default palette, and the winner-mode defaults
 - `src/styles.css`: main application styles and responsive behavior
 - `src/config/settings-defaults.ts` and `src/lib/apply-theme.ts`: the nine-token colour registry and its three palettes — house-party blue, bday-hunt springtime purple, grey for shared pages. The page's path picks the palette at load; stylesheets fall back to the grey
 - `src/developer-system.tsx` and `src/developer-system.css`: developer system reference page
@@ -57,6 +58,9 @@ Run tests, lint, and build before considering a change complete.
 - Voting submits submission IDs plus the immutable game paths the voter saw; row locks serialize replacement against ballot creation, and stale paths are rejected after activation.
 - Realtime subscriptions cover `submissions` and `votes`, not Storage changes.
 - The timer is informational and device-local. It does not lock uploads or voting.
+- Game settings (nine-token theme plus winner mode) live on the single-row `public.party_settings` table, shared by every device. Members read them through `get_game_settings()`; writes go through `update_game_settings()`, which verifies a bcrypt host PIN because the app has no host role. `winner_mode` is constrained to `voting` or `random` in the database — keep client validation in step with that constraint.
+- `src/config/settings-defaults.ts` is the only place a theme token name or default value is declared. Do not redeclare the `:root` block in a stylesheet, and do not add a token without adding its CSS custom property to `THEME_CSS_VARIABLES`.
+- The host PIN follows the passphrase rule: never store or log the plaintext, never accept it in a URL or query parameter, and set or rotate it only through `set_host_pin()` in the SQL Editor. `set_host_pin` is revoked from `anon` and `authenticated`; the PIN hash is never returned to a client (`get_game_settings()` exposes only `host_pin_set`).
 - Apply Supabase migrations in numeric order. Add a new migration for schema changes; do not rewrite migrations that may already have been applied.
 
 ## Editing Rules
@@ -69,6 +73,7 @@ Run tests, lint, and build before considering a change complete.
 - Do not edit or commit generated output in `dist/`, `.vite/`, or `node_modules/`.
 - Add or update tests for non-trivial scoring or data transformation behavior.
 - Update README operational guidance whenever setup, migrations, deployment, or cleanup behavior changes.
+- Keep the README migration list complete and in numeric order whenever a migration is added; it is the only fresh-project setup path for a host without the Supabase CLI.
 
 ## GitHub Issue Triage
 

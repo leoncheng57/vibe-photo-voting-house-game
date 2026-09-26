@@ -2,6 +2,8 @@
 // breaks every invite and blog link already published against it — add a
 // LEGACY_ROUTE_REDIRECTS entry instead of changing a slug in place.
 
+import type { WinnerMode } from '../types'
+
 export const APP_IDS = ['house-party', 'bday-hunt'] as const
 
 export type AppId = typeof APP_IDS[number]
@@ -17,6 +19,15 @@ export interface AppDefinition {
   // A closed app keeps its route, but the front page shows it as closed
   // instead of offering Play.
   open: boolean
+  // Wording that names the occasion, so neither game borrows the other's.
+  copy: {
+    stripe: string
+    place: string
+    champion: string
+  }
+  // Used only until the party's own settings load (and before a guest has
+  // joined, when they cannot be read). The party_settings row stays authoritative.
+  defaultWinnerMode: WinnerMode
 }
 
 export const APPS: Record<AppId, AppDefinition> = {
@@ -30,6 +41,8 @@ export const APPS: Record<AppId, AppDefinition> = {
     description:
       'Six photo challenges indoors. Everyone shoots, the room votes anonymously, and the biggest screen in the house runs the reveal.',
     open: false,
+    copy: { stripe: 'HOUSEWARMING · ONE NIGHT ONLY', place: 'the house', champion: 'house champion' },
+    defaultWinnerMode: 'voting',
   },
   'bday-hunt': {
     id: 'bday-hunt',
@@ -41,6 +54,8 @@ export const APPS: Record<AppId, AppDefinition> = {
     description:
       'The same photo hunt taken outdoors for a birthday: roam further, shoot in daylight, and crown the day over one shared screen.',
     open: true,
+    copy: { stripe: 'BIRTHDAY · ONE DAY ONLY', place: 'the hunt', champion: 'birthday champion' },
+    defaultWinnerMode: 'random',
   },
 }
 

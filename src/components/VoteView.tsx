@@ -1,17 +1,19 @@
 import { useEffect, useState } from 'react'
-import type { Challenge, Submission } from '../types'
+import type { Challenge, Submission, WinnerMode } from '../types'
 import { getSubmissions, getVotes, submitVotes } from '../lib/api'
 import { errorMessage } from '../lib/errors'
-import { canSubmitVotes, getVoteLimit } from '../lib/voting'
+import { canSubmitVotes, getBallotSummary, getVoteLimit } from '../lib/voting'
+import { DEFAULT_WINNER_MODE } from '../config/settings-defaults'
 
 interface Props {
   challenges: Challenge[]
   userId: string
   refreshToken: number
   onChanged: () => void
+  winnerMode?: WinnerMode
 }
 
-export function VoteView({ challenges, userId, refreshToken, onChanged }: Props) {
+export function VoteView({ challenges, userId, refreshToken, onChanged, winnerMode = DEFAULT_WINNER_MODE }: Props) {
   const [challengeId, setChallengeId] = useState(challenges[0]?.id ?? 1)
   const [submissions, setSubmissions] = useState<Submission[]>([])
   const [selected, setSelected] = useState<string[]>([])
@@ -72,7 +74,7 @@ export function VoteView({ challenges, userId, refreshToken, onChanged }: Props)
           <span className="eyebrow">02 / Choose your favorites</span>
           <h2>Up to three.<br />Make them count.</h2>
         </div>
-        <p>Submit up to three favorites. Every choice is worth one vote, your own photo is fair game, and confirming zero votes clears your ballot.</p>
+        <p>{getBallotSummary(winnerMode)}</p>
       </header>
 
       <div className="challenge-tabs" aria-label="Choose a challenge">

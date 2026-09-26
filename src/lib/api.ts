@@ -1,6 +1,7 @@
 import type { User } from '@supabase/supabase-js'
-import type { Challenge, LeaderboardEntry, OriginalCleanupStatus, OriginalRecord, OriginalStatus, PartyStatus, Profile, StorageUsage, Submission } from '../types'
+import type { Challenge, GameSettings, LeaderboardEntry, OriginalCleanupStatus, OriginalRecord, OriginalStatus, PartyStatus, Profile, StorageUsage, Submission, ThemeTokens, WinnerMode } from '../types'
 import type { PreparedPhoto } from './images'
+import { DEFAULT_THEME, DEFAULT_WINNER_MODE } from '../config/settings-defaults'
 import { supabase } from './supabase'
 
 function client() {
@@ -316,4 +317,31 @@ export async function getLeaderboard(): Promise<LeaderboardEntry[]> {
     .order('display_name')
   if (error) throw error
   return data
+}
+
+export interface GameSettingsRecord extends GameSettings {
+  hostPinSet: boolean
+}
+
+export async function getGameSettings(): Promise<GameSettingsRecord> {
+  const { data, error } = await client().rpc('get_game_settings').single()
+  if (error) throw error
+  const row = data as { theme: Partial<ThemeTokens> | null; winner_mode: WinnerMode; host_pin_set: boolean }
+  return {
+    theme: { ...DEFAULT_THEME, ...(row.theme ?? {}) },
+    winnerMode: row.winner_mode ?? DEFAULT_WINNER_MODE,
+    hostPinSet: row.host_pin_set,
+  }
+}
+
+export async function updateGameSettings(
+  hostPin: string,
+  settings: { theme?: ThemeTokens; winnerMode?: WinnerMode },
+): Promise<void> {
+  const { error } = await client().rpc('update_game_settings', {
+    host_pin: hostPin,
+    new_theme: settings.theme ?? null,
+    new_winner_mode: settings.winnerMode ?? null,
+  })
+  if (error) throw error
 }
